@@ -25,7 +25,7 @@ namespace TurbineStatus
             uiform.RestoreStartupLocation();
             uiform.RestoreSplitterDistance();
             uiform.Show();
-
+            uiform.SendToBack();
 
             loopratehz = 1;
 
