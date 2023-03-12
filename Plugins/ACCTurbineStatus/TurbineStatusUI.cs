@@ -238,7 +238,13 @@ namespace TurbineStatus
                     gauges[i].Value0 = val;
                 }
             }
-            
+
+            // Disable controls when armed
+            cmb_mode.Enabled = !Host.cs.armed;
+            but_setmode.Enabled = !Host.cs.armed;
+            but_mainpump.Enabled = !led_mainpump.On || !Host.cs.armed;
+            but_empump.Enabled = !led_empump.On || !Host.cs.armed;
+
         }
 
         // Force the window to minimize instead of closing
@@ -354,7 +360,10 @@ namespace TurbineStatus
 
         private void but_totalstop_Click(object sender, EventArgs e)
         {
-            send_scripting(6, led_totalstop.On ? 0 : 2);
+            if (CustomMessageBox.Show("Are you sure you want to " + (led_totalstop.On ? "enable" : "DISABLE") + " the engine?", "Emergency Stop", MessageBoxButtons.YesNo) == (int)DialogResult.Yes)
+            {
+                send_scripting(6, led_totalstop.On ? 0 : 2);
+            }
         }
     }
 

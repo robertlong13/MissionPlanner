@@ -1586,7 +1586,7 @@
             this.but_totalstop.Name = "but_totalstop";
             this.but_totalstop.Size = new System.Drawing.Size(250, 35);
             this.but_totalstop.TabIndex = 16;
-            this.but_totalstop.Text = "Total Stop";
+            this.but_totalstop.Text = "Emergency Stop";
             this.but_totalstop.UseVisualStyleBackColor = true;
             this.but_totalstop.Click += new System.EventHandler(this.but_totalstop_Click);
             // 
