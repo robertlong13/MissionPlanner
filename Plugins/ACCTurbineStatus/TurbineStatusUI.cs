@@ -21,9 +21,14 @@ namespace TurbineStatus
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // Settings from the config file of all 8 gauges
-        public static List<GaugeSettings> gauge_settings;
+        List<GaugeSettings> gauge_settings;
 
-        public List<object> gauge_variables;
+        PropertyInfo[] gauge_value_sources = new PropertyInfo[8];
+        AGaugeApp.AGauge[] gauges = new AGaugeApp.AGauge[8];
+
+        PropertyInfo relay_status;
+        PropertyInfo ecu_mode;
+        PropertyInfo turbine_mode;
 
         public TurbineStatusUI(PluginHost host)
         {
@@ -36,6 +41,11 @@ namespace TurbineStatus
             // Select the Stop mode by default
             cmb_mode.SelectedIndex = cmb_mode.FindStringExact("Stop");
 
+            // Find or reserve customfields for relay_status, ecu_mode, and turbine_mode
+            relay_status = get_customfield("MAV_TS100RELAY");
+            ecu_mode = get_customfield("MAV_TS100_ECU");
+            turbine_mode = get_customfield("MAV_TS100_TURB");
+            
             LoadSettings();
 
             // Set up the gauges
@@ -64,6 +74,18 @@ namespace TurbineStatus
                 g.RangesEnabled[2] = !(gs.red_min is null) || !(gs.red_max is null);
                 g.RangesStartValue[2] = (gs.red_min is null) ? gs.min : (float)gs.red_min;
                 g.RangesEndValue[2] = (gs.red_max is null) ? gs.max : (float)gs.red_max;
+
+                // Assign the variable if it exists in CurrentState (otherwise, it will remain null)4
+                gauge_value_sources[i] = Host.cs.GetType().GetProperty(gs.variable);
+                if (gauge_value_sources[i] is null)
+                {
+                    gauge_value_sources[i] = get_customfield(gs.variable);
+                }
+
+                gauges[i] = g;
+
+                gs.variable_offset = (gs.variable_offset is null) ? 0 : gs.variable_offset;
+                gs.variable_scale = (gs.variable_scale is null) ? 1 : gs.variable_scale;
             }
         }
 
@@ -93,6 +115,33 @@ namespace TurbineStatus
 
         }
 
+        // Searches if a customfield has already been assigned to this name.
+        // If it has, it returns the customfield object
+        // If not, it reserves one, and returns the newly-reserved customfield object
+        private PropertyInfo get_customfield(string name)
+        {
+            string cfname = "";
+            if (CurrentState.custom_field_names.ContainsValue(name))
+            {
+                cfname = CurrentState.custom_field_names.First(x => x.Value == name).Key;
+            }
+            else
+            {
+                for (int j = 0; j < 20; j++)
+                {
+                    if (!CurrentState.custom_field_names.ContainsKey($"customfield{j}"))
+                    {
+                        cfname = $"customfield{j}";
+                        CurrentState.custom_field_names[cfname] = name;
+                        break;
+                    }
+                }
+            }
+            
+            return Host.cs.GetType().GetProperty(cfname);
+
+        }
+
         private static readonly Dictionary<int, string> disp_ecu_modes = new Dictionary<int, string>
         {
             { 0, "Stop" },
@@ -115,8 +164,15 @@ namespace TurbineStatus
         };
 
         DateTime lastmessagetime;
-        private void timer1_Tick(object sender, EventArgs e)
+        // Updates the UI with the latest data
+        private void ui_timer_Tick(object sender, EventArgs e)
         {
+            // Don't bother doing anything unless we are connected
+            if ((Host.comPort.BaseStream == null || !Host.comPort.BaseStream.IsOpen))
+            {
+                return;
+            }
+
             var messagetime = Host.cs.messages.LastOrDefault().time;
             if (lastmessagetime != messagetime)
             {
@@ -141,43 +197,47 @@ namespace TurbineStatus
             }
 
             // Update states sent in custom fields
-            foreach (KeyValuePair<string, string> kvp in CurrentState.custom_field_names)
-            {
-                // Update the relay LEDs
-                if (kvp.Value == "MAV_TS100RELAY")
-                {
-                    // Get the value of the custom field by name
-                    UInt16 flags = (UInt16)((float)Host.cs.GetPropertyOrField(kvp.Key));
+            // Update the relay LEDs
+            UInt16 flags = (UInt16)((float)relay_status.GetValue(Host.cs));
 
-                    led_alternatorconn.On = ((flags) & 0x1) > 0;
-                    led_oilcooler.On = ((flags >> 1) & 0x1) > 0;
-                    led_empump.On = ((flags >> 2) & 0x1) > 0;
-                    led_mainpump.On = ((flags >> 3) & 0x1) > 0;
-                    led_alternator.On = ((flags >> 4) & 0x1) > 0;
-                    led_totalstop.On = ((flags >> 5) & 0x3) > 0; // Either of the two bits can be set
-                }
-                else if (kvp.Value == "MAV_TS100_ECU")
+            led_alternatorconn.On = ((flags) & 0x1) > 0;
+            led_oilcooler.On = ((flags >> 1) & 0x1) > 0;
+            led_empump.On = ((flags >> 2) & 0x1) > 0;
+            led_mainpump.On = ((flags >> 3) & 0x1) > 0;
+            led_alternator.On = ((flags >> 4) & 0x1) > 0;
+            led_totalstop.On = ((flags >> 5) & 0x3) > 0; // Either of the two bits can be set
+
+            // Update the ECU Mode
+            string mode = "UNKNOWN";
+            int n = (int)((float)ecu_mode.GetValue(Host.cs));
+            if (disp_ecu_modes.ContainsKey(n))
+            {
+                mode = disp_ecu_modes[n];
+            }
+            lbl_ecumode.Text = "ECU: " + mode;
+
+            // Update the Turbine Mode
+            mode = "UNKNOWN";
+            n = (int)((float)turbine_mode.GetValue(Host.cs));
+            if (disp_turbine_modes.ContainsKey(n))
+            {
+                mode = disp_turbine_modes[n];
+            }
+            lbl_turbinemode.Text = "Turbine: " + mode;
+
+            // Update the gauges
+            for (int i = 0; i < gauges.Length; i++)
+            {
+                if (gauge_value_sources[i] != null)
                 {
-                    string mode = "UNKNOWN";
-                    int n = (int)((float)Host.cs.GetPropertyOrField(kvp.Key));
-                    if (disp_ecu_modes.ContainsKey(n))
-                    {
-                        mode = disp_ecu_modes[n];
-                    }
-                    lbl_ecumode.Text = "ECU: " + mode;
-                }
-                else if (kvp.Value == "MAV_TS100_TURB")
-                {
-                    string mode = "UNKNOWN";
-                    int n = (int)((float)Host.cs.GetPropertyOrField(kvp.Key));
-                    if (disp_turbine_modes.ContainsKey(n))
-                    {
-                        mode = disp_turbine_modes[n];
-                    }
-                    // Set the mode lable across thread
-                    lbl_turbinemode.Text = "Turbine: " + mode;
+                    float val = (float)gauge_value_sources[i].GetValue(Host.cs) * (float)gauge_settings[i].variable_scale + (float)gauge_settings[i].variable_offset;
+                    // Constrain the value to the min/max
+                    val = Math.Max(val, (float)gauge_settings[i].min);
+                    val = Math.Min(val, (float)gauge_settings[i].max);
+                    gauges[i].Value0 = val;
                 }
             }
+            
         }
 
         // Force the window to minimize instead of closing

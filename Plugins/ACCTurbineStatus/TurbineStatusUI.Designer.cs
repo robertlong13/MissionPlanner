@@ -61,7 +61,7 @@
             this.but_totalstop = new MissionPlanner.Controls.MyButton();
             this.led_totalstop = new Bulb.LedBulb();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.ui_timer = new System.Windows.Forms.Timer(this.components);
             this.table_gauges.SuspendLayout();
             this.table_gauges2.SuspendLayout();
             this.table_main.SuspendLayout();
@@ -1618,11 +1618,10 @@
             this.splitContainer1.SplitterDistance = 723;
             this.splitContainer1.TabIndex = 16;
             // 
-            // timer1
+            // ui_timer
             // 
-            this.timer1.Enabled = true;
-            this.timer1.Interval = 200;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            this.ui_timer.Enabled = true;
+            this.ui_timer.Tick += new System.EventHandler(this.ui_timer_Tick);
             // 
             // TurbineStatusUI
             // 
@@ -1684,6 +1683,6 @@
         private System.Windows.Forms.ComboBox cmb_mode;
         private MissionPlanner.Controls.MyButton but_oilcooler;
         private Bulb.LedBulb led_oilcooler;
-        private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Timer ui_timer;
     }
 }

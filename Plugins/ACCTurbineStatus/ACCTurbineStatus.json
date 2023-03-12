@@ -1,6 +1,6 @@
 [
   {
-    "variable": "efi_rpm",
+    "variable": "MAV_EFIRPM2",
     "variable_offset": 0,
     "variable_scale": 0.00223264121,
     "desc": "N1",
@@ -11,10 +11,10 @@
     "minor": 9,
     "green_min": 50,
     "yellow_min": 102,
-    "red_min": 108
+    "red_min": 108,
   },
   {
-    "variable": "efi_headtemp",
+    "variable": "efi_exhasttemp",
     "desc": "EGT",
     "desc_pos": 63,
     "min": 0,
@@ -23,7 +23,7 @@
     "minor": 9,
     "green_min": 150,
     "yellow_min": 600,
-    "red_min": 650
+    "red_min": 650,
   },
   {  
     "variable": "MAV_EFIOILTEMP",
@@ -34,11 +34,11 @@
     "step": 20,
     "minor": 9,
     "green_min": 20,
-    "yellow_min": 40,
-    "red_min": 60
+    "yellow_min": 70,
+    "red_min": 80,
   },
   {
-    "variable": "MAV_EFIRPM2",
+    "variable": "efi_rpm",
     "variable_scale": 0.00177746178,
     "desc": "N2",
     "desc_pos": 67,
@@ -48,7 +48,7 @@
     "minor": 9,
     "green_min": 50,
     "yellow_min": 102,
-    "red_min": 108
+    "red_min": 108,
   },
   {
     "variable": "efi_load",
@@ -60,7 +60,7 @@
     "minor": 9,
     "green_min": 50,
     "yellow_min": 102,
-    "red_min": 108
+    "red_min": 108,
   },
   {
     "variable": "MAV_EFIOILPRES",
@@ -71,7 +71,7 @@
     "step": 10,
     "minor": 9,
     "green_min": 35,
-    "green_max": 45
+    "green_max": 45,
   },
   {
     "variable": "MAV_EFIFULPRES",
@@ -82,7 +82,7 @@
     "step": 50,
     "minor": 5,
     "green_min": 280,
-    "green_max": 320
+    "green_max": 320,
   },
   {
     "variable": "efi_fuelflow",
@@ -92,6 +92,6 @@
     "min": 0,
     "max": 100,
     "step": 20,
-    "minor": 9
-  }
+    "minor": 9,
+  },
 ]
