@@ -5,12 +5,18 @@ using System;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Collections.Generic;
+using System.Text;
+using System.Linq;
+using log4net;
+using System.Reflection;
 
 namespace TurbineStatus
 {
     public partial class TurbineStatusUI : Form
     {
         PluginHost Host;
+
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public TurbineStatusUI(PluginHost host)
         {
@@ -23,8 +29,93 @@ namespace TurbineStatus
             // Select the Stop mode by default
             cmb_mode.SelectedIndex = cmb_mode.FindStringExact("Stop");
 
-            // Bind event to incoming MAVLink messages
-            //Host.comPort.OnPacketReceived += MavlinkMessageReceived;
+        }
+
+        private static readonly Dictionary<int, string> disp_ecu_modes = new Dictionary<int, string>
+        {
+            { 0, "Stop" },
+            { 1, "Cool" },
+            { 2, "Cold Start" },
+            { 3, "False Start" },
+            { 4, "Run" },
+            { 5, "Degraded N1" },
+            { 6, "Start" },
+            { 7, "Degraded N2" },
+            { 255, "Initializing" }
+        };
+
+        private static readonly Dictionary<int, string> disp_turbine_modes = new Dictionary<int, string>
+        {
+            { 0, "Idle 1" },
+            { 1, "Flight" },
+            { 2, "Idle 2" },
+            { 6, "Run Up" },
+        };
+
+        DateTime lastmessagetime;
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            var messagetime = Host.cs.messages.LastOrDefault().time;
+            if (lastmessagetime != messagetime)
+            {
+                try
+                {
+                    StringBuilder message = new StringBuilder();
+                    Host.cs.messages.ForEach(x =>
+                    {
+                        if (x.Item2.StartsWith("TS100: "))
+                        {
+                            message.Insert(0, x.Item1 + " : " + x.Item2.Substring(7) + "\r\n");
+                        }
+                    });
+                    txt_messages.Text = message.ToString();
+
+                    lastmessagetime = messagetime;
+                }
+                catch (Exception ex)
+                {
+                    log.Error(ex);
+                }
+            }
+
+            // Update states sent in custom fields
+            foreach (KeyValuePair<string, string> kvp in CurrentState.custom_field_names)
+            {
+                // Update the relay LEDs
+                if (kvp.Value == "MAV_TS100RELAY")
+                {
+                    // Get the value of the custom field by name
+                    UInt16 flags = (UInt16)((float)Host.cs.GetPropertyOrField(kvp.Key));
+
+                    led_alternatorconn.On = ((flags) & 0x1) > 0;
+                    led_oilcooler.On = ((flags >> 1) & 0x1) > 0;
+                    led_empump.On = ((flags >> 2) & 0x1) > 0;
+                    led_mainpump.On = ((flags >> 3) & 0x1) > 0;
+                    led_alternator.On = ((flags >> 4) & 0x1) > 0;
+                    led_totalstop.On = ((flags >> 5) & 0x3) > 0; // Either of the two bits can be set
+                }
+                else if (kvp.Value == "MAV_TS100_ECU")
+                {
+                    string mode = "UNKNOWN";
+                    int n = (int)((float)Host.cs.GetPropertyOrField(kvp.Key));
+                    if (disp_ecu_modes.ContainsKey(n))
+                    {
+                        mode = disp_ecu_modes[n];
+                    }
+                    lbl_ecumode.Text = "ECU: " + mode;
+                }
+                else if (kvp.Value == "MAV_TS100_TURB")
+                {
+                    string mode = "UNKNOWN";
+                    int n = (int)((float)Host.cs.GetPropertyOrField(kvp.Key));
+                    if (disp_turbine_modes.ContainsKey(n))
+                    {
+                        mode = disp_turbine_modes[n];
+                    }
+                    // Set the mode lable across thread
+                    lbl_turbinemode.Text = "Turbine: " + mode;
+                }
+            }
         }
 
         // Force the window to minimize instead of closing

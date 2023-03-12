@@ -27,7 +27,7 @@ namespace TurbineStatus
             uiform.Show();
             uiform.SendToBack();
 
-            loopratehz = 1;
+            //loopratehz = 1;
 
             return true;
         }
@@ -39,12 +39,12 @@ namespace TurbineStatus
             return true;
         }
 
-        public override bool Loop()
+        /*public override bool Loop()
         {
             // Print uiform location and size to console
             System.Console.WriteLine("uiform.Location: " + uiform.Location.ToString());
             System.Console.WriteLine("uiform.Size: " + uiform.Size.ToString());
             return true;
-        }
+        }*/
     }
 }
