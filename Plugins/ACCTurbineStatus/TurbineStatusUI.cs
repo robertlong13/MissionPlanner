@@ -62,6 +62,7 @@ namespace TurbineStatus
                 g.MaxValue = gs.max;
                 g.ScaleLinesMajorStepValue = gs.step;
                 g.ScaleLinesMinorNumOf = gs.minor;
+                g.ScaleNumbersRadius = gs.number_radius;
 
                 g.RangesEnabled[0] = !(gs.green_min is null) || !(gs.green_max is null);
                 g.RangesStartValue[0] = (gs.green_min is null) ? gs.min : (float)gs.green_min;
@@ -368,6 +369,7 @@ namespace TurbineStatus
         public int min;
         public int max;
         public int step;
+        public int number_radius;
         public int minor;
         public float? green_min;
         public float? green_max;
