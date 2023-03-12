@@ -1,4 +1,3 @@
-using MissionPlanner;
 using MissionPlanner.Controls;
 using MissionPlanner.Plugin;
 

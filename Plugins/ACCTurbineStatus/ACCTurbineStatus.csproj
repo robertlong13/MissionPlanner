@@ -19,6 +19,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="ACCTurbineStatus.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="ACCTurbineStatus.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\ExtLibs\LEDBulb\Bulb\Bulb.csproj" />
     <ProjectReference Include="..\..\ExtLibs\MissionPlanner.Drawing\MissionPlanner.Drawing.csproj">
       <Aliases>Drawing</Aliases>

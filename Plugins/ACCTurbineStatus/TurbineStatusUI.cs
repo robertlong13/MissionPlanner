@@ -9,6 +9,8 @@ using System.Text;
 using System.Linq;
 using log4net;
 using System.Reflection;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace TurbineStatus
 {
@@ -17,6 +19,11 @@ namespace TurbineStatus
         PluginHost Host;
 
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        // Settings from the config file of all 8 gauges
+        public static List<GaugeSettings> gauge_settings;
+
+        public List<object> gauge_variables;
 
         public TurbineStatusUI(PluginHost host)
         {
@@ -28,6 +35,61 @@ namespace TurbineStatus
 
             // Select the Stop mode by default
             cmb_mode.SelectedIndex = cmb_mode.FindStringExact("Stop");
+
+            LoadSettings();
+
+            // Set up the gauges
+            for (int i = 0; i < 8; i++)
+            {
+                GaugeSettings gs = gauge_settings[i];
+                // Look up the gauge control by name
+                AGaugeApp.AGauge g = (AGaugeApp.AGauge)Controls.Find($"aGauge{i+1}", true)[0];
+                g.Cap_Idx = 0;
+                g.CapText = gs.desc;
+                g.CapPosition = new Point(gs.desc_pos, g.CapPosition.Y);
+                
+                g.MinValue = gs.min;
+                g.MaxValue = gs.max;
+                g.ScaleLinesMajorStepValue = gs.step;
+                g.ScaleLinesMinorNumOf = gs.minor;
+
+                g.RangesEnabled[0] = !(gs.green_min is null) || !(gs.green_max is null);
+                g.RangesStartValue[0] = (gs.green_min is null) ? gs.min : (float)gs.green_min;
+                g.RangesEndValue[0] = (gs.green_max is null) ? gs.max : (float)gs.green_max;
+
+                g.RangesEnabled[1] = !(gs.yellow_min is null) || !(gs.yellow_max is null);
+                g.RangesStartValue[1] = (gs.yellow_min is null) ? gs.min : (float)gs.yellow_min;
+                g.RangesEndValue[1] = (gs.yellow_max is null) ? gs.max : (float)gs.yellow_max;
+
+                g.RangesEnabled[2] = !(gs.red_min is null) || !(gs.red_max is null);
+                g.RangesStartValue[2] = (gs.red_min is null) ? gs.min : (float)gs.red_min;
+                g.RangesEndValue[2] = (gs.red_max is null) ? gs.max : (float)gs.red_max;
+            }
+        }
+
+        private void LoadSettings()
+        {
+            string settings_file = Path.Combine(Settings.GetUserDataDirectory(), "ACCTurbineStatus.json");
+            bool needs_new_file = !File.Exists(settings_file);
+
+#if DEBUG
+            // For debugging, always load settings from embedded file
+            // This is so the json file in the git repo always matches what I am testing
+            needs_new_file = true;
+#endif
+
+            if (needs_new_file)
+            {
+                Assembly assembly = Assembly.GetExecutingAssembly();
+                using (Stream stream = assembly.GetManifestResourceStream("ACCTurbineStatus.ACCTurbineStatus.json"))
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    string s = reader.ReadToEnd();
+                    File.WriteAllText(settings_file, s);
+                }
+            }
+
+            gauge_settings = JsonConvert.DeserializeObject<List<GaugeSettings>>(File.ReadAllText(settings_file));
 
         }
 
@@ -234,4 +296,25 @@ namespace TurbineStatus
             send_scripting(6, led_totalstop.On ? 0 : 2);
         }
     }
+
+    // Create gauge settings struct for config file
+    public class GaugeSettings
+    {
+        public string variable;
+        public float? variable_offset;
+        public float? variable_scale;
+        public string desc;
+        public int desc_pos;
+        public int min;
+        public int max;
+        public int step;
+        public int minor;
+        public float? green_min;
+        public float? green_max;
+        public float? yellow_min;
+        public float? yellow_max;
+        public float? red_min;
+        public float? red_max;
+    }
+
 }
