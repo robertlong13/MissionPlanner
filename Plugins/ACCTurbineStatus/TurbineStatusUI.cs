@@ -11,6 +11,7 @@ using log4net;
 using System.Reflection;
 using Newtonsoft.Json;
 using System.IO;
+using MissionPlanner.Controls;
 
 namespace TurbineStatus
 {
@@ -360,7 +361,64 @@ namespace TurbineStatus
 
         private void but_totalstop_Click(object sender, EventArgs e)
         {
-            if (CustomMessageBox.Show("Are you sure you want to " + (led_totalstop.On ? "enable" : "DISABLE") + " the engine?", "Emergency Stop", MessageBoxButtons.YesNo) == (int)DialogResult.Yes)
+            // Create a pop-up dialog form from scratch
+            Form form = new Form();
+            form.Text = "Emergency Stop";
+            form.Width = 330;
+            form.Height = 120;
+            form.StartPosition = FormStartPosition.CenterParent;
+            form.FormBorderStyle = FormBorderStyle.FixedDialog;
+            form.MinimizeBox = false;
+            form.MaximizeBox = false;
+            form.ShowIcon = false;
+            form.ShowInTaskbar = false;
+
+            // Create a table layout panel to hold the label and buttons
+            TableLayoutPanel panel = new TableLayoutPanel();
+            panel.Dock = DockStyle.Fill;
+            panel.RowCount = 2;
+            panel.ColumnCount = 3;
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 85));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 85));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            panel.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+            form.Controls.Add(panel);
+
+
+            // Add text in center
+            Label label = new Label();
+            label.Text = "Are you sure you want to " + (led_totalstop.On ? "enable" : "DISABLE") + " the engine?";
+            label.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
+            label.TextAlign = ContentAlignment.MiddleCenter;
+            panel.Controls.Add(label, 0, 0);
+            panel.SetColumnSpan(label, 3);
+
+            // Add Yes/No buttons on the bottom-right
+            Button buttonNo = new MyButton()
+            {
+                Text = "No",
+                Anchor = AnchorStyles.Right,
+                DialogResult = DialogResult.No
+            };
+            panel.Controls.Add(buttonNo, 2, 1);
+
+            Button buttonYes = new MyButton()
+            {
+                Text = "Yes",
+                Anchor = AnchorStyles.Right,
+                DialogResult = DialogResult.Yes
+            };
+            panel.Controls.Add(buttonYes, 1, 1);
+
+            // Make "No" the default choice
+            form.AcceptButton = buttonNo;
+
+            // Apply theme
+            ThemeManager.ApplyThemeTo(form);
+
+            // Show the dialog and wait for the user to click Yes/No
+            if (form.ShowDialog() == DialogResult.Yes)
             {
                 send_scripting(6, led_totalstop.On ? 0 : 2);
             }
