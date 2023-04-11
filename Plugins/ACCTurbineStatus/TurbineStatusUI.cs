@@ -55,10 +55,15 @@ namespace TurbineStatus
                 GaugeSettings gs = gauge_settings[i];
                 // Look up the gauge control by name
                 AGaugeApp.AGauge g = (AGaugeApp.AGauge)Controls.Find($"aGauge{i+1}", true)[0];
+
                 g.Cap_Idx = 0;
                 g.CapText = gs.desc;
-                g.CapPosition = new Point(gs.desc_pos, g.CapPosition.Y);
-                
+                g.CapPosition = new Point(gs.desc_pos, 110);
+
+                g.Cap_Idx = 1;
+                g.CapText = gs.min.ToString(gs.val_format);
+                g.CapPosition = new Point(gs.val_pos, 125);
+
                 g.MinValue = gs.min;
                 g.MaxValue = gs.max;
                 g.ScaleLinesMajorStepValue = gs.step;
@@ -233,6 +238,10 @@ namespace TurbineStatus
                 if (gauge_value_sources[i] != null)
                 {
                     float val = (float)gauge_value_sources[i].GetValue(Host.cs) * (float)gauge_settings[i].variable_scale + (float)gauge_settings[i].variable_offset;
+
+                    gauges[i].Cap_Idx = 1;
+                    gauges[i].CapText = val.ToString(gauge_settings[i].val_format);
+
                     // Constrain the value to the min/max
                     val = Math.Max(val, (float)gauge_settings[i].min);
                     val = Math.Min(val, (float)gauge_settings[i].max);
@@ -433,6 +442,8 @@ namespace TurbineStatus
         public float? variable_scale;
         public string desc;
         public int desc_pos;
+        public string val_format;
+        public int val_pos;
         public int min;
         public int max;
         public int step;

@@ -130,13 +130,13 @@
             this.aGauge1.CapPosition = new System.Drawing.Point(67, 110);
             this.aGauge1.CapsPosition = new System.Drawing.Point[] {
         new System.Drawing.Point(67, 110),
-        new System.Drawing.Point(50, 110),
+        new System.Drawing.Point(68, 125),
         new System.Drawing.Point(10, 10),
         new System.Drawing.Point(10, 10),
         new System.Drawing.Point(10, 10)};
             this.aGauge1.CapsText = new string[] {
         "N1",
-        "",
+        "99",
         "",
         "",
         ""};
@@ -592,7 +592,7 @@
             this.aGauge4.BaseArcStart = 135;
             this.aGauge4.BaseArcSweep = 270;
             this.aGauge4.BaseArcWidth = 2;
-            this.aGauge4.Cap_Idx = ((byte)(0));
+            this.aGauge4.Cap_Idx = ((byte)(1));
             this.aGauge4.CapColor = System.Drawing.Color.White;
             this.aGauge4.CapColors = new System.Drawing.Color[] {
         System.Drawing.Color.White,
@@ -600,20 +600,20 @@
         System.Drawing.Color.Black,
         System.Drawing.Color.Black,
         System.Drawing.Color.Black};
-            this.aGauge4.CapPosition = new System.Drawing.Point(63, 110);
+            this.aGauge4.CapPosition = new System.Drawing.Point(65, 125);
             this.aGauge4.CapsPosition = new System.Drawing.Point[] {
         new System.Drawing.Point(63, 110),
-        new System.Drawing.Point(50, 110),
+        new System.Drawing.Point(65, 125),
         new System.Drawing.Point(10, 10),
         new System.Drawing.Point(10, 10),
         new System.Drawing.Point(10, 10)};
             this.aGauge4.CapsText = new string[] {
         "EGT",
-        "",
+        "200",
         "",
         "",
         ""};
-            this.aGauge4.CapText = "EGT";
+            this.aGauge4.CapText = "200";
             this.aGauge4.Center = new System.Drawing.Point(75, 75);
             this.aGauge4.Location = new System.Drawing.Point(0, 0);
             this.aGauge4.Margin = new System.Windows.Forms.Padding(0);
@@ -741,7 +741,7 @@
             this.aGauge5.BaseArcStart = 135;
             this.aGauge5.BaseArcSweep = 270;
             this.aGauge5.BaseArcWidth = 2;
-            this.aGauge5.Cap_Idx = ((byte)(0));
+            this.aGauge5.Cap_Idx = ((byte)(1));
             this.aGauge5.CapColor = System.Drawing.Color.White;
             this.aGauge5.CapColors = new System.Drawing.Color[] {
         System.Drawing.Color.White,
@@ -749,20 +749,20 @@
         System.Drawing.Color.Black,
         System.Drawing.Color.Black,
         System.Drawing.Color.Black};
-            this.aGauge5.CapPosition = new System.Drawing.Point(52, 110);
+            this.aGauge5.CapPosition = new System.Drawing.Point(65, 125);
             this.aGauge5.CapsPosition = new System.Drawing.Point[] {
         new System.Drawing.Point(52, 110),
-        new System.Drawing.Point(50, 110),
+        new System.Drawing.Point(65, 125),
         new System.Drawing.Point(10, 10),
         new System.Drawing.Point(10, 10),
         new System.Drawing.Point(10, 10)};
             this.aGauge5.CapsText = new string[] {
         "Oil Temp.",
-        "",
+        "120",
         "",
         "",
         ""};
-            this.aGauge5.CapText = "Oil Temp.";
+            this.aGauge5.CapText = "120";
             this.aGauge5.Center = new System.Drawing.Point(75, 75);
             this.aGauge5.Location = new System.Drawing.Point(144, 0);
             this.aGauge5.Margin = new System.Windows.Forms.Padding(0);
@@ -1459,6 +1459,7 @@
             this.but_setmode.Size = new System.Drawing.Size(250, 35);
             this.but_setmode.TabIndex = 5;
             this.but_setmode.Text = "Set Mode";
+            this.but_setmode.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.but_setmode.UseVisualStyleBackColor = true;
             this.but_setmode.Click += new System.EventHandler(this.but_setmode_Click);
             // 
@@ -1472,6 +1473,7 @@
             this.but_mainpump.Size = new System.Drawing.Size(250, 35);
             this.but_mainpump.TabIndex = 14;
             this.but_mainpump.Text = "Main Pump";
+            this.but_mainpump.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.but_mainpump.UseVisualStyleBackColor = true;
             this.but_mainpump.Click += new System.EventHandler(this.but_mainpump_Click);
             // 
@@ -1495,6 +1497,7 @@
             this.but_empump.Size = new System.Drawing.Size(250, 35);
             this.but_empump.TabIndex = 15;
             this.but_empump.Text = "Emergency Pump";
+            this.but_empump.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.but_empump.UseVisualStyleBackColor = true;
             this.but_empump.Click += new System.EventHandler(this.but_empump_Click);
             // 
@@ -1518,6 +1521,7 @@
             this.but_alternatorconn.Size = new System.Drawing.Size(250, 35);
             this.but_alternatorconn.TabIndex = 12;
             this.but_alternatorconn.Text = "Alternator Connection";
+            this.but_alternatorconn.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.but_alternatorconn.UseVisualStyleBackColor = true;
             this.but_alternatorconn.Click += new System.EventHandler(this.but_alternatorconn_Click);
             // 
@@ -1541,6 +1545,7 @@
             this.but_alternator.Size = new System.Drawing.Size(250, 35);
             this.but_alternator.TabIndex = 13;
             this.but_alternator.Text = "Alternator";
+            this.but_alternator.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.but_alternator.UseVisualStyleBackColor = true;
             this.but_alternator.Click += new System.EventHandler(this.but_alternator_Click);
             // 
@@ -1564,6 +1569,7 @@
             this.but_oilcooler.Size = new System.Drawing.Size(250, 35);
             this.but_oilcooler.TabIndex = 23;
             this.but_oilcooler.Text = "Oil Cooler";
+            this.but_oilcooler.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.but_oilcooler.UseVisualStyleBackColor = true;
             this.but_oilcooler.Click += new System.EventHandler(this.but_oilcooler_Click);
             // 
@@ -1587,6 +1593,7 @@
             this.but_totalstop.Size = new System.Drawing.Size(250, 35);
             this.but_totalstop.TabIndex = 16;
             this.but_totalstop.Text = "Emergency Stop";
+            this.but_totalstop.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.but_totalstop.UseVisualStyleBackColor = true;
             this.but_totalstop.Click += new System.EventHandler(this.but_totalstop_Click);
             // 
@@ -1629,7 +1636,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1012, 508);
             this.Controls.Add(this.splitContainer1);
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "TurbineStatusUI";
             this.ShowIcon = false;
             this.Text = "TurbineStatusUI";
