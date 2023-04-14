@@ -60,6 +60,8 @@
             this.led_oilcooler = new Bulb.LedBulb();
             this.but_totalstop = new MissionPlanner.Controls.MyButton();
             this.led_totalstop = new Bulb.LedBulb();
+            this.led_errors = new Bulb.LedBulb();
+            this.but_clearerrors = new MissionPlanner.Controls.MyButton();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.ui_timer = new System.Windows.Forms.Timer(this.components);
             this.table_gauges.SuspendLayout();
@@ -1371,28 +1373,32 @@
             this.table_control.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.table_control.Controls.Add(this.lbl_ecumode, 0, 0);
             this.table_control.Controls.Add(this.lbl_turbinemode, 0, 1);
-            this.table_control.Controls.Add(this.label3, 0, 3);
-            this.table_control.Controls.Add(this.cmb_mode, 0, 4);
-            this.table_control.Controls.Add(this.label4, 0, 7);
-            this.table_control.Controls.Add(this.but_setmode, 0, 5);
-            this.table_control.Controls.Add(this.but_mainpump, 0, 8);
-            this.table_control.Controls.Add(this.led_mainpump, 1, 8);
-            this.table_control.Controls.Add(this.but_empump, 0, 9);
-            this.table_control.Controls.Add(this.led_empump, 1, 9);
-            this.table_control.Controls.Add(this.but_alternatorconn, 0, 10);
-            this.table_control.Controls.Add(this.led_alternatorconn, 1, 10);
-            this.table_control.Controls.Add(this.but_alternator, 0, 11);
-            this.table_control.Controls.Add(this.led_alternator, 1, 11);
-            this.table_control.Controls.Add(this.but_oilcooler, 0, 12);
-            this.table_control.Controls.Add(this.led_oilcooler, 1, 12);
-            this.table_control.Controls.Add(this.but_totalstop, 0, 14);
-            this.table_control.Controls.Add(this.led_totalstop, 1, 14);
+            this.table_control.Controls.Add(this.label3, 0, 5);
+            this.table_control.Controls.Add(this.cmb_mode, 0, 6);
+            this.table_control.Controls.Add(this.label4, 0, 9);
+            this.table_control.Controls.Add(this.but_setmode, 0, 7);
+            this.table_control.Controls.Add(this.but_mainpump, 0, 10);
+            this.table_control.Controls.Add(this.led_mainpump, 1, 10);
+            this.table_control.Controls.Add(this.but_empump, 0, 11);
+            this.table_control.Controls.Add(this.led_empump, 1, 11);
+            this.table_control.Controls.Add(this.but_alternatorconn, 0, 12);
+            this.table_control.Controls.Add(this.led_alternatorconn, 1, 12);
+            this.table_control.Controls.Add(this.but_alternator, 0, 13);
+            this.table_control.Controls.Add(this.led_alternator, 1, 13);
+            this.table_control.Controls.Add(this.but_oilcooler, 0, 14);
+            this.table_control.Controls.Add(this.led_oilcooler, 1, 14);
+            this.table_control.Controls.Add(this.but_totalstop, 0, 16);
+            this.table_control.Controls.Add(this.led_totalstop, 1, 16);
+            this.table_control.Controls.Add(this.led_errors, 1, 3);
+            this.table_control.Controls.Add(this.but_clearerrors, 0, 3);
             this.table_control.Dock = System.Windows.Forms.DockStyle.Fill;
             this.table_control.Location = new System.Drawing.Point(0, 0);
             this.table_control.MaximumSize = new System.Drawing.Size(0, 508);
             this.table_control.Name = "table_control";
-            this.table_control.RowCount = 16;
+            this.table_control.RowCount = 18;
             this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
@@ -1408,6 +1414,7 @@
             this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 12.49953F));
             this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 12.49953F));
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.table_control.Size = new System.Drawing.Size(285, 508);
             this.table_control.TabIndex = 16;
             this.table_control.Resize += new System.EventHandler(this.table_control_Resize);
@@ -1415,7 +1422,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(3, 82);
+            this.label3.Location = new System.Drawing.Point(3, 134);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(53, 13);
             this.label3.TabIndex = 10;
@@ -1435,7 +1442,7 @@
             "Idle 1",
             "Idle 2",
             "Flight"});
-            this.cmb_mode.Location = new System.Drawing.Point(3, 98);
+            this.cmb_mode.Location = new System.Drawing.Point(3, 150);
             this.cmb_mode.Name = "cmb_mode";
             this.cmb_mode.Size = new System.Drawing.Size(250, 21);
             this.cmb_mode.TabIndex = 22;
@@ -1443,7 +1450,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(3, 183);
+            this.label4.Location = new System.Drawing.Point(3, 229);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(39, 13);
             this.label4.TabIndex = 11;
@@ -1454,9 +1461,9 @@
             this.but_setmode.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_setmode.Location = new System.Drawing.Point(3, 125);
+            this.but_setmode.Location = new System.Drawing.Point(3, 177);
             this.but_setmode.Name = "but_setmode";
-            this.but_setmode.Size = new System.Drawing.Size(250, 35);
+            this.but_setmode.Size = new System.Drawing.Size(250, 29);
             this.but_setmode.TabIndex = 5;
             this.but_setmode.Text = "Set Mode";
             this.but_setmode.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -1468,9 +1475,9 @@
             this.but_mainpump.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_mainpump.Location = new System.Drawing.Point(3, 199);
+            this.but_mainpump.Location = new System.Drawing.Point(3, 245);
             this.but_mainpump.Name = "but_mainpump";
-            this.but_mainpump.Size = new System.Drawing.Size(250, 35);
+            this.but_mainpump.Size = new System.Drawing.Size(250, 29);
             this.but_mainpump.TabIndex = 14;
             this.but_mainpump.Text = "Main Pump";
             this.but_mainpump.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -1480,7 +1487,7 @@
             // led_mainpump
             // 
             this.led_mainpump.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_mainpump.Location = new System.Drawing.Point(259, 205);
+            this.led_mainpump.Location = new System.Drawing.Point(259, 248);
             this.led_mainpump.Name = "led_mainpump";
             this.led_mainpump.On = false;
             this.led_mainpump.Size = new System.Drawing.Size(23, 23);
@@ -1492,9 +1499,9 @@
             this.but_empump.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_empump.Location = new System.Drawing.Point(3, 240);
+            this.but_empump.Location = new System.Drawing.Point(3, 280);
             this.but_empump.Name = "but_empump";
-            this.but_empump.Size = new System.Drawing.Size(250, 35);
+            this.but_empump.Size = new System.Drawing.Size(250, 29);
             this.but_empump.TabIndex = 15;
             this.but_empump.Text = "Emergency Pump";
             this.but_empump.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -1504,7 +1511,7 @@
             // led_empump
             // 
             this.led_empump.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_empump.Location = new System.Drawing.Point(259, 246);
+            this.led_empump.Location = new System.Drawing.Point(259, 283);
             this.led_empump.Name = "led_empump";
             this.led_empump.On = false;
             this.led_empump.Size = new System.Drawing.Size(23, 23);
@@ -1516,9 +1523,9 @@
             this.but_alternatorconn.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_alternatorconn.Location = new System.Drawing.Point(3, 281);
+            this.but_alternatorconn.Location = new System.Drawing.Point(3, 315);
             this.but_alternatorconn.Name = "but_alternatorconn";
-            this.but_alternatorconn.Size = new System.Drawing.Size(250, 35);
+            this.but_alternatorconn.Size = new System.Drawing.Size(250, 29);
             this.but_alternatorconn.TabIndex = 12;
             this.but_alternatorconn.Text = "Alternator Connection";
             this.but_alternatorconn.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -1528,7 +1535,7 @@
             // led_alternatorconn
             // 
             this.led_alternatorconn.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_alternatorconn.Location = new System.Drawing.Point(259, 287);
+            this.led_alternatorconn.Location = new System.Drawing.Point(259, 318);
             this.led_alternatorconn.Name = "led_alternatorconn";
             this.led_alternatorconn.On = false;
             this.led_alternatorconn.Size = new System.Drawing.Size(23, 23);
@@ -1540,9 +1547,9 @@
             this.but_alternator.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_alternator.Location = new System.Drawing.Point(3, 322);
+            this.but_alternator.Location = new System.Drawing.Point(3, 350);
             this.but_alternator.Name = "but_alternator";
-            this.but_alternator.Size = new System.Drawing.Size(250, 35);
+            this.but_alternator.Size = new System.Drawing.Size(250, 29);
             this.but_alternator.TabIndex = 13;
             this.but_alternator.Text = "Alternator";
             this.but_alternator.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -1552,7 +1559,7 @@
             // led_alternator
             // 
             this.led_alternator.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_alternator.Location = new System.Drawing.Point(259, 328);
+            this.led_alternator.Location = new System.Drawing.Point(259, 353);
             this.led_alternator.Name = "led_alternator";
             this.led_alternator.On = false;
             this.led_alternator.Size = new System.Drawing.Size(23, 23);
@@ -1564,9 +1571,9 @@
             this.but_oilcooler.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_oilcooler.Location = new System.Drawing.Point(3, 363);
+            this.but_oilcooler.Location = new System.Drawing.Point(3, 385);
             this.but_oilcooler.Name = "but_oilcooler";
-            this.but_oilcooler.Size = new System.Drawing.Size(250, 35);
+            this.but_oilcooler.Size = new System.Drawing.Size(250, 29);
             this.but_oilcooler.TabIndex = 23;
             this.but_oilcooler.Text = "Oil Cooler";
             this.but_oilcooler.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -1576,7 +1583,7 @@
             // led_oilcooler
             // 
             this.led_oilcooler.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_oilcooler.Location = new System.Drawing.Point(259, 369);
+            this.led_oilcooler.Location = new System.Drawing.Point(259, 388);
             this.led_oilcooler.Name = "led_oilcooler";
             this.led_oilcooler.On = false;
             this.led_oilcooler.Size = new System.Drawing.Size(23, 23);
@@ -1588,9 +1595,9 @@
             this.but_totalstop.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_totalstop.Location = new System.Drawing.Point(3, 424);
+            this.but_totalstop.Location = new System.Drawing.Point(3, 440);
             this.but_totalstop.Name = "but_totalstop";
-            this.but_totalstop.Size = new System.Drawing.Size(250, 35);
+            this.but_totalstop.Size = new System.Drawing.Size(250, 29);
             this.but_totalstop.TabIndex = 16;
             this.but_totalstop.Text = "Emergency Stop";
             this.but_totalstop.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -1600,12 +1607,37 @@
             // led_totalstop
             // 
             this.led_totalstop.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_totalstop.Location = new System.Drawing.Point(259, 430);
+            this.led_totalstop.Location = new System.Drawing.Point(259, 443);
             this.led_totalstop.Name = "led_totalstop";
             this.led_totalstop.On = false;
             this.led_totalstop.Size = new System.Drawing.Size(23, 23);
             this.led_totalstop.TabIndex = 21;
             this.led_totalstop.Text = "ledBulb5";
+            // 
+            // led_errors
+            // 
+            this.led_errors.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.led_errors.Color = System.Drawing.Color.Yellow;
+            this.led_errors.Location = new System.Drawing.Point(259, 86);
+            this.led_errors.Name = "led_errors";
+            this.led_errors.On = false;
+            this.led_errors.Size = new System.Drawing.Size(23, 23);
+            this.led_errors.TabIndex = 26;
+            this.led_errors.Text = "ledBulb1";
+            // 
+            // but_clearerrors
+            // 
+            this.but_clearerrors.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.but_clearerrors.Location = new System.Drawing.Point(3, 85);
+            this.but_clearerrors.Name = "but_clearerrors";
+            this.but_clearerrors.Size = new System.Drawing.Size(250, 26);
+            this.but_clearerrors.TabIndex = 27;
+            this.but_clearerrors.Text = "Clear Errors";
+            this.but_clearerrors.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
+            this.but_clearerrors.UseVisualStyleBackColor = true;
+            this.but_clearerrors.Click += new System.EventHandler(this.but_clearerrors_Click);
             // 
             // splitContainer1
             // 
@@ -1691,5 +1723,7 @@
         private MissionPlanner.Controls.MyButton but_oilcooler;
         private Bulb.LedBulb led_oilcooler;
         private System.Windows.Forms.Timer ui_timer;
+        private Bulb.LedBulb led_errors;
+        private MissionPlanner.Controls.MyButton but_clearerrors;
     }
 }

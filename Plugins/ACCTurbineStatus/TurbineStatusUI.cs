@@ -31,6 +31,107 @@ namespace TurbineStatus
         PropertyInfo ecu_mode;
         PropertyInfo turbine_mode;
 
+        HashSet<string> critical_errors = new HashSet<string>(new string[] {
+            "Error of internal SPI interface",
+            "Error of internal I2C interface",
+            "Error of internal UART interface",
+            "Error during writing into internal EEPROM",
+            "Error of internal SPI interface of measuring processor",
+            "Reset of communication processor caused by watchdog",
+            "Reset of measuring processor caused by watchdog",
+            "Production information are not set correctly",
+            "HW overspeed limit of free turbine exceeded (speed sensor A)",
+            "HW overspeed limit of free turbine exceeded (speed sensor B)",
+            "HW overspeed limit of gas turbine exceeded",
+            "Underspeed of the engine not reached in time limit. If measured air intake temperature is lower than -10°C, time limit is automatically increased by 5 sec",
+            "Loss of control signals",
+            "Internal SW error - unknown command",
+            "Internal SW error - task list is full",
+            "Internal SW error - stored parameters are inconsistent",
+        });
+        
+        HashSet<string> degraded_errors = new HashSet<string>(new string[] {
+            "Error of fuel valve control output",
+            "Error of ignition control output",
+            "Overload of output for fuel valve",
+            "Overload of output for ignition",
+            "Error in connection of free turbine speed sensor A or B",
+            "Range error of free turbine speed sensor A or B",
+            "Error of both free turbine speed sensors",
+            "Error of exhaust gas temperature sensor",
+            "Error of air intake temperature sensor",
+            "Error of driver for fuel pump A",
+            "Error of driver for fuel pump B",
+            "Initial test of HW overspeed protection of free turbine speed sensor A failed",
+            "Initial test of HW overspeed protection of free turbine speed sensor B failed",
+            "Initial test of HW overspeed protection of gas turbine failed",
+            "Error in connection of starter-generator",
+            "Exceeding of exhaust gas temperature limit for a prolonged period",
+            "Error of starter-generator",
+            "Minimal engine speed not reached in time limit",
+            "Permanent loss of oil pressure in gas turbine",
+            "Loss of engine speed signal or speed decreased below underspeed",
+            "Exceeding of power elements temperature limit",
+            "Exceeding of free turbine SW overspeed limit (speed sensor A)",
+            "Exceeding of free turbine SW overspeed limit (speed sensor B)",
+            "Exceeding SW overspeed limit of gas turbine",
+            "Error of torque sensor A",
+            "Error of torque sensor B",
+            "Error of internal power converter",
+            "Permanent loss of oil pressure in reducer",
+            "Exceeding of exhaust gas temperature limit during starting proc. for a prolonged period",
+            "Exceeding of torque limit for a prolonged period",
+            "Control voltage is out of range",
+            "Activation of degraded mode",
+            "Oil filter clogged in gas turbine",
+            "Oil filter clogged in engine reducer",
+            "Fuel filter clogged",
+            "Presence of chips in oil",
+            "Low fuel pressure",
+            "Service maintenance of the engine is required",
+            "The difference of torque between two sensors is above limit value",
+        });
+
+        HashSet<string> warnings = new HashSet<string>(new string[] {
+            "Exceeding of exhaust gas temperature limit",
+            "Loss of oil pressure in gas turbine",
+            "Loss of oil pressure in reducer",
+            "Exceeding of exhaust gas temperature limit during starting procedure",
+            "Exceeding of torque limit",
+            "Loss of actual air data on CAN bus",
+            "Command is not allowed",
+            "Exceeding current limit in low transistors of driver for starter-generator",
+            "Synchronization loss of driver for starter-generator",
+            "Zero cross loss of driver for starter-generator",
+            "Supply voltage of driver for starter-generator decreased under limit",
+            "Supply voltage of driver for starter-generator exceeded limit",
+            "Too low current during starting procedure (engine or driver error)",
+            "Command not accepted due to hardware error",
+            "Command not accepted due to STOP signal from HW stop switch",
+            "Measured speeds from free turbine speed sensors are different",
+            "Access denied - writing to the register without appropriate access rights",
+            "Exceeding speed change of free turbine",
+            "Loss of actual collective lever position on CAN bus",
+            "Collective lever position is out of range (via CAN bus)",
+            "Collective lever position is out of range (via voltage on analog input)",
+            "Loss of collective lever position (via CAN bus and analog voltage)",
+            "Air intake temperature is out of range",
+            "Exceeding of fuel pump speed limit",
+            "Repeated start of fuel pump A",
+            "Repeated start of fuel pump B",
+            "Request for password reset was accepted",
+            "Request for password reset failed - wrong password for reset",
+            "Internal SW error - EEPROM address is out of range",
+        });
+
+        enum Severity
+        {
+            OK,
+            Warning,
+            Degraded,
+            Critical
+        }
+
         public TurbineStatusUI(PluginHost host)
         {
             InitializeComponent();
@@ -171,6 +272,10 @@ namespace TurbineStatus
         };
 
         DateTime lastmessagetime;
+        DateTime clearerrorstime = DateTime.MinValue;
+        Severity highest_severity = Severity.OK;
+        bool freeze_scroll = false;
+        
         // Updates the UI with the latest data
         private void ui_timer_Tick(object sender, EventArgs e)
         {
@@ -183,17 +288,79 @@ namespace TurbineStatus
             var messagetime = Host.cs.messages.LastOrDefault().time;
             if (lastmessagetime != messagetime)
             {
+                highest_severity = Severity.OK;
+                bool overflow = false;
+                string msg = "";
                 try
                 {
                     StringBuilder message = new StringBuilder();
                     Host.cs.messages.ForEach(x =>
                     {
-                        if (x.Item2.StartsWith("TS100: "))
+                        if (overflow || x.message.StartsWith("TS100: "))
                         {
-                            message.Insert(0, x.Item1 + " : " + x.Item2.Substring(7) + "\r\n");
+                            if (overflow)
+                            {
+                                msg += x.message;
+                            }
+                            else
+                            {
+                                msg = x.message.Substring(7);
+                            }
+                            if (x.message.Length == 50)
+                            {
+                                overflow = true;
+                            }
+                            else
+                            {
+                                overflow = false;
+                                message.Append(x.time + " : " + msg + "\r\n");
+                                if (x.time > clearerrorstime && highest_severity < Severity.Critical)
+                                {
+                                    if (critical_errors.Contains(msg))
+                                    {
+                                        highest_severity = Severity.Critical;
+                                    }
+                                    else if (highest_severity < Severity.Degraded && degraded_errors.Contains(msg))
+                                    {
+                                        highest_severity = Severity.Degraded;
+                                    }
+                                    else if (highest_severity < Severity.Warning && warnings.Contains(msg))
+                                    {
+                                        highest_severity = Severity.Warning;
+                                    }
+                                }
+                            }
                         }
                     });
+
+                    switch(highest_severity)
+                    {
+                        case Severity.OK:
+                            led_errors.On = false;
+                            break;
+                        case Severity.Warning:
+                            led_errors.Color = Color.Yellow;
+                            led_errors.On = true;
+                            break;
+                        case Severity.Degraded:
+                            led_errors.Color = Color.Orange;
+                            led_errors.On = true;
+                            break;
+                        case Severity.Critical:
+                        default:
+                            led_errors.Color = Color.Red;
+                            led_errors.On = true;
+                            break;
+                    }
+
                     txt_messages.Text = message.ToString();
+
+                    // Autoscroll to the end unless the user is trying to select text
+                    if(txt_messages.SelectionLength == 0)
+                    {
+                        txt_messages.SelectionStart = txt_messages.Text.Length;
+                        txt_messages.ScrollToCaret();
+                    }
 
                     lastmessagetime = messagetime;
                 }
@@ -431,6 +598,22 @@ namespace TurbineStatus
             {
                 send_scripting(6, led_totalstop.On ? 0 : 2);
             }
+        }
+
+        private void but_clearerrors_Click(object sender, EventArgs e)
+        {
+            clearerrorstime = lastmessagetime;
+            led_errors.On = false;
+        }
+
+        private void txt_messages_MouseDown(object sender, MouseEventArgs e)
+        {
+            freeze_scroll = true;
+        }
+
+        private void txt_messages_MouseUp(object sender, EventArgs e)
+        {
+            freeze_scroll = false;
         }
     }
 
