@@ -24,7 +24,6 @@ namespace TurbineStatus
             uiform.RestoreStartupLocation();
             uiform.RestoreSplitterDistance();
             uiform.Show();
-            uiform.SendToBack();
 
             //loopratehz = 1;
 
@@ -43,6 +42,8 @@ namespace TurbineStatus
             // Print uiform location and size to console
             System.Console.WriteLine("uiform.Location: " + uiform.Location.ToString());
             System.Console.WriteLine("uiform.Size: " + uiform.Size.ToString());
+            System.Console.WriteLine("uiform.WindowState: " + uiform.WindowState.ToString());
+            System.Console.WriteLine("uiform.RestoreBounds: " + uiform.RestoreBounds.ToString());
             return true;
         }*/
     }

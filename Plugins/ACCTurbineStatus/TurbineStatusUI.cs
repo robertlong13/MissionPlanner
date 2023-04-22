@@ -430,6 +430,51 @@ namespace TurbineStatus
             e.Cancel = true;
             this.WindowState = FormWindowState.Minimized;
         }
+        
+        private static bool RectVisible(Rectangle rectangle)
+        {
+            foreach (Screen screen in Screen.AllScreens)
+            {
+                // Add a 50px buffer to height and width
+                var screenbounds = screen.Bounds;
+                screenbounds.Inflate(50, 50);
+                if (screenbounds.Contains(rectangle)) return true;
+            }
+            return false;
+        }
+        
+        public void RestoreStartupLocation()
+        {
+            var value = Settings.Instance[Text.Replace(" ", "_") + "_StartLocation"];
+
+            if (value != null)
+            {
+                try
+                {
+                    var fsl = value.FromJSON<ControlHelpers.FormStartLocation>();
+                    Location = fsl.Location;
+                    Size = fsl.Size;
+                    StartPosition = RectVisible(Bounds) ? FormStartPosition.Manual : FormStartPosition.WindowsDefaultLocation;
+                    WindowState = fsl.State;
+                } catch {}
+            }
+        }
+
+        public void SaveStartupLocation()
+        {
+            Rectangle bounds;
+            FormWindowState state = WindowState;
+            if (state == FormWindowState.Normal)
+            {
+                bounds = Bounds;
+            }
+            else
+            {
+                bounds = RestoreBounds;
+                state = FormWindowState.Maximized;
+            }
+            Settings.Instance[Text.Replace(" ", "_") + "_StartLocation"] = new ControlHelpers.FormStartLocation { Location = bounds.Location, Size = bounds.Size, State = state }.ToJSON();
+        }
 
         public void RestoreSplitterDistance()
         {
