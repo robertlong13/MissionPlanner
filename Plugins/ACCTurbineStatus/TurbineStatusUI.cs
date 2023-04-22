@@ -21,15 +21,18 @@ namespace TurbineStatus
 
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        // Settings from the config file of all 8 gauges
+        // Settings from the config file of all 9 gauges
         List<GaugeSettings> gauge_settings;
 
-        PropertyInfo[] gauge_value_sources = new PropertyInfo[8];
-        AGaugeApp.AGauge[] gauges = new AGaugeApp.AGauge[8];
+        PropertyInfo[] gauge_value_sources = new PropertyInfo[9];
+        AGaugeApp.AGauge[] gauges = new AGaugeApp.AGauge[9];
 
         PropertyInfo relay_status;
         PropertyInfo ecu_mode;
         PropertyInfo turbine_mode;
+
+        int fuel_battery_index = 0;
+        PropertyInfo fuel_battery_remaining;
 
         HashSet<string> critical_errors = new HashSet<string>(new string[] {
             "Error of internal SPI interface",
@@ -151,7 +154,7 @@ namespace TurbineStatus
             LoadSettings();
 
             // Set up the gauges
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < 9; i++)
             {
                 GaugeSettings gs = gauge_settings[i];
                 // Look up the gauge control by name
@@ -183,11 +186,23 @@ namespace TurbineStatus
                 g.RangesStartValue[2] = (gs.red_min is null) ? gs.min : (float)gs.red_min;
                 g.RangesEndValue[2] = (gs.red_max is null) ? gs.max : (float)gs.red_max;
 
-                // Assign the variable if it exists in CurrentState (otherwise, it will remain null)4
+                // Assign the variable if it exists in CurrentState (otherwise, it will remain null)
                 gauge_value_sources[i] = Host.cs.GetType().GetProperty(gs.variable);
-                if (gauge_value_sources[i] is null)
+                if (gauge_value_sources[i] is null && !(gs.variable.StartsWith("BATT") && gs.variable.EndsWith("_CAPACITY")))
                 {
                     gauge_value_sources[i] = get_customfield(gs.variable);
+                }
+                else if(gs.variable.StartsWith("BATT") && gs.variable.EndsWith("_CAPACITY"))
+                {
+                    int.TryParse(gs.variable.Substring(4, 1), out fuel_battery_index);
+                    if(fuel_battery_index == 0)
+                    {
+                        fuel_battery_remaining = Host.cs.GetType().GetProperty("battery_remaining");
+                    }
+                    else
+                    {
+                        fuel_battery_remaining = Host.cs.GetType().GetProperty("battery_remaining" + fuel_battery_index.ToString());
+                    }
                 }
 
                 gauges[i] = g;
@@ -274,8 +289,8 @@ namespace TurbineStatus
         DateTime lastmessagetime;
         DateTime clearerrorstime = DateTime.MinValue;
         Severity highest_severity = Severity.OK;
-        bool freeze_scroll = false;
-        
+        int last_capacity_ml = 0; // For detecting changes in fuel capacity
+
         // Updates the UI with the latest data
         private void ui_timer_Tick(object sender, EventArgs e)
         {
@@ -414,6 +429,45 @@ namespace TurbineStatus
                     val = Math.Min(val, (float)gauge_settings[i].max);
                     gauges[i].Value0 = val;
                 }
+                // Special handling of the battery-based fuel gauge
+                else if (gauge_settings[i].variable.StartsWith("BATT") && gauge_settings[i].variable.EndsWith("_CAPACITY"))
+                {
+                    // Get fuel capacity in mL
+                    int capacity_ml = 0;
+                    if (Host.comPort.MAV.param.ContainsKey(gauge_settings[i].variable))
+                        capacity_ml = (int)Host.comPort.MAV.param[gauge_settings[i].variable];
+
+                    float capacity = capacity_ml * (gauge_settings[i].variable_scale ?? 1.0f);
+
+                    // If the capacity has changed, set up gauge for this capacity
+                    if (capacity_ml != 0 && capacity_ml != last_capacity_ml)
+                    {
+                        last_capacity_ml = capacity_ml;
+
+                        // Make the max value for the gauge equal to capacity rounded up to 1 sig fig
+                        float magnitude = (float)Math.Pow(10, Math.Floor(Math.Log10(capacity)));
+                        float max = (float)Math.Ceiling(Math.Round(capacity / magnitude, 3)) * magnitude;
+                        int steps = (int)(max / magnitude);
+                        while (steps < 4)
+                        {
+                            steps *= 2;
+                        }
+
+                        gauges[i].MaxValue = max;
+                        gauges[i].ScaleLinesMajorStepValue = max / steps;
+                    }
+
+                    // Set the needle
+                    float val = (int)fuel_battery_remaining.GetValue(Host.cs) * capacity / 100.0f;
+
+                    gauges[i].Cap_Idx = 1;
+                    gauges[i].CapText = val.ToString(gauge_settings[i].val_format);
+
+                    // Constrain the value to the min/max
+                    val = Math.Max(val, gauges[i].MinValue);
+                    val = Math.Min(val, gauges[i].MaxValue);
+                    gauges[i].Value0 = val;
+                }
             }
 
             // Disable controls when armed
@@ -494,10 +548,10 @@ namespace TurbineStatus
             Settings.Instance[Text.Replace(" ", "_") + "_SplitterDistance"] = splitContainer1.SplitterDistance.ToString();
         }
 
-        // On resizing, adjust the height of the gauges table to always have a 8:15 ratio
+        // On resizing, adjust the height of the gauges table to always have a 9:20 ratio
         private void table_gauges_Resize(object sender, EventArgs e)
         {
-            table_gauges.Height = table_gauges.Width * 8 / 15;
+            table_gauges.Height = table_gauges.Width * 9 / 20;
 
             table_control_Resize(sender, e);
         }
@@ -649,16 +703,6 @@ namespace TurbineStatus
         {
             clearerrorstime = lastmessagetime;
             led_errors.On = false;
-        }
-
-        private void txt_messages_MouseDown(object sender, MouseEventArgs e)
-        {
-            freeze_scroll = true;
-        }
-
-        private void txt_messages_MouseUp(object sender, EventArgs e)
-        {
-            freeze_scroll = false;
         }
     }
 
