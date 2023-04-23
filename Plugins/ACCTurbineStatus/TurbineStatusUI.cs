@@ -31,8 +31,9 @@ namespace TurbineStatus
         PropertyInfo ecu_mode;
         PropertyInfo turbine_mode;
 
-        int fuel_battery_index = 0;
-        PropertyInfo fuel_battery_remaining;
+        int fuel_battery_index = 1;
+        PropertyInfo fuel_battery_usedmah;
+        GaugeSettings fuel_battery_gauge_settings;
 
         HashSet<string> critical_errors = new HashSet<string>(new string[] {
             "Error of internal SPI interface",
@@ -194,15 +195,19 @@ namespace TurbineStatus
                 }
                 else if(gs.variable.StartsWith("BATT") && gs.variable.EndsWith("_CAPACITY"))
                 {
-                    int.TryParse(gs.variable.Substring(4, 1), out fuel_battery_index);
-                    if(fuel_battery_index == 0)
+                    if(!int.TryParse(gs.variable.Substring(4, 1), out fuel_battery_index))
                     {
-                        fuel_battery_remaining = Host.cs.GetType().GetProperty("battery_remaining");
+                        fuel_battery_usedmah = Host.cs.GetType().GetProperty("battery_usedmah");
+                        fuel_battery_index = 1;
                     }
                     else
                     {
-                        fuel_battery_remaining = Host.cs.GetType().GetProperty("battery_remaining" + fuel_battery_index.ToString());
+                        fuel_battery_usedmah = Host.cs.GetType().GetProperty("battery_usedmah" + fuel_battery_index.ToString());
                     }
+                    fuel_battery_gauge_settings = gs;
+
+                    // Assign the right-click context menu to this gauge
+                    g.ContextMenu = context_fuelmenu;
                 }
 
                 gauges[i] = g;
@@ -458,15 +463,18 @@ namespace TurbineStatus
                     }
 
                     // Set the needle
-                    float val = (int)fuel_battery_remaining.GetValue(Host.cs) * capacity / 100.0f;
+                    if (fuel_battery_usedmah != null)
+                    {
+                        float val = (capacity_ml - (int)((double)fuel_battery_usedmah.GetValue(Host.cs))) * (fuel_battery_gauge_settings.variable_scale ?? 1.0f);
 
-                    gauges[i].Cap_Idx = 1;
-                    gauges[i].CapText = val.ToString(gauge_settings[i].val_format);
+                        gauges[i].Cap_Idx = 1;
+                        gauges[i].CapText = val.ToString(gauge_settings[i].val_format);
 
-                    // Constrain the value to the min/max
-                    val = Math.Max(val, gauges[i].MinValue);
-                    val = Math.Min(val, gauges[i].MaxValue);
-                    gauges[i].Value0 = val;
+                        // Constrain the value to the min/max
+                        val = Math.Max(val, gauges[i].MinValue);
+                        val = Math.Min(val, gauges[i].MaxValue);
+                        gauges[i].Value0 = val;
+                    }
                 }
             }
 
@@ -703,6 +711,36 @@ namespace TurbineStatus
         {
             clearerrorstime = lastmessagetime;
             led_errors.On = false;
+        }
+
+        private void menusetfuel_Click(object sender, EventArgs e)
+        {
+            // Prompt the user for the fuel fill level
+            string fuellevel_str = "";
+            if(InputBox.Show("Set Fuel Level", "Enter the fuel level", ref fuellevel_str) != DialogResult.OK)
+            {
+                return;
+            }
+            fuellevel_str.Replace(",", ".");
+            float fuellevel;
+            if (float.TryParse(fuellevel_str, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out fuellevel))
+            {
+                // Set BATTn_CAPACITY to the fuel level
+                int capacity = (int)(fuellevel / fuel_battery_gauge_settings.variable_scale);
+                try
+                {
+                    Host.comPort.setParam((byte)Host.comPort.sysidcurrent, (byte)Host.comPort.compidcurrent, fuel_battery_gauge_settings.variable, capacity);
+                    Host.comPort.doCommand(MAVLink.MAV_CMD.BATTERY_RESET, 1 << (fuel_battery_index - 1), 100, 0, 0, 0, 0, 0);
+                }
+                catch
+                {
+                    CustomMessageBox.Show("Command rejected by MAV", "Error");
+                }
+            }
+            else
+            {
+                CustomMessageBox.Show("Invalid Entry", "Error");
+            }
         }
     }
 

@@ -31,6 +31,7 @@
             this.components = new System.ComponentModel.Container();
             this.txt_messages = new System.Windows.Forms.TextBox();
             this.table_gauges = new System.Windows.Forms.TableLayoutPanel();
+            this.aGauge4 = new AGaugeApp.AGauge();
             this.aGauge1 = new AGaugeApp.AGauge();
             this.aGauge2 = new AGaugeApp.AGauge();
             this.aGauge3 = new AGaugeApp.AGauge();
@@ -64,7 +65,8 @@
             this.but_clearerrors = new MissionPlanner.Controls.MyButton();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.ui_timer = new System.Windows.Forms.Timer(this.components);
-            this.aGauge4 = new AGaugeApp.AGauge();
+            this.context_fuelmenu = new System.Windows.Forms.ContextMenu();
+            this.menu_setfuel = new System.Windows.Forms.MenuItem();
             this.table_gauges.SuspendLayout();
             this.table_gauges2.SuspendLayout();
             this.table_main.SuspendLayout();
@@ -110,6 +112,155 @@
             this.table_gauges.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 44.44444F));
             this.table_gauges.Size = new System.Drawing.Size(723, 328);
             this.table_gauges.TabIndex = 15;
+            // 
+            // aGauge4
+            // 
+            this.aGauge4.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.aGauge4.BackColor = System.Drawing.Color.Transparent;
+            this.aGauge4.BackgroundImage = global::ACCTurbineStatus.Properties.Resources.Gaugebg;
+            this.aGauge4.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.aGauge4.BaseArcColor = System.Drawing.Color.Transparent;
+            this.aGauge4.BaseArcRadius = 70;
+            this.aGauge4.BaseArcStart = 135;
+            this.aGauge4.BaseArcSweep = 270;
+            this.aGauge4.BaseArcWidth = 2;
+            this.aGauge4.Cap_Idx = ((byte)(0));
+            this.aGauge4.CapColor = System.Drawing.Color.White;
+            this.aGauge4.CapColors = new System.Drawing.Color[] {
+        System.Drawing.Color.White,
+        System.Drawing.Color.White,
+        System.Drawing.Color.Black,
+        System.Drawing.Color.Black,
+        System.Drawing.Color.Black};
+            this.aGauge4.CapPosition = new System.Drawing.Point(58, 110);
+            this.aGauge4.CapsPosition = new System.Drawing.Point[] {
+        new System.Drawing.Point(58, 110),
+        new System.Drawing.Point(50, 110),
+        new System.Drawing.Point(10, 10),
+        new System.Drawing.Point(10, 10),
+        new System.Drawing.Point(10, 10)};
+            this.aGauge4.CapsText = new string[] {
+        "Fuel",
+        "",
+        "",
+        "",
+        ""};
+            this.aGauge4.CapText = "Fuel";
+            this.aGauge4.Center = new System.Drawing.Point(75, 75);
+            this.aGauge4.Location = new System.Drawing.Point(540, 0);
+            this.aGauge4.Margin = new System.Windows.Forms.Padding(0);
+            this.aGauge4.MaxValue = 120F;
+            this.aGauge4.MinValue = 0F;
+            this.aGauge4.Name = "aGauge4";
+            this.aGauge4.Need_Idx = ((byte)(3));
+            this.aGauge4.NeedleColor1 = AGaugeApp.AGauge.NeedleColorEnum.Gray;
+            this.aGauge4.NeedleColor2 = System.Drawing.Color.Brown;
+            this.aGauge4.NeedleEnabled = false;
+            this.aGauge4.NeedleRadius = 70;
+            this.aGauge4.NeedlesColor1 = new AGaugeApp.AGauge.NeedleColorEnum[] {
+        AGaugeApp.AGauge.NeedleColorEnum.Gray,
+        AGaugeApp.AGauge.NeedleColorEnum.Red,
+        AGaugeApp.AGauge.NeedleColorEnum.Blue,
+        AGaugeApp.AGauge.NeedleColorEnum.Gray};
+            this.aGauge4.NeedlesColor2 = new System.Drawing.Color[] {
+        System.Drawing.Color.White,
+        System.Drawing.Color.White,
+        System.Drawing.Color.White,
+        System.Drawing.Color.Brown};
+            this.aGauge4.NeedlesEnabled = new bool[] {
+        true,
+        false,
+        false,
+        false};
+            this.aGauge4.NeedlesRadius = new int[] {
+        50,
+        50,
+        70,
+        70};
+            this.aGauge4.NeedlesType = new int[] {
+        0,
+        0,
+        0,
+        0};
+            this.aGauge4.NeedlesWidth = new int[] {
+        2,
+        1,
+        2,
+        2};
+            this.aGauge4.NeedleType = 0;
+            this.aGauge4.NeedleWidth = 2;
+            this.aGauge4.Range_Idx = ((byte)(2));
+            this.aGauge4.RangeColor = System.Drawing.Color.Red;
+            this.aGauge4.RangeEnabled = true;
+            this.aGauge4.RangeEndValue = 120F;
+            this.aGauge4.RangeInnerRadius = 55;
+            this.aGauge4.RangeOuterRadius = 60;
+            this.aGauge4.RangesColor = new System.Drawing.Color[] {
+        System.Drawing.Color.Green,
+        System.Drawing.Color.Yellow,
+        System.Drawing.Color.Red,
+        System.Drawing.SystemColors.Control,
+        System.Drawing.SystemColors.Control};
+            this.aGauge4.RangesEnabled = new bool[] {
+        true,
+        true,
+        true,
+        false,
+        false};
+            this.aGauge4.RangesEndValue = new float[] {
+        120F,
+        120F,
+        120F,
+        0F,
+        0F};
+            this.aGauge4.RangesInnerRadius = new int[] {
+        55,
+        55,
+        55,
+        70,
+        70};
+            this.aGauge4.RangesOuterRadius = new int[] {
+        60,
+        60,
+        60,
+        80,
+        80};
+            this.aGauge4.RangesStartValue = new float[] {
+        50F,
+        102F,
+        108F,
+        0F,
+        0F};
+            this.aGauge4.RangeStartValue = 108F;
+            this.aGauge4.ScaleLinesInterColor = System.Drawing.Color.White;
+            this.aGauge4.ScaleLinesInterInnerRadius = 52;
+            this.aGauge4.ScaleLinesInterOuterRadius = 60;
+            this.aGauge4.ScaleLinesInterWidth = 1;
+            this.aGauge4.ScaleLinesMajorColor = System.Drawing.Color.White;
+            this.aGauge4.ScaleLinesMajorInnerRadius = 50;
+            this.aGauge4.ScaleLinesMajorOuterRadius = 60;
+            this.aGauge4.ScaleLinesMajorStepValue = 20F;
+            this.aGauge4.ScaleLinesMajorWidth = 2;
+            this.aGauge4.ScaleLinesMinorColor = System.Drawing.Color.White;
+            this.aGauge4.ScaleLinesMinorInnerRadius = 55;
+            this.aGauge4.ScaleLinesMinorNumOf = 9;
+            this.aGauge4.ScaleLinesMinorOuterRadius = 60;
+            this.aGauge4.ScaleLinesMinorWidth = 1;
+            this.aGauge4.ScaleNumbersColor = System.Drawing.Color.White;
+            this.aGauge4.ScaleNumbersFormat = null;
+            this.aGauge4.ScaleNumbersRadius = 38;
+            this.aGauge4.ScaleNumbersRotation = 0;
+            this.aGauge4.ScaleNumbersStartScaleLine = 1;
+            this.aGauge4.ScaleNumbersStepScaleLines = 1;
+            this.aGauge4.Size = new System.Drawing.Size(182, 182);
+            this.aGauge4.TabIndex = 15;
+            this.aGauge4.Value = 0F;
+            this.aGauge4.Value0 = 0F;
+            this.aGauge4.Value1 = 0F;
+            this.aGauge4.Value2 = 0F;
+            this.aGauge4.Value3 = 0F;
             // 
             // aGauge1
             // 
@@ -1665,154 +1816,16 @@
             this.ui_timer.Enabled = true;
             this.ui_timer.Tick += new System.EventHandler(this.ui_timer_Tick);
             // 
-            // aGauge4
+            // context_fuelmenu
             // 
-            this.aGauge4.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.aGauge4.BackColor = System.Drawing.Color.Transparent;
-            this.aGauge4.BackgroundImage = global::ACCTurbineStatus.Properties.Resources.Gaugebg;
-            this.aGauge4.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.aGauge4.BaseArcColor = System.Drawing.Color.Transparent;
-            this.aGauge4.BaseArcRadius = 70;
-            this.aGauge4.BaseArcStart = 135;
-            this.aGauge4.BaseArcSweep = 270;
-            this.aGauge4.BaseArcWidth = 2;
-            this.aGauge4.Cap_Idx = ((byte)(0));
-            this.aGauge4.CapColor = System.Drawing.Color.White;
-            this.aGauge4.CapColors = new System.Drawing.Color[] {
-        System.Drawing.Color.White,
-        System.Drawing.Color.White,
-        System.Drawing.Color.Black,
-        System.Drawing.Color.Black,
-        System.Drawing.Color.Black};
-            this.aGauge4.CapPosition = new System.Drawing.Point(58, 110);
-            this.aGauge4.CapsPosition = new System.Drawing.Point[] {
-        new System.Drawing.Point(58, 110),
-        new System.Drawing.Point(50, 110),
-        new System.Drawing.Point(10, 10),
-        new System.Drawing.Point(10, 10),
-        new System.Drawing.Point(10, 10)};
-            this.aGauge4.CapsText = new string[] {
-        "Fuel",
-        "",
-        "",
-        "",
-        ""};
-            this.aGauge4.CapText = "Fuel";
-            this.aGauge4.Center = new System.Drawing.Point(75, 75);
-            this.aGauge4.Location = new System.Drawing.Point(540, 0);
-            this.aGauge4.Margin = new System.Windows.Forms.Padding(0);
-            this.aGauge4.MaxValue = 120F;
-            this.aGauge4.MinValue = 0F;
-            this.aGauge4.Name = "aGauge4";
-            this.aGauge4.Need_Idx = ((byte)(3));
-            this.aGauge4.NeedleColor1 = AGaugeApp.AGauge.NeedleColorEnum.Gray;
-            this.aGauge4.NeedleColor2 = System.Drawing.Color.Brown;
-            this.aGauge4.NeedleEnabled = false;
-            this.aGauge4.NeedleRadius = 70;
-            this.aGauge4.NeedlesColor1 = new AGaugeApp.AGauge.NeedleColorEnum[] {
-        AGaugeApp.AGauge.NeedleColorEnum.Gray,
-        AGaugeApp.AGauge.NeedleColorEnum.Red,
-        AGaugeApp.AGauge.NeedleColorEnum.Blue,
-        AGaugeApp.AGauge.NeedleColorEnum.Gray};
-            this.aGauge4.NeedlesColor2 = new System.Drawing.Color[] {
-        System.Drawing.Color.White,
-        System.Drawing.Color.White,
-        System.Drawing.Color.White,
-        System.Drawing.Color.Brown};
-            this.aGauge4.NeedlesEnabled = new bool[] {
-        true,
-        false,
-        false,
-        false};
-            this.aGauge4.NeedlesRadius = new int[] {
-        50,
-        50,
-        70,
-        70};
-            this.aGauge4.NeedlesType = new int[] {
-        0,
-        0,
-        0,
-        0};
-            this.aGauge4.NeedlesWidth = new int[] {
-        2,
-        1,
-        2,
-        2};
-            this.aGauge4.NeedleType = 0;
-            this.aGauge4.NeedleWidth = 2;
-            this.aGauge4.Range_Idx = ((byte)(2));
-            this.aGauge4.RangeColor = System.Drawing.Color.Red;
-            this.aGauge4.RangeEnabled = true;
-            this.aGauge4.RangeEndValue = 120F;
-            this.aGauge4.RangeInnerRadius = 55;
-            this.aGauge4.RangeOuterRadius = 60;
-            this.aGauge4.RangesColor = new System.Drawing.Color[] {
-        System.Drawing.Color.Green,
-        System.Drawing.Color.Yellow,
-        System.Drawing.Color.Red,
-        System.Drawing.SystemColors.Control,
-        System.Drawing.SystemColors.Control};
-            this.aGauge4.RangesEnabled = new bool[] {
-        true,
-        true,
-        true,
-        false,
-        false};
-            this.aGauge4.RangesEndValue = new float[] {
-        120F,
-        120F,
-        120F,
-        0F,
-        0F};
-            this.aGauge4.RangesInnerRadius = new int[] {
-        55,
-        55,
-        55,
-        70,
-        70};
-            this.aGauge4.RangesOuterRadius = new int[] {
-        60,
-        60,
-        60,
-        80,
-        80};
-            this.aGauge4.RangesStartValue = new float[] {
-        50F,
-        102F,
-        108F,
-        0F,
-        0F};
-            this.aGauge4.RangeStartValue = 108F;
-            this.aGauge4.ScaleLinesInterColor = System.Drawing.Color.White;
-            this.aGauge4.ScaleLinesInterInnerRadius = 52;
-            this.aGauge4.ScaleLinesInterOuterRadius = 60;
-            this.aGauge4.ScaleLinesInterWidth = 1;
-            this.aGauge4.ScaleLinesMajorColor = System.Drawing.Color.White;
-            this.aGauge4.ScaleLinesMajorInnerRadius = 50;
-            this.aGauge4.ScaleLinesMajorOuterRadius = 60;
-            this.aGauge4.ScaleLinesMajorStepValue = 20F;
-            this.aGauge4.ScaleLinesMajorWidth = 2;
-            this.aGauge4.ScaleLinesMinorColor = System.Drawing.Color.White;
-            this.aGauge4.ScaleLinesMinorInnerRadius = 55;
-            this.aGauge4.ScaleLinesMinorNumOf = 9;
-            this.aGauge4.ScaleLinesMinorOuterRadius = 60;
-            this.aGauge4.ScaleLinesMinorWidth = 1;
-            this.aGauge4.ScaleNumbersColor = System.Drawing.Color.White;
-            this.aGauge4.ScaleNumbersFormat = null;
-            this.aGauge4.ScaleNumbersRadius = 38;
-            this.aGauge4.ScaleNumbersRotation = 0;
-            this.aGauge4.ScaleNumbersStartScaleLine = 1;
-            this.aGauge4.ScaleNumbersStepScaleLines = 1;
-            this.aGauge4.Size = new System.Drawing.Size(182, 182);
-            this.aGauge4.TabIndex = 15;
-            this.aGauge4.Value = 0F;
-            this.aGauge4.Value0 = 0F;
-            this.aGauge4.Value1 = 0F;
-            this.aGauge4.Value2 = 0F;
-            this.aGauge4.Value3 = 0F;
+            this.context_fuelmenu.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+            this.menu_setfuel});
+            // 
+            // menu_setfuel
+            // 
+            this.menu_setfuel.Index = 0;
+            this.menu_setfuel.Text = "Set Fuel Level";
+            this.menu_setfuel.Click += new System.EventHandler(this.menusetfuel_Click);
             // 
             // TurbineStatusUI
             // 
@@ -1878,5 +1891,7 @@
         private Bulb.LedBulb led_errors;
         private MissionPlanner.Controls.MyButton but_clearerrors;
         private AGaugeApp.AGauge aGauge4;
+        private System.Windows.Forms.ContextMenu context_fuelmenu;
+        private System.Windows.Forms.MenuItem menu_setfuel;
     }
 }
