@@ -715,6 +715,12 @@ namespace TurbineStatus
 
         private void menusetfuel_Click(object sender, EventArgs e)
         {
+            if(!Host.comPort.BaseStream.IsOpen)
+            {
+                CustomMessageBox.Show("Connect to vehicle first", "Error");
+                return;
+            }
+
             // Prompt the user for the fuel fill level
             string fuellevel_str = "";
             if(InputBox.Show("Set Fuel Level", "Enter the fuel level", ref fuellevel_str) != DialogResult.OK)
