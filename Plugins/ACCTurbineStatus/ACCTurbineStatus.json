@@ -33,6 +33,7 @@
   },
   {
     "variable": "MAV_EFIOILTEMP",
+    "variable_offset": -273.15,
     "desc": "Oil Temp.",
     "desc_pos": 52,
     "val_format": "0",
