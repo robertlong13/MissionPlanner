@@ -22,8 +22,8 @@ namespace TurbineStatus
             // Open the TurbineStatus UI
             uiform = new TurbineStatusUI(Host);
             uiform.RestoreStartupLocation();
-            uiform.RestoreSplitterDistance();
             uiform.Show();
+            uiform.RestoreSplitterDistance();
 
             //loopratehz = 1;
 
