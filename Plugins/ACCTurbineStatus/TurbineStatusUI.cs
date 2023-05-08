@@ -424,7 +424,7 @@ namespace TurbineStatus
             {
                 if (gauge_value_sources[i] != null)
                 {
-                    float val = (float)gauge_value_sources[i].GetValue(Host.cs) * (float)gauge_settings[i].variable_scale + (float)gauge_settings[i].variable_offset;
+                    float val = Convert.ToSingle(gauge_value_sources[i].GetValue(Host.cs)) * (float)gauge_settings[i].variable_scale + (float)gauge_settings[i].variable_offset;
 
                     gauges[i].Cap_Idx = 1;
                     gauges[i].CapText = val.ToString(gauge_settings[i].val_format);
