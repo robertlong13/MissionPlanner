@@ -1710,7 +1710,7 @@ namespace MissionPlanner.Grid
                                         {
                                             AddWP(plla.Lng, plla.Lat, plla.Alt, plla.Tag);
 
-                                            plugin.Host.AddWPtoList(MAVLink.MAV_CMD.DO_SET_CAM_TRIGG_DIST, 0, 0, 1, 0,
+                                            plugin.Host.AddWPtoList(MAVLink.MAV_CMD.DO_SET_CAM_TRIGG_DIST, 0, 0, 0, 0,
                                                 0, 0, 0, gridobject);
                                         }
                                     }
@@ -1792,7 +1792,7 @@ namespace MissionPlanner.Grid
                     // end
                     if (rad_trigdist.Checked)
                     {
-                        plugin.Host.AddWPtoList(MAVLink.MAV_CMD.DO_SET_CAM_TRIGG_DIST, 0, 0, 1, 0, 0, 0, 0, gridobject);
+                        plugin.Host.AddWPtoList(MAVLink.MAV_CMD.DO_SET_CAM_TRIGG_DIST, 0, 0, 0, 0, 0, 0, 0, gridobject);
                     }
 
                     if (CHK_usespeed.Checked)
