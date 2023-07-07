@@ -1,29 +1,15 @@
 ﻿using System;
-using MissionPlanner;
 using MissionPlanner.Plugin;
-using MissionPlanner.Utilities;
 using System.Windows.Forms;
-using MissionPlanner.Controls;
-using System.Linq;
-using GMap.NET.MapProviders;
-using GMap.NET;
-using System.Collections.Generic;
-using System.IO;
-using Newtonsoft.Json;
 using System.Reflection;
-using MissionPlanner.Joystick;
-using MissionPlanner.ArduPilot;
-using MissionPlanner.ArduPilot.Mavlink;
-using System.Threading.Tasks;
 using log4net;
-using static MAVLink;
 
 namespace RadioLOS
 {
     public class RadioLOS_Plugin : Plugin
     {
         private string _Name = "Radio LOS Calculator";
-        private string _Version = "0.2";
+        private string _Version = "0.3";
         private string _Author = "Bob Long";
 
         public override string Name { get { return _Name; } }

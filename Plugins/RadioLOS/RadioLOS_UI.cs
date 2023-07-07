@@ -71,15 +71,15 @@ namespace RadioLOS
         // switch between units that frequently to justify the pain.
         void LoadSettings()
         {
-            num_range.Value = Host.config.GetDecimal("RadioLOS_UI.num_range", num_range.Value);
-            num_mast_height.Value = Host.config.GetDecimal("RadioLOS_UI.num_mast_height", num_mast_height.Value);
-            num_start_az.Value = Host.config.GetDecimal("RadioLOS_UI.num_start_az", num_start_az.Value);
-            num_stop_az.Value = Host.config.GetDecimal("RadioLOS_UI.num_stop_az", num_stop_az.Value);
-            num_clear_angle.Value = Host.config.GetDecimal("RadioLOS_UI.num_clear_angle", num_clear_angle.Value);
-            num_clear_terrain.Value = Host.config.GetDecimal("RadioLOS_UI.num_clear_terrain", num_clear_terrain.Value);
-            num_az_step.Value = Host.config.GetDecimal("RadioLOS_UI.num_az_step", num_az_step.Value);
-            num_dist_step.Value = Host.config.GetDecimal("RadioLOS_UI.num_dist_step", num_dist_step.Value);
-            num_tolerance.Value = Host.config.GetDecimal("RadioLOS_UI.num_tolerance", num_tolerance.Value);
+            num_range.Value = GetDecimal("RadioLOS_UI.num_range", num_range.Value);
+            num_mast_height.Value = GetDecimal("RadioLOS_UI.num_mast_height", num_mast_height.Value);
+            num_start_az.Value = GetDecimal("RadioLOS_UI.num_start_az", num_start_az.Value);
+            num_stop_az.Value = GetDecimal("RadioLOS_UI.num_stop_az", num_stop_az.Value);
+            num_clear_angle.Value = GetDecimal("RadioLOS_UI.num_clear_angle", num_clear_angle.Value);
+            num_clear_terrain.Value = GetDecimal("RadioLOS_UI.num_clear_terrain", num_clear_terrain.Value);
+            num_az_step.Value = GetDecimal("RadioLOS_UI.num_az_step", num_az_step.Value);
+            num_dist_step.Value = GetDecimal("RadioLOS_UI.num_dist_step", num_dist_step.Value);
+            num_tolerance.Value = GetDecimal("RadioLOS_UI.num_tolerance", num_tolerance.Value);
 
             // Grab the default flight_altitude and flight_altitude mode from the FlightPlanner page
             if (decimal.TryParse(Host.MainForm.FlightPlanner.TXT_DefaultAlt.Text, out decimal altitude))
@@ -94,6 +94,16 @@ namespace RadioLOS
             {
                 rad_ahl.Checked = true;
             }
+        }
+
+        private decimal GetDecimal(string key, decimal defaultd = 0)
+        {
+            decimal result;
+            if (Host.config.ContainsKey(key) && decimal.TryParse(Host.config[key], out result))
+            {
+                return result;
+            }
+            return defaultd;
         }
 
         void SaveSettings()
