@@ -8,6 +8,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing;
 using System.Windows.Forms;
 using MissionPlanner;
+using MissionPlanner.Utilities;
 
 namespace RadioLOS
 {
@@ -140,17 +141,17 @@ namespace RadioLOS
                 angle_tolerance = (double)num_tolerance.Value,
             };
 
+
+            PointLatLngAlt home = new PointLatLngAlt(Host.cs.PlannedHomeLocation);
+            home.Alt /= CurrentState.multiplieralt; // PlannedHomeLocation has displayunit altitude, unlike HomeLocation
             double flight_altitude = (double)num_altitude.Value / CurrentState.multiplieralt;
-            if (rad_ahl.Checked) flight_altitude += Host.cs.PlannedHomeLocation.Alt;
+            if (rad_ahl.Checked) flight_altitude += home.Alt;
 
             double range = (double)num_range.Value / multiplierdistbig;
 
             var radioLOS = new RadioLOS();
             List<PointLatLng> allowableFlightZone = await radioLOS.CalculateAllowableFlightZoneAsync(
-                range,
-                flight_altitude,
-                Host.cs.PlannedHomeLocation, options, progress
-            );
+                range, flight_altitude, home, options, progress);
 
             Host.FDMenuMap.BeginInvokeIfRequired((Action) delegate
             {
