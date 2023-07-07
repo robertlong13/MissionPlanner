@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
-using System.Linq;
 using MissionPlanner.Utilities;
 
 namespace RadioLOS
@@ -29,7 +28,6 @@ namespace RadioLOS
 
         private int progress_count;
         private double initial_el_angle;
-        private double x_range;
         
         const double RADIUS_OF_EARTH = 6378100.0; // m
 
@@ -42,27 +40,12 @@ namespace RadioLOS
             this.home = home;
             this.options = options;
 
-            // Find the elevation for which the line-of-sight intersects the flight altitude,
-            // accounting for a round Earth. We need to do this iteratively
-            double rel_alt = flight_altitude - home.Alt - options.base_height;
-            initial_el_angle = Math.Asin(rel_alt / range);
-            double el2;
-            int loop_limit = 10;
-            x_range = range;
-            do
-            {
-                el2 = initial_el_angle;
-                x_range = range * Math.Cos(el2);
-                rel_alt = range * Math.Sin(el2) - x_range * x_range / RADIUS_OF_EARTH;
-                initial_el_angle = Math.Asin(rel_alt / range);
-                if(loop_limit-- < 0)
-                {
-                    throw new Exception("failed to converge elevation angle");
-                }
-            } while (Math.Abs(initial_el_angle - el2) > options.angle_tolerance);
-            initial_el_angle *= 180 / Math.PI;
-
-            var dist_vs_angle = new SortedList<double, double>();
+            // Calculate and cache the elevation angle from the base to the aircraft from range and flight_altitude
+            // Use law of cosines to find elevation angle of a ray of length `range` that connects the circle of
+            // (RADIUS_OF_EARTH + base_altitude) to the circle of (RADIUS_OF_EARTH + flight_altitude).
+            double R1 = RADIUS_OF_EARTH + home.Alt + options.base_height;
+            double R2 = RADIUS_OF_EARTH + flight_altitude;
+            initial_el_angle = Math.Asin((R2 * R2 - R1 * R1 - range * range) / (2 * range * R1)) * 180 / Math.PI;
 
             // Define the range of azimuth angles
             double start_azimuth = options.start_azimuth;
@@ -70,10 +53,10 @@ namespace RadioLOS
             if (stop_azimuth <= start_azimuth) stop_azimuth += 360; // Unwrap angle
             double azimuth_step = options.azimuth_step;
 
+            // This is the output of polar coordinates of our calculated allowable flight zone
+            var dist_vs_angle = new SortedList<double, double>();
+
             progress_count = 0;
-
-            double total_loops = Math.Ceiling((stop_azimuth - start_azimuth) / azimuth_step);
-
             int num_loops = (int)Math.Floor(stop_azimuth / azimuth_step) - (int)Math.Ceiling(start_azimuth / azimuth_step) + 1;
 
             await Task.Run(() =>
@@ -83,8 +66,10 @@ namespace RadioLOS
                 {
                     double azimuth = start_azimuth + i * azimuth_step;
 
-                    // Call your existing function to calculate the max distance for the given azimuth and flight_altitude
+                    // Calculate the maximum distance for this azimuth angle
                     double maxDistance = CalculateMaxDistance(azimuth);
+
+                    // Copy to output list
                     lock (dist_vs_angle)
                     {
                         dist_vs_angle.Add(azimuth, maxDistance);
@@ -95,7 +80,7 @@ namespace RadioLOS
 
             // Copy to output list, and account for angle clearance in horizontal direction.
             // Essentailly this means take the minimum distance for a window of +/-clearance_angle
-            var allowableFlightZone = new List<PointLatLng>();
+            var allowableFlightZone = new List<PointLatLng>(dist_vs_angle.Count);
 
             for(int i = 0; i < dist_vs_angle.Count; i++)
             {
@@ -116,6 +101,7 @@ namespace RadioLOS
             }
 
             // If we are displaying a finite arc, add the home point to the end of the list
+            // so the sides of the "pie slice" get drawn
             if (stop_azimuth - start_azimuth <= 360 - azimuth_step)
             {
                 allowableFlightZone.Add(home);
@@ -136,11 +122,13 @@ namespace RadioLOS
             double min = el_angle;
             double max = 90;
 
-            // Resulting horizontal distance from base
-            double x_dist;
+            // Radius of circle representing the base altitude
+            double R1 = RADIUS_OF_EARTH + home.Alt + options.base_height;
+            // Radius of cicle representing aircraft altitude
+            double R2 = RADIUS_OF_EARTH + flight_altitude;
             while (min + options.angle_tolerance < max)
             {
-                // Actual distance from base
+                // Full 3D distance from base to aircraft
                 double slant_range = 0;
                 // MSL altitude of the test point
                 double alt = home.Alt + options.base_height;
@@ -153,8 +141,9 @@ namespace RadioLOS
                 while (slant_range < range && alt < flight_altitude)
                 {
                     slant_range += options.distance_step;
-                    x_dist = slant_range * CosElAngle;
-                    alt = home.Alt + options.base_height + slant_range * SinElAngle - x_dist * x_dist / RADIUS_OF_EARTH;
+                    double x_dist = RADIUS_OF_EARTH * Math.Asin(slant_range * CosElAngle / R2); // Law of sines
+                    // Use law of cosines to get altitude of test point
+                    alt = Math.Sqrt(R1 * R1 + slant_range * slant_range + 2 * R1 * slant_range * SinElAngle) - RADIUS_OF_EARTH;
                     var pos = home.newpos(azimuth, x_dist);
                     terrain_alt = srtm.getAltitude(pos.Lat, pos.Lng).alt;
 
@@ -162,6 +151,7 @@ namespace RadioLOS
                     // We don't need to calculate anything else, return x_dist
                     if (terrain_alt > flight_altitude - options.clearance_terrain) return x_dist;
 
+                    // The LOS hits terrain, break and try higher el_angle
                     if(terrain_alt > alt) break;
                 }
 
@@ -176,17 +166,9 @@ namespace RadioLOS
             el_angle = Math.Min(el_angle, 90);
 
             // Calculate the x_dist for which the line will reach flight altitude at the given elevation angle
-            x_dist = (flight_altitude - home.Alt - options.base_height) / Math.Tan(el_angle * Math.PI / 180);
-            // Iteratively solve this distance for curved Earth
-            double change = x_dist;
-            while (Math.Abs(change) > options.distance_step)
-            {
-                double rel_alt = flight_altitude - home.Alt - options.base_height - x_dist * x_dist / RADIUS_OF_EARTH;
-                change = rel_alt / Math.Tan(el_angle * Math.PI / 180) - x_dist;
-                x_dist += change;
-            }
+            // (a form of law of cosines again)
+            return RADIUS_OF_EARTH * (Math.Acos(R1 / R2 * Math.Cos(el_angle * Math.PI / 180)) - el_angle * Math.PI / 180);
 
-            return x_dist;
         }
     }
 }

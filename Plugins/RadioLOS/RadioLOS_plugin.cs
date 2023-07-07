@@ -23,7 +23,7 @@ namespace RadioLOS
     public class RadioLOS_Plugin : Plugin
     {
         private string _Name = "Radio LOS Calculator";
-        private string _Version = "0.1";
+        private string _Version = "0.2";
         private string _Author = "Bob Long";
 
         public override string Name { get { return _Name; } }
