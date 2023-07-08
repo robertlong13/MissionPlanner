@@ -163,24 +163,22 @@ namespace RadioLOS
             List<PointLatLng> allowableFlightZone = await radioLOS.CalculateAllowableFlightZoneAsync(
                 range, flight_altitude, home, options, progress);
 
+            GMapPolygon poly = new GMapPolygon(allowableFlightZone, "LOS")
+            {
+                Fill = Brushes.Transparent,
+                Stroke = new Pen(Color.MediumOrchid, 3) { DashStyle = DashStyle.Dash }
+            };
+
             Host.FDMenuMap.BeginInvokeIfRequired((Action) delegate
             {
                 DataPageOverlay.Polygons.Clear();
-                DataPageOverlay.Polygons.Add(new GMapPolygon(allowableFlightZone, "LOS")
-                {
-                    Fill = Brushes.Transparent,
-                    Stroke = new Pen(Color.White, 3) { DashStyle = DashStyle.Dash }
-                });
+                DataPageOverlay.Polygons.Add(poly);
             });
 
             Host.FPMenuMap.BeginInvokeIfRequired((Action)delegate
             {
                 PlanPageOverlay.Polygons.Clear();
-                PlanPageOverlay.Polygons.Add(new GMapPolygon(allowableFlightZone, "LOS")
-                {
-                    Fill = Brushes.Transparent,
-                    Stroke = new Pen(Color.White, 3) { DashStyle = DashStyle.Dash }
-                });
+                PlanPageOverlay.Polygons.Add(poly);
             });
 
             SaveSettings();
