@@ -157,6 +157,13 @@ namespace RadioLOS
             double flight_altitude = (double)num_altitude.Value / CurrentState.multiplieralt;
             if (rad_ahl.Checked) flight_altitude += home.Alt;
 
+            if(flight_altitude <= home.Alt + options.base_height)
+            {
+                CustomMessageBox.Show("Flight altitude must be higher than home altitude!", Strings.ERROR);
+                but_generate.Enabled = true;
+                return;
+            }
+
             double range = (double)num_range.Value / multiplierdistbig;
 
             var radioLOS = new RadioLOS();

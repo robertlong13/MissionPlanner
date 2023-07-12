@@ -53,6 +53,12 @@ namespace RadioLOS
             this.home = home;
             this.options = options;
 
+            // flight_altitude must be strictly above the base altitude
+            if (flight_altitude <= home.Alt + options.base_height)
+            {
+                throw new ArgumentException("Flight altitude must be above base altitude");
+            }
+
             // Calculate and cache the elevation angle from the base to the aircraft from range and flight_altitude
             // Use law of cosines to find elevation angle of a ray of length `range` that connects the circle of
             // (RADIUS_OF_EARTH + base_altitude) to the circle of (RADIUS_OF_EARTH + flight_altitude).
