@@ -154,9 +154,9 @@ namespace RadioLOS
                 while (alt < flight_altitude && slant_range < range) // The second condition should not be possible, but just in case
                 {
                     slant_range += options.distance_step;
-                    double x_dist = RADIUS_OF_EARTH * Math.Asin(slant_range * CosElAngle / R2); // Law of sines
                     // Use law of cosines to get altitude of test point
                     alt = Math.Sqrt(R1 * R1 + slant_range * slant_range + 2 * R1 * slant_range * SinElAngle) - RADIUS_OF_EARTH;
+                    double x_dist = RADIUS_OF_EARTH * Math.Asin(slant_range * CosElAngle / (RADIUS_OF_EARTH + alt)); // Law of sines
                     var pos = home.newpos(azimuth, x_dist);
                     terrain_alt = srtm.getAltitude(pos.Lat, pos.Lng).alt;
 
