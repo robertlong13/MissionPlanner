@@ -8,13 +8,20 @@ namespace RadioLOS
 {
     public class RadioLOSOptions
     {
+        // Height of the base radio above terrain
         public double base_height = 0;
+        // Minimum angle that the line-of-sight must clear the terrain by
         public double clearance_angle = 0;
+        // Minimum height above terrain that the aircraft must pass over terrain
         public double clearance_terrain = 0;
+        // Start and stop angles to reduce calculation area to only the region of interest
         public double start_azimuth = 0;
         public double stop_azimuth = 0;
+        // Azimuth resolution
         public double azimuth_step = 0.1;
+        // Terrain sample resolution
         public double distance_step = 10;
+        // Convergence angle for calculating minimum elevation angle
         public double angle_tolerance = 0.1;
     }
     
@@ -31,6 +38,12 @@ namespace RadioLOS
         
         const double RADIUS_OF_EARTH = 6378100.0; // m
 
+        // Calculate the allowable flight zone to maintain radio line of sight between the base and the aircraft.
+        // range - maximum range of aircraft in meters
+        // flight_altitude - planned MSL altitude of the flight in meters
+        // home - home location of the aircraft in lat, lon, MSL alt (m)
+        // options - additional options for the calculation
+        // progress - progress callback for drawing progress bar
         public async Task<List<PointLatLng>> CalculateAllowableFlightZoneAsync(double range, double flight_altitude, PointLatLngAlt home, RadioLOSOptions options = null, IProgress<int> progress = null)
         {
             if (options == null) options = new RadioLOSOptions();
@@ -69,7 +82,7 @@ namespace RadioLOS
                     // Calculate the maximum distance for this azimuth angle
                     double maxDistance = CalculateMaxDistance(azimuth);
 
-                    // Copy to output list
+                    // Copy to output list and report progress
                     lock (dist_vs_angle)
                     {
                         dist_vs_angle.Add(azimuth, maxDistance);
@@ -111,9 +124,9 @@ namespace RadioLOS
         }
 
         // Iteratively sweep through elevation angles. At each elevation angle, step from the base out along that
-        // line until it crosses through terrain or reaches the aircraft flight_altitude. If it crosses terrain, raise
-        // the elevation angle. If it is clear, lower it. Repeat until angle converges or until a terrain flight_altitude
-        // is found that equals the aircraft flight flight_altitude.
+        // line until it crosses through terrain or reaches the aircrafts' flight altitude. If it crosses terrain,
+        // raise the elevation angle. If it is clear, lower it. Repeat until angle converges or until a terrain
+        // altitude is found that is too close to the aircraft's flight altitude.
         private double CalculateMaxDistance(double azimuth)
         {
 
@@ -138,7 +151,7 @@ namespace RadioLOS
                 double SinElAngle = Math.Sin(el_angle * Math.PI / 180);
                 double CosElAngle = Math.Cos(el_angle * Math.PI / 180);
 
-                while (slant_range < range && alt < flight_altitude)
+                while (alt < flight_altitude && slant_range < range) // The second condition should not be possible, but just in case
                 {
                     slant_range += options.distance_step;
                     double x_dist = RADIUS_OF_EARTH * Math.Asin(slant_range * CosElAngle / R2); // Law of sines
@@ -147,8 +160,13 @@ namespace RadioLOS
                     var pos = home.newpos(azimuth, x_dist);
                     terrain_alt = srtm.getAltitude(pos.Lat, pos.Lng).alt;
 
-                    // We have found a point where the aircraft would crash into terrain.
-                    // We don't need to calculate anything else, return x_dist
+                    // We have found a point where the aircraft would pass too close to terrain.
+                    // We don't need to calculate anything else, return x_dist.
+                    // The immediate-return is possible only because
+                    //      1. We start from home and move out
+                    //      2. We know that nothing has broken LOS yet along this ray, so this is
+                    //         guaranteed to be a smaller (or equal, if clearance is set to zero)
+                    //         to the max LOS range
                     if (terrain_alt > flight_altitude - options.clearance_terrain) return x_dist;
 
                     // The LOS hits terrain, break and try higher el_angle
@@ -166,7 +184,7 @@ namespace RadioLOS
             el_angle = Math.Min(el_angle, 90);
 
             // Calculate the x_dist for which the line will reach flight altitude at the given elevation angle
-            // (a form of law of cosines again)
+            // (a form of law of sines again)
             return RADIUS_OF_EARTH * (Math.Acos(R1 / R2 * Math.Cos(el_angle * Math.PI / 180)) - el_angle * Math.PI / 180);
 
         }
