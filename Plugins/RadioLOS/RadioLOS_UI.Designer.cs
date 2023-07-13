@@ -60,9 +60,6 @@
             this.label18 = new System.Windows.Forms.Label();
             this.num_range = new System.Windows.Forms.NumericUpDown();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
-            this.label12 = new System.Windows.Forms.Label();
-            this.label13 = new System.Windows.Forms.Label();
-            this.num_tolerance = new System.Windows.Forms.NumericUpDown();
             this.label5 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
             this.num_az_step = new System.Windows.Forms.NumericUpDown();
@@ -80,7 +77,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.num_altitude)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.num_range)).BeginInit();
             this.groupBox4.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.num_tolerance)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.num_az_step)).BeginInit();
             this.SuspendLayout();
             // 
@@ -511,9 +507,6 @@
             // 
             // groupBox4
             // 
-            this.groupBox4.Controls.Add(this.label12);
-            this.groupBox4.Controls.Add(this.label13);
-            this.groupBox4.Controls.Add(this.num_tolerance);
             this.groupBox4.Controls.Add(this.lbl_meters_do_not_convert);
             this.groupBox4.Controls.Add(this.label5);
             this.groupBox4.Controls.Add(this.label10);
@@ -522,63 +515,11 @@
             this.groupBox4.Controls.Add(this.num_dist_step);
             this.groupBox4.Location = new System.Drawing.Point(12, 119);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(498, 45);
+            this.groupBox4.Size = new System.Drawing.Size(354, 45);
             this.groupBox4.TabIndex = 14;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Advanced";
             this.toolTip1.SetToolTip(this.groupBox4, "Settings that affect accuracy/runtime tradeoff. Leave\r\nthese default.");
-            // 
-            // label12
-            // 
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(471, 20);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(25, 13);
-            this.label12.TabIndex = 14;
-            this.label12.Text = "deg";
-            this.toolTip1.SetToolTip(this.label12, "Convergence tolerance for determining minimum\r\nelevation angle. Increase to speed" +
-        " up calculation at\r\nthe cost of accuracty.\r\n\r\nDefault 0.05 deg");
-            // 
-            // label13
-            // 
-            this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(360, 20);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(55, 13);
-            this.label13.TabIndex = 13;
-            this.label13.Text = "Tolerance";
-            this.toolTip1.SetToolTip(this.label13, "Convergence tolerance for determining minimum\r\nelevation angle. Increase to speed" +
-        " up calculation at\r\nthe cost of accuracty.\r\n\r\nDefault 0.05 deg");
-            // 
-            // num_tolerance
-            // 
-            this.num_tolerance.DecimalPlaces = 2;
-            this.num_tolerance.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            65536});
-            this.num_tolerance.Location = new System.Drawing.Point(421, 18);
-            this.num_tolerance.Maximum = new decimal(new int[] {
-            10,
-            0,
-            0,
-            0});
-            this.num_tolerance.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            131072});
-            this.num_tolerance.Name = "num_tolerance";
-            this.num_tolerance.Size = new System.Drawing.Size(44, 20);
-            this.num_tolerance.TabIndex = 12;
-            this.toolTip1.SetToolTip(this.num_tolerance, "Convergence tolerance for determining minimum\r\nelevation angle. Increase to speed" +
-        " up calculation at\r\nthe cost of accuracty.\r\n\r\nDefault 0.05 deg");
-            this.num_tolerance.Value = new decimal(new int[] {
-            5,
-            0,
-            0,
-            131072});
             // 
             // label5
             // 
@@ -635,9 +576,9 @@
             // but_generate
             // 
             this.but_generate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_generate.Location = new System.Drawing.Point(435, 173);
+            this.but_generate.Location = new System.Drawing.Point(372, 125);
             this.but_generate.Name = "but_generate";
-            this.but_generate.Size = new System.Drawing.Size(75, 23);
+            this.but_generate.Size = new System.Drawing.Size(138, 38);
             this.but_generate.TabIndex = 12;
             this.but_generate.Text = "Generate";
             this.but_generate.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -654,7 +595,7 @@
             this.progressBar.Location = new System.Drawing.Point(12, 173);
             this.progressBar.Name = "progressBar";
             this.progressBar.Outline = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(171)))), ((int)(((byte)(112)))));
-            this.progressBar.Size = new System.Drawing.Size(417, 23);
+            this.progressBar.Size = new System.Drawing.Size(498, 23);
             this.progressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.progressBar.TabIndex = 13;
             this.progressBar.TextColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(54)))), ((int)(((byte)(8)))));
@@ -692,7 +633,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.num_range)).EndInit();
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.num_tolerance)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.num_az_step)).EndInit();
             this.ResumeLayout(false);
 
@@ -732,9 +672,6 @@
         private System.Windows.Forms.NumericUpDown num_range;
         private MissionPlanner.Controls.MyButton but_generate;
         private System.Windows.Forms.GroupBox groupBox4;
-        private System.Windows.Forms.Label label12;
-        private System.Windows.Forms.Label label13;
-        private System.Windows.Forms.NumericUpDown num_tolerance;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.NumericUpDown num_az_step;

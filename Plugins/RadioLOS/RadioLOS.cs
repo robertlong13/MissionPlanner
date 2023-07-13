@@ -21,8 +21,6 @@ namespace RadioLOS
         public double azimuth_step = 0.1;
         // Terrain sample resolution
         public double distance_step = 10;
-        // Convergence angle for calculating minimum elevation angle
-        public double angle_tolerance = 0.1;
     }
     
     internal class RadioLOS
@@ -64,7 +62,7 @@ namespace RadioLOS
             // (RADIUS_OF_EARTH + base_altitude) to the circle of (RADIUS_OF_EARTH + flight_altitude).
             double R1 = RADIUS_OF_EARTH + home.Alt + options.base_height;
             double R2 = RADIUS_OF_EARTH + flight_altitude;
-            initial_el_angle = Math.Asin((R2 * R2 - R1 * R1 - range * range) / (2 * range * R1)) * 180 / Math.PI;
+            initial_el_angle = Math.Asin((R2 * R2 - R1 * R1 - range * range) / (2 * range * R1));
 
             // Define the range of azimuth angles
             double start_azimuth = options.start_azimuth;
@@ -129,70 +127,61 @@ namespace RadioLOS
             return allowableFlightZone;
         }
 
-        // Iteratively sweep through elevation angles. At each elevation angle, step from the base out along that
-        // line until it crosses through terrain or reaches the aircrafts' flight altitude. If it crosses terrain,
-        // raise the elevation angle. If it is clear, lower it. Repeat until angle converges or until a terrain
-        // altitude is found that is too close to the aircraft's flight altitude.
+        // Find the max distance we can fly in a given direction before line-of-sight is lost
+        // Do this by finding the max elevation angle of every point of terrain within range.
+        // From this elevation angle, we calculate the horizontal distance to the point where
+        // the LOS reaches the flight altitude.
         private double CalculateMaxDistance(double azimuth)
         {
-
-            double el_angle = initial_el_angle - options.clearance_angle;
-
-            double min = el_angle;
-            double max = 90;
-
             // Radius of circle representing the base altitude
             double R1 = RADIUS_OF_EARTH + home.Alt + options.base_height;
-            // Radius of cicle representing aircraft altitude
-            double R2 = RADIUS_OF_EARTH + flight_altitude;
-            while (min + options.angle_tolerance < max)
+
+            // Clearance angle in radians
+            double clearance_angle = options.clearance_angle * Math.PI / 180;
+
+            double el_angle = initial_el_angle - clearance_angle;
+
+            // Calculate the horizontal distance at the max slant range
+            double max_x_dist = RADIUS_OF_EARTH * Math.Asin(range / (RADIUS_OF_EARTH + flight_altitude) * Math.Cos(initial_el_angle));
+
+            // Sweep through horizontal distances from the base
+            for (double x_dist = options.distance_step; x_dist < max_x_dist; x_dist += options.distance_step)
             {
-                // Full 3D distance from base to aircraft
-                double slant_range = 0;
-                // MSL altitude of the test point
-                double alt = home.Alt + options.base_height;
-                // MSL altitude of terrain at x_dist away from home along azimuth
-                double terrain_alt = home.Alt;
-                // Cache of trig functions, for speed
-                double SinElAngle = Math.Sin(el_angle * Math.PI / 180);
-                double CosElAngle = Math.Cos(el_angle * Math.PI / 180);
+                // Position of the test point
+                PointLatLngAlt pos = home.newpos(azimuth, x_dist);
 
-                while (alt < flight_altitude && slant_range < range) // The second condition should not be possible, but just in case
+                // Radius of the circle representing the terrain altitude at this point
+                double R2 = RADIUS_OF_EARTH + srtm.getAltitude(pos.Lat, pos.Lng).alt;
+
+                // Solve for elevation angle from the base to this point on the surface
+                double test_angle = Math.Atan2(Math.Cos(x_dist / RADIUS_OF_EARTH) - R1 / R2, Math.Sin(x_dist / RADIUS_OF_EARTH));
+                
+                // Track the terrain point that has the highest elevation angle from the base
+                if (test_angle > el_angle)
                 {
-                    slant_range += options.distance_step;
-                    // Use law of cosines to get altitude of test point
-                    alt = Math.Sqrt(R1 * R1 + slant_range * slant_range + 2 * R1 * slant_range * SinElAngle) - RADIUS_OF_EARTH;
-                    double x_dist = RADIUS_OF_EARTH * Math.Asin(slant_range * CosElAngle / (RADIUS_OF_EARTH + alt)); // Law of sines
-                    var pos = home.newpos(azimuth, x_dist);
-                    terrain_alt = srtm.getAltitude(pos.Lat, pos.Lng).alt;
-
-                    // We have found a point where the aircraft would pass too close to terrain.
-                    // We don't need to calculate anything else, return x_dist.
-                    // The immediate-return is possible only because
-                    //      1. We start from home and move out
-                    //      2. We know that nothing has broken LOS yet along this ray, so this is
-                    //         guaranteed to be a smaller (or equal, if clearance is set to zero)
-                    //         to the max LOS range
-                    if (terrain_alt > flight_altitude - options.clearance_terrain) return x_dist;
-
-                    // The LOS hits terrain, break and try higher el_angle
-                    if(terrain_alt > alt) break;
+                    el_angle = test_angle;
+                    // Calculate the new horizontal distance to the point where the line of sight
+                    // reaches the aircraft's flight altitude, given base altitude and elevation angle
+                    // (this changes the for-loop condition check)
+                    max_x_dist = RADIUS_OF_EARTH * (Math.Acos(R1 / (RADIUS_OF_EARTH + flight_altitude) * Math.Cos(el_angle + clearance_angle)) - el_angle - clearance_angle);
                 }
 
-                // Move the test elevation angle depending whether the LOS cleared terrain
-                if (terrain_alt > alt) min = el_angle;
-                else max = el_angle;
-                el_angle = (max + min) / 2;
+                if (R2 - RADIUS_OF_EARTH > flight_altitude - options.clearance_terrain)
+                {
+                    // We have found a point where the aircraft would pass dangerously close to terrain.
+                    // We don't need to calculate anything else, return x_dist.
+                    // The immediate-return is possible only because
+                    //      1. We start from home and move out, so there isn't a nearer terrain risk
+                    //      2. We know that nothing has broken LOS yet along this ray, so this is
+                    //         guaranteed to be a smaller (or equal, if clearance is set to zero)
+                    //         than the max LOS range
+                    return x_dist;
+                }
             }
 
-            // Apply the clearance angle to the elevation
-            el_angle += options.clearance_angle;
-            el_angle = Math.Min(el_angle, 90);
-
             // Calculate the x_dist for which the line will reach flight altitude at the given elevation angle
-            // (a form of law of sines again)
-            return RADIUS_OF_EARTH * (Math.Acos(R1 / R2 * Math.Cos(el_angle * Math.PI / 180)) - el_angle * Math.PI / 180);
-
+            // (caclulated using the law of sines)
+            return max_x_dist;
         }
     }
 }

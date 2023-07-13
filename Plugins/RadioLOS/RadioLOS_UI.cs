@@ -79,7 +79,6 @@ namespace RadioLOS
             num_clear_terrain.Value = GetDecimal("RadioLOS_UI.num_clear_terrain", num_clear_terrain.Value);
             num_az_step.Value = GetDecimal("RadioLOS_UI.num_az_step", num_az_step.Value);
             num_dist_step.Value = GetDecimal("RadioLOS_UI.num_dist_step", num_dist_step.Value);
-            num_tolerance.Value = GetDecimal("RadioLOS_UI.num_tolerance", num_tolerance.Value);
 
             // Grab the default flight_altitude and flight_altitude mode from the FlightPlanner page
             if (decimal.TryParse(Host.MainForm.FlightPlanner.TXT_DefaultAlt.Text, out decimal altitude))
@@ -116,7 +115,6 @@ namespace RadioLOS
             Host.config["RadioLOS_UI.num_clear_terrain"] = num_clear_terrain.Value.ToString();
             Host.config["RadioLOS_UI.num_az_step"] = num_az_step.Value.ToString();
             Host.config["RadioLOS_UI.num_dist_step"] = num_dist_step.Value.ToString();
-            Host.config["RadioLOS_UI.num_tolerance"] = num_tolerance.Value.ToString();
         }
 
         private void num_az_startstop_ValueChanged(object sender, EventArgs e)
@@ -148,7 +146,6 @@ namespace RadioLOS
                 stop_azimuth = (double)num_stop_az.Value,
                 azimuth_step = (double)num_az_step.Value,
                 distance_step = (double)num_dist_step.Value, // We don't convert the distance step unit.
-                angle_tolerance = (double)num_tolerance.Value,
             };
 
 
