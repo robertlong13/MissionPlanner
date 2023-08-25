@@ -35,6 +35,39 @@ namespace TurbineStatus
         PropertyInfo fuel_battery_usedmah;
         GaugeSettings fuel_battery_gauge_settings;
 
+        enum Relays
+        {
+            AlternatorToEngineBus = 0,
+            AlternatorBus = 1,
+            OilCooler = 2,
+            EmergencyFuelPump = 3,
+            MainFuelPump = 4,
+            AuxFuelPump = 5,
+            Alternator = 6,
+            TotalStop1 = 8,
+            TotalStop2 = 9,
+        }
+
+        enum ScriptingCommands
+        {
+            RelayAlternatorToEngineBus = 1,
+            RelayOilCooler = 2,
+            RelayEmergencyFuelPump = 3,
+            RelayMainFuelPump = 4,
+            RelayAlternator = 5,
+            RelayTotalStop = 6,
+            ModeFalseStart = 7,
+            ModeStart = 8,
+            ModeStop = 9,
+            ModeCool = 10,
+            ModeColdStart = 11,
+            ModeIdle1 = 12,
+            ModeFlight = 13,
+            ModeIdle2 = 14,
+            RelayAlternatorBus = 15,
+            RelayAuxFuelPump = 16,
+        }
+
         HashSet<string> critical_errors = new HashSet<string>(new string[] {
             "Error of internal SPI interface",
             "Error of internal I2C interface",
@@ -394,12 +427,14 @@ namespace TurbineStatus
             // Update the relay LEDs
             UInt16 flags = (UInt16)((float)relay_status.GetValue(Host.cs));
 
-            led_alternatorconn.On = ((flags) & 0x1) > 0;
-            led_oilcooler.On = ((flags >> 1) & 0x1) > 0;
-            led_empump.On = ((flags >> 2) & 0x1) > 0;
-            led_mainpump.On = ((flags >> 3) & 0x1) > 0;
-            led_alternator.On = ((flags >> 4) & 0x1) > 0;
-            led_totalstop.On = ((flags >> 5) & 0x3) > 0; // Either of the two bits can be set
+            led_alternatorengineconn.On = ((flags >> (ushort)Relays.AlternatorToEngineBus) & 0x1) > 0;
+            led_alternatorconn.On = ((flags >> (ushort)Relays.AlternatorBus) & 0x1) > 0;
+            led_oilcooler.On = ((flags >> (ushort)Relays.OilCooler) & 0x1) > 0;
+            led_empump.On = ((flags >> (ushort)Relays.EmergencyFuelPump) & 0x1) > 0;
+            led_mainpump.On = ((flags >> (ushort)Relays.MainFuelPump) & 0x1) > 0;
+            led_auxpump.On = ((flags >> (ushort)Relays.AuxFuelPump) & 0x1) > 0;
+            led_alternator.On = ((flags >> (ushort)Relays.Alternator) & 0x1) > 0;
+            led_totalstop.On = ((flags >> (ushort)Relays.TotalStop1) & 0x3) > 0; // Either of the two bits can be set
 
             // Update the ECU Mode
             string mode = "UNKNOWN";
@@ -482,6 +517,7 @@ namespace TurbineStatus
             cmb_mode.Enabled = !Host.cs.armed;
             but_setmode.Enabled = !Host.cs.armed;
             but_mainpump.Enabled = !led_mainpump.On || !Host.cs.armed;
+            but_auxpump.Enabled = !led_auxpump.On || !Host.cs.armed;
             but_empump.Enabled = !led_empump.On || !Host.cs.armed;
 
         }
@@ -601,14 +637,14 @@ namespace TurbineStatus
         // Set Modes enum (different from the set_modes reported by the ECU)
         private static readonly Dictionary<string, int> set_modes = new Dictionary<string, int>
         {
-            { "False Start", 7 },
-            { "Start", 8 },
-            { "Stop", 9 },
-            { "Cool", 10 },
-            { "Cold Start", 11 },
-            { "Idle 1", 12 },
-            { "Flight", 13 },
-            { "Idle 2", 14 }
+            { "False Start", (int)ScriptingCommands.ModeFalseStart },
+            { "Start", (int)ScriptingCommands.ModeStart },
+            { "Stop", (int)ScriptingCommands.ModeStop },
+            { "Cool", (int)ScriptingCommands.ModeCool },
+            { "Cold Start", (int)ScriptingCommands.ModeColdStart },
+            { "Idle 1", (int)ScriptingCommands.ModeIdle1 },
+            { "Flight", (int)ScriptingCommands.ModeFlight },
+            { "Idle 2", (int)ScriptingCommands.ModeIdle2 }
         };
 
         private void but_setmode_Click(object sender, EventArgs e)
@@ -619,27 +655,37 @@ namespace TurbineStatus
 
         private void but_mainpump_Click(object sender, EventArgs e)
         {
-            send_scripting(4, led_mainpump.On ? 0 : 2);
+            send_scripting((ushort)ScriptingCommands.RelayMainFuelPump, led_mainpump.On ? 0 : 2);
+        }
+
+        private void but_auxpump_Click(object sender, EventArgs e)
+        {
+            send_scripting((ushort)ScriptingCommands.RelayAuxFuelPump, led_auxpump.On ? 0 : 2);
         }
 
         private void but_empump_Click(object sender, EventArgs e)
         {
-            send_scripting(3, led_empump.On ? 0 : 2);
+            send_scripting((ushort)ScriptingCommands.RelayEmergencyFuelPump, led_empump.On ? 0 : 2);
+        }
+
+        private void but_alternatorengineconn_Click(object sender, EventArgs e)
+        {
+            send_scripting((ushort)ScriptingCommands.RelayAlternatorToEngineBus, led_alternatorengineconn.On ? 0 : 2);
         }
 
         private void but_alternatorconn_Click(object sender, EventArgs e)
         {
-            send_scripting(1, led_alternatorconn.On ? 0 : 2);
+            send_scripting((ushort)ScriptingCommands.RelayAlternatorBus, led_alternatorconn.On ? 0 : 2);
         }
 
         private void but_alternator_Click(object sender, EventArgs e)
         {
-            send_scripting(5, led_alternator.On ? 0 : 2);
+            send_scripting((ushort)ScriptingCommands.RelayAlternator, led_alternator.On ? 0 : 2);
         }
 
         private void but_oilcooler_Click(object sender, EventArgs e)
         {
-            send_scripting(2, led_oilcooler.On ? 0 : 2);
+            send_scripting((ushort)ScriptingCommands.RelayOilCooler, led_oilcooler.On ? 0 : 2);
         }
 
         private void but_totalstop_Click(object sender, EventArgs e)
@@ -703,7 +749,7 @@ namespace TurbineStatus
             // Show the dialog and wait for the user to click Yes/No
             if (form.ShowDialog() == DialogResult.Yes)
             {
-                send_scripting(6, led_totalstop.On ? 0 : 2);
+                send_scripting((ushort)ScriptingCommands.RelayTotalStop, led_totalstop.On ? 0 : 2);
             }
         }
 
