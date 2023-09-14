@@ -67,6 +67,8 @@
             this.but_auxpump = new MissionPlanner.Controls.MyButton();
             this.but_empump = new MissionPlanner.Controls.MyButton();
             this.led_empump = new Bulb.LedBulb();
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.table_numericdisplays = new System.Windows.Forms.TableLayoutPanel();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.ui_timer = new System.Windows.Forms.Timer(this.components);
             this.context_fuelmenu = new System.Windows.Forms.ContextMenu();
@@ -86,12 +88,13 @@
             this.txt_messages.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txt_messages.Location = new System.Drawing.Point(3, 331);
+            this.txt_messages.Location = new System.Drawing.Point(4, 408);
+            this.txt_messages.Margin = new System.Windows.Forms.Padding(4);
             this.txt_messages.Multiline = true;
             this.txt_messages.Name = "txt_messages";
             this.txt_messages.ReadOnly = true;
             this.txt_messages.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txt_messages.Size = new System.Drawing.Size(677, 239);
+            this.txt_messages.Size = new System.Drawing.Size(902, 391);
             this.txt_messages.TabIndex = 9;
             // 
             // table_gauges
@@ -114,7 +117,7 @@
             this.table_gauges.RowCount = 2;
             this.table_gauges.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 55.55556F));
             this.table_gauges.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 44.44444F));
-            this.table_gauges.Size = new System.Drawing.Size(683, 328);
+            this.table_gauges.Size = new System.Drawing.Size(910, 404);
             this.table_gauges.TabIndex = 15;
             // 
             // aGauge4
@@ -153,7 +156,7 @@
         ""};
             this.aGauge4.CapText = "Fuel";
             this.aGauge4.Center = new System.Drawing.Point(75, 75);
-            this.aGauge4.Location = new System.Drawing.Point(510, 0);
+            this.aGauge4.Location = new System.Drawing.Point(681, 0);
             this.aGauge4.Margin = new System.Windows.Forms.Padding(0);
             this.aGauge4.MaxValue = 120F;
             this.aGauge4.MinValue = 0F;
@@ -258,7 +261,7 @@
             this.aGauge4.ScaleNumbersRotation = 0;
             this.aGauge4.ScaleNumbersStartScaleLine = 1;
             this.aGauge4.ScaleNumbersStepScaleLines = 1;
-            this.aGauge4.Size = new System.Drawing.Size(182, 182);
+            this.aGauge4.Size = new System.Drawing.Size(224, 224);
             this.aGauge4.TabIndex = 15;
             this.aGauge4.Value = 0F;
             this.aGauge4.Value0 = 0F;
@@ -407,7 +410,7 @@
             this.aGauge1.ScaleNumbersRotation = 0;
             this.aGauge1.ScaleNumbersStartScaleLine = 1;
             this.aGauge1.ScaleNumbersStepScaleLines = 1;
-            this.aGauge1.Size = new System.Drawing.Size(182, 182);
+            this.aGauge1.Size = new System.Drawing.Size(224, 224);
             this.aGauge1.TabIndex = 0;
             this.aGauge1.Value = 0F;
             this.aGauge1.Value0 = 0F;
@@ -451,7 +454,7 @@
         ""};
             this.aGauge2.CapText = "N2";
             this.aGauge2.Center = new System.Drawing.Point(75, 75);
-            this.aGauge2.Location = new System.Drawing.Point(170, 0);
+            this.aGauge2.Location = new System.Drawing.Point(227, 0);
             this.aGauge2.Margin = new System.Windows.Forms.Padding(0);
             this.aGauge2.MaxValue = 120F;
             this.aGauge2.MinValue = 0F;
@@ -556,7 +559,7 @@
             this.aGauge2.ScaleNumbersRotation = 0;
             this.aGauge2.ScaleNumbersStartScaleLine = 1;
             this.aGauge2.ScaleNumbersStepScaleLines = 1;
-            this.aGauge2.Size = new System.Drawing.Size(182, 182);
+            this.aGauge2.Size = new System.Drawing.Size(224, 224);
             this.aGauge2.TabIndex = 12;
             this.aGauge2.Value = 0F;
             this.aGauge2.Value0 = 0F;
@@ -600,7 +603,7 @@
         ""};
             this.aGauge3.CapText = "Torque";
             this.aGauge3.Center = new System.Drawing.Point(75, 75);
-            this.aGauge3.Location = new System.Drawing.Point(340, 0);
+            this.aGauge3.Location = new System.Drawing.Point(454, 0);
             this.aGauge3.Margin = new System.Windows.Forms.Padding(0);
             this.aGauge3.MaxValue = 120F;
             this.aGauge3.MinValue = 0F;
@@ -705,7 +708,7 @@
             this.aGauge3.ScaleNumbersRotation = 0;
             this.aGauge3.ScaleNumbersStartScaleLine = 1;
             this.aGauge3.ScaleNumbersStepScaleLines = 1;
-            this.aGauge3.Size = new System.Drawing.Size(182, 182);
+            this.aGauge3.Size = new System.Drawing.Size(224, 224);
             this.aGauge3.TabIndex = 1;
             this.aGauge3.Value = 0F;
             this.aGauge3.Value0 = 0F;
@@ -730,13 +733,13 @@
             this.table_gauges2.Controls.Add(this.aGauge7, 2, 0);
             this.table_gauges2.Controls.Add(this.aGauge8, 3, 0);
             this.table_gauges2.Controls.Add(this.aGauge9, 4, 0);
-            this.table_gauges2.Location = new System.Drawing.Point(0, 182);
+            this.table_gauges2.Location = new System.Drawing.Point(0, 224);
             this.table_gauges2.Margin = new System.Windows.Forms.Padding(0);
             this.table_gauges2.Name = "table_gauges2";
             this.table_gauges2.RowCount = 1;
             this.table_gauges2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.table_gauges2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 146F));
-            this.table_gauges2.Size = new System.Drawing.Size(683, 146);
+            this.table_gauges2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 180F));
+            this.table_gauges2.Size = new System.Drawing.Size(910, 180);
             this.table_gauges2.TabIndex = 14;
             // 
             // aGauge5
@@ -880,7 +883,7 @@
             this.aGauge5.ScaleNumbersRotation = 0;
             this.aGauge5.ScaleNumbersStartScaleLine = 1;
             this.aGauge5.ScaleNumbersStepScaleLines = 1;
-            this.aGauge5.Size = new System.Drawing.Size(146, 146);
+            this.aGauge5.Size = new System.Drawing.Size(180, 180);
             this.aGauge5.TabIndex = 2;
             this.aGauge5.Value = 400F;
             this.aGauge5.Value0 = 0F;
@@ -924,7 +927,7 @@
         ""};
             this.aGauge6.CapText = "120";
             this.aGauge6.Center = new System.Drawing.Point(75, 75);
-            this.aGauge6.Location = new System.Drawing.Point(136, 0);
+            this.aGauge6.Location = new System.Drawing.Point(182, 0);
             this.aGauge6.Margin = new System.Windows.Forms.Padding(0);
             this.aGauge6.MaxValue = 120F;
             this.aGauge6.MinValue = 0F;
@@ -1029,7 +1032,7 @@
             this.aGauge6.ScaleNumbersRotation = 0;
             this.aGauge6.ScaleNumbersStartScaleLine = 1;
             this.aGauge6.ScaleNumbersStepScaleLines = 1;
-            this.aGauge6.Size = new System.Drawing.Size(146, 146);
+            this.aGauge6.Size = new System.Drawing.Size(180, 180);
             this.aGauge6.TabIndex = 13;
             this.aGauge6.Value = 0F;
             this.aGauge6.Value0 = 0F;
@@ -1073,7 +1076,7 @@
         ""};
             this.aGauge7.CapText = "Oil Press.";
             this.aGauge7.Center = new System.Drawing.Point(75, 75);
-            this.aGauge7.Location = new System.Drawing.Point(272, 0);
+            this.aGauge7.Location = new System.Drawing.Point(364, 0);
             this.aGauge7.Margin = new System.Windows.Forms.Padding(0);
             this.aGauge7.MaxValue = 120F;
             this.aGauge7.MinValue = 0F;
@@ -1178,7 +1181,7 @@
             this.aGauge7.ScaleNumbersRotation = 0;
             this.aGauge7.ScaleNumbersStartScaleLine = 1;
             this.aGauge7.ScaleNumbersStepScaleLines = 1;
-            this.aGauge7.Size = new System.Drawing.Size(146, 146);
+            this.aGauge7.Size = new System.Drawing.Size(180, 180);
             this.aGauge7.TabIndex = 3;
             this.aGauge7.Value = 0F;
             this.aGauge7.Value0 = 0F;
@@ -1222,7 +1225,7 @@
         ""};
             this.aGauge8.CapText = "Fuel Press.";
             this.aGauge8.Center = new System.Drawing.Point(75, 75);
-            this.aGauge8.Location = new System.Drawing.Point(408, 0);
+            this.aGauge8.Location = new System.Drawing.Point(546, 0);
             this.aGauge8.Margin = new System.Windows.Forms.Padding(0);
             this.aGauge8.MaxValue = 120F;
             this.aGauge8.MinValue = 0F;
@@ -1327,7 +1330,7 @@
             this.aGauge8.ScaleNumbersRotation = 0;
             this.aGauge8.ScaleNumbersStartScaleLine = 1;
             this.aGauge8.ScaleNumbersStepScaleLines = 1;
-            this.aGauge8.Size = new System.Drawing.Size(146, 146);
+            this.aGauge8.Size = new System.Drawing.Size(180, 180);
             this.aGauge8.TabIndex = 14;
             this.aGauge8.Value = 0F;
             this.aGauge8.Value0 = 0F;
@@ -1371,7 +1374,7 @@
         ""};
             this.aGauge9.CapText = "Fuel Flow";
             this.aGauge9.Center = new System.Drawing.Point(75, 75);
-            this.aGauge9.Location = new System.Drawing.Point(544, 0);
+            this.aGauge9.Location = new System.Drawing.Point(728, 0);
             this.aGauge9.Margin = new System.Windows.Forms.Padding(0);
             this.aGauge9.MaxValue = 120F;
             this.aGauge9.MinValue = 0F;
@@ -1476,7 +1479,7 @@
             this.aGauge9.ScaleNumbersRotation = 0;
             this.aGauge9.ScaleNumbersStartScaleLine = 1;
             this.aGauge9.ScaleNumbersStepScaleLines = 1;
-            this.aGauge9.Size = new System.Drawing.Size(146, 146);
+            this.aGauge9.Size = new System.Drawing.Size(180, 180);
             this.aGauge9.TabIndex = 15;
             this.aGauge9.Value = 0F;
             this.aGauge9.Value0 = 0F;
@@ -1488,16 +1491,17 @@
             // 
             this.table_main.ColumnCount = 1;
             this.table_main.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.table_main.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.table_main.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 27F));
             this.table_main.Controls.Add(this.table_gauges, 0, 0);
             this.table_main.Controls.Add(this.txt_messages, 0, 1);
             this.table_main.Dock = System.Windows.Forms.DockStyle.Fill;
             this.table_main.Location = new System.Drawing.Point(0, 0);
+            this.table_main.Margin = new System.Windows.Forms.Padding(4);
             this.table_main.Name = "table_main";
             this.table_main.RowCount = 2;
             this.table_main.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.table_main.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.table_main.Size = new System.Drawing.Size(683, 573);
+            this.table_main.Size = new System.Drawing.Size(910, 803);
             this.table_main.TabIndex = 16;
             // 
             // lbl_ecumode
@@ -1506,7 +1510,8 @@
             this.lbl_ecumode.AutoSize = true;
             this.table_control.SetColumnSpan(this.lbl_ecumode, 2);
             this.lbl_ecumode.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbl_ecumode.Location = new System.Drawing.Point(3, 0);
+            this.lbl_ecumode.Location = new System.Drawing.Point(4, 0);
+            this.lbl_ecumode.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lbl_ecumode.Name = "lbl_ecumode";
             this.lbl_ecumode.Size = new System.Drawing.Size(219, 31);
             this.lbl_ecumode.TabIndex = 0;
@@ -1518,7 +1523,8 @@
             this.lbl_turbinemode.AutoSize = true;
             this.table_control.SetColumnSpan(this.lbl_turbinemode, 2);
             this.lbl_turbinemode.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbl_turbinemode.Location = new System.Drawing.Point(3, 31);
+            this.lbl_turbinemode.Location = new System.Drawing.Point(4, 31);
+            this.lbl_turbinemode.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lbl_turbinemode.Name = "lbl_turbinemode";
             this.lbl_turbinemode.Size = new System.Drawing.Size(188, 31);
             this.lbl_turbinemode.TabIndex = 1;
@@ -1553,50 +1559,56 @@
             this.table_control.Controls.Add(this.but_auxpump, 0, 11);
             this.table_control.Controls.Add(this.but_empump, 0, 12);
             this.table_control.Controls.Add(this.led_empump, 1, 12);
+            this.table_control.Controls.Add(this.tableLayoutPanel1, 0, 2);
+            this.table_control.Controls.Add(this.table_numericdisplays, 0, 20);
             this.table_control.Dock = System.Windows.Forms.DockStyle.Fill;
             this.table_control.Location = new System.Drawing.Point(0, 0);
+            this.table_control.Margin = new System.Windows.Forms.Padding(4);
             this.table_control.Name = "table_control";
-            this.table_control.RowCount = 20;
+            this.table_control.RowCount = 21;
             this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 44F));
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 44F));
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 44F));
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 44F));
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 44F));
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 44F));
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 44F));
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 44F));
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 44F));
             this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
-            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
-            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
-            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
-            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
-            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
-            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
-            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
-            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
             this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.table_control.Size = new System.Drawing.Size(328, 573);
+            this.table_control.Size = new System.Drawing.Size(438, 803);
             this.table_control.TabIndex = 16;
             this.table_control.Resize += new System.EventHandler(this.table_control_Resize);
             // 
             // led_auxpump
             // 
             this.led_auxpump.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_auxpump.Location = new System.Drawing.Point(302, 285);
+            this.led_auxpump.Location = new System.Drawing.Point(403, 337);
+            this.led_auxpump.Margin = new System.Windows.Forms.Padding(4);
             this.led_auxpump.Name = "led_auxpump";
             this.led_auxpump.On = false;
-            this.led_auxpump.Size = new System.Drawing.Size(23, 23);
+            this.led_auxpump.Size = new System.Drawing.Size(31, 28);
             this.led_auxpump.TabIndex = 31;
             this.led_auxpump.Text = "ledBulb2";
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(3, 134);
+            this.label3.Location = new System.Drawing.Point(4, 152);
+            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(53, 13);
+            this.label3.Size = new System.Drawing.Size(65, 16);
             this.label3.TabIndex = 10;
             this.label3.Text = "Set Mode";
             // 
@@ -1614,17 +1626,19 @@
             "Idle 1",
             "Idle 2",
             "Flight"});
-            this.cmb_mode.Location = new System.Drawing.Point(3, 150);
+            this.cmb_mode.Location = new System.Drawing.Point(4, 172);
+            this.cmb_mode.Margin = new System.Windows.Forms.Padding(4);
             this.cmb_mode.Name = "cmb_mode";
-            this.cmb_mode.Size = new System.Drawing.Size(293, 21);
+            this.cmb_mode.Size = new System.Drawing.Size(391, 24);
             this.cmb_mode.TabIndex = 22;
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(3, 230);
+            this.label4.Location = new System.Drawing.Point(4, 269);
+            this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(39, 13);
+            this.label4.Size = new System.Drawing.Size(50, 16);
             this.label4.TabIndex = 11;
             this.label4.Text = "Relays";
             // 
@@ -1633,9 +1647,10 @@
             this.but_setmode.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_setmode.Location = new System.Drawing.Point(3, 177);
+            this.but_setmode.Location = new System.Drawing.Point(4, 204);
+            this.but_setmode.Margin = new System.Windows.Forms.Padding(4);
             this.but_setmode.Name = "but_setmode";
-            this.but_setmode.Size = new System.Drawing.Size(293, 30);
+            this.but_setmode.Size = new System.Drawing.Size(391, 36);
             this.but_setmode.TabIndex = 5;
             this.but_setmode.Text = "Set Mode";
             this.but_setmode.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -1647,9 +1662,10 @@
             this.but_mainpump.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_mainpump.Location = new System.Drawing.Point(3, 246);
+            this.but_mainpump.Location = new System.Drawing.Point(4, 289);
+            this.but_mainpump.Margin = new System.Windows.Forms.Padding(4);
             this.but_mainpump.Name = "but_mainpump";
-            this.but_mainpump.Size = new System.Drawing.Size(293, 30);
+            this.but_mainpump.Size = new System.Drawing.Size(391, 36);
             this.but_mainpump.TabIndex = 14;
             this.but_mainpump.Text = "Main Fuel Pump";
             this.but_mainpump.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -1659,10 +1675,11 @@
             // led_mainpump
             // 
             this.led_mainpump.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_mainpump.Location = new System.Drawing.Point(302, 249);
+            this.led_mainpump.Location = new System.Drawing.Point(403, 293);
+            this.led_mainpump.Margin = new System.Windows.Forms.Padding(4);
             this.led_mainpump.Name = "led_mainpump";
             this.led_mainpump.On = false;
-            this.led_mainpump.Size = new System.Drawing.Size(23, 23);
+            this.led_mainpump.Size = new System.Drawing.Size(31, 28);
             this.led_mainpump.TabIndex = 17;
             this.led_mainpump.Text = "ledBulb1";
             // 
@@ -1671,9 +1688,10 @@
             this.but_totalstop.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_totalstop.Location = new System.Drawing.Point(3, 518);
+            this.but_totalstop.Location = new System.Drawing.Point(4, 622);
+            this.but_totalstop.Margin = new System.Windows.Forms.Padding(4);
             this.but_totalstop.Name = "but_totalstop";
-            this.but_totalstop.Size = new System.Drawing.Size(293, 30);
+            this.but_totalstop.Size = new System.Drawing.Size(391, 36);
             this.but_totalstop.TabIndex = 16;
             this.but_totalstop.Text = "Emergency Stop";
             this.but_totalstop.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -1683,10 +1701,11 @@
             // led_totalstop
             // 
             this.led_totalstop.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_totalstop.Location = new System.Drawing.Point(302, 521);
+            this.led_totalstop.Location = new System.Drawing.Point(403, 626);
+            this.led_totalstop.Margin = new System.Windows.Forms.Padding(4);
             this.led_totalstop.Name = "led_totalstop";
             this.led_totalstop.On = false;
-            this.led_totalstop.Size = new System.Drawing.Size(23, 23);
+            this.led_totalstop.Size = new System.Drawing.Size(31, 28);
             this.led_totalstop.TabIndex = 21;
             this.led_totalstop.Text = "ledBulb5";
             // 
@@ -1694,10 +1713,11 @@
             // 
             this.led_errors.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.led_errors.Color = System.Drawing.Color.Yellow;
-            this.led_errors.Location = new System.Drawing.Point(302, 86);
+            this.led_errors.Location = new System.Drawing.Point(403, 93);
+            this.led_errors.Margin = new System.Windows.Forms.Padding(4);
             this.led_errors.Name = "led_errors";
             this.led_errors.On = false;
-            this.led_errors.Size = new System.Drawing.Size(23, 23);
+            this.led_errors.Size = new System.Drawing.Size(31, 28);
             this.led_errors.TabIndex = 26;
             this.led_errors.Text = "ledBulb1";
             // 
@@ -1706,9 +1726,10 @@
             this.but_clearerrors.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_clearerrors.Location = new System.Drawing.Point(3, 85);
+            this.but_clearerrors.Location = new System.Drawing.Point(4, 91);
+            this.but_clearerrors.Margin = new System.Windows.Forms.Padding(4);
             this.but_clearerrors.Name = "but_clearerrors";
-            this.but_clearerrors.Size = new System.Drawing.Size(293, 26);
+            this.but_clearerrors.Size = new System.Drawing.Size(391, 32);
             this.but_clearerrors.TabIndex = 27;
             this.but_clearerrors.Text = "Clear Errors";
             this.but_clearerrors.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -1720,9 +1741,10 @@
             this.but_alternator.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_alternator.Location = new System.Drawing.Point(3, 462);
+            this.but_alternator.Location = new System.Drawing.Point(4, 553);
+            this.but_alternator.Margin = new System.Windows.Forms.Padding(4);
             this.but_alternator.Name = "but_alternator";
-            this.but_alternator.Size = new System.Drawing.Size(293, 30);
+            this.but_alternator.Size = new System.Drawing.Size(391, 36);
             this.but_alternator.TabIndex = 13;
             this.but_alternator.Text = "Alternator ON/OFF";
             this.but_alternator.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -1732,10 +1754,11 @@
             // led_alternator
             // 
             this.led_alternator.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_alternator.Location = new System.Drawing.Point(302, 465);
+            this.led_alternator.Location = new System.Drawing.Point(403, 557);
+            this.led_alternator.Margin = new System.Windows.Forms.Padding(4);
             this.led_alternator.Name = "led_alternator";
             this.led_alternator.On = false;
-            this.led_alternator.Size = new System.Drawing.Size(23, 23);
+            this.led_alternator.Size = new System.Drawing.Size(31, 28);
             this.led_alternator.TabIndex = 20;
             this.led_alternator.Text = "ledBulb4";
             // 
@@ -1744,9 +1767,10 @@
             this.but_alternatorconn.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_alternatorconn.Location = new System.Drawing.Point(3, 426);
+            this.but_alternatorconn.Location = new System.Drawing.Point(4, 509);
+            this.but_alternatorconn.Margin = new System.Windows.Forms.Padding(4);
             this.but_alternatorconn.Name = "but_alternatorconn";
-            this.but_alternatorconn.Size = new System.Drawing.Size(293, 30);
+            this.but_alternatorconn.Size = new System.Drawing.Size(391, 36);
             this.but_alternatorconn.TabIndex = 12;
             this.but_alternatorconn.Text = "Alternator Bus ON/OFF";
             this.but_alternatorconn.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -1756,10 +1780,11 @@
             // led_alternatorconn
             // 
             this.led_alternatorconn.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_alternatorconn.Location = new System.Drawing.Point(302, 429);
+            this.led_alternatorconn.Location = new System.Drawing.Point(403, 513);
+            this.led_alternatorconn.Margin = new System.Windows.Forms.Padding(4);
             this.led_alternatorconn.Name = "led_alternatorconn";
             this.led_alternatorconn.On = false;
-            this.led_alternatorconn.Size = new System.Drawing.Size(23, 23);
+            this.led_alternatorconn.Size = new System.Drawing.Size(31, 28);
             this.led_alternatorconn.TabIndex = 19;
             this.led_alternatorconn.Text = "ledBulb3";
             // 
@@ -1768,9 +1793,10 @@
             this.but_alternatorengineconn.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_alternatorengineconn.Location = new System.Drawing.Point(3, 390);
+            this.but_alternatorengineconn.Location = new System.Drawing.Point(4, 465);
+            this.but_alternatorengineconn.Margin = new System.Windows.Forms.Padding(4);
             this.but_alternatorengineconn.Name = "but_alternatorengineconn";
-            this.but_alternatorengineconn.Size = new System.Drawing.Size(293, 30);
+            this.but_alternatorengineconn.Size = new System.Drawing.Size(391, 36);
             this.but_alternatorengineconn.TabIndex = 28;
             this.but_alternatorengineconn.Text = "Alternator to Engine Bus ON/OFF";
             this.but_alternatorengineconn.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -1780,10 +1806,11 @@
             // led_alternatorengineconn
             // 
             this.led_alternatorengineconn.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_alternatorengineconn.Location = new System.Drawing.Point(302, 393);
+            this.led_alternatorengineconn.Location = new System.Drawing.Point(403, 469);
+            this.led_alternatorengineconn.Margin = new System.Windows.Forms.Padding(4);
             this.led_alternatorengineconn.Name = "led_alternatorengineconn";
             this.led_alternatorengineconn.On = false;
-            this.led_alternatorengineconn.Size = new System.Drawing.Size(23, 23);
+            this.led_alternatorengineconn.Size = new System.Drawing.Size(31, 28);
             this.led_alternatorengineconn.TabIndex = 29;
             this.led_alternatorengineconn.Text = "ledBulb3";
             // 
@@ -1792,9 +1819,10 @@
             this.but_oilcooler.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_oilcooler.Location = new System.Drawing.Point(3, 354);
+            this.but_oilcooler.Location = new System.Drawing.Point(4, 421);
+            this.but_oilcooler.Margin = new System.Windows.Forms.Padding(4);
             this.but_oilcooler.Name = "but_oilcooler";
-            this.but_oilcooler.Size = new System.Drawing.Size(293, 30);
+            this.but_oilcooler.Size = new System.Drawing.Size(391, 36);
             this.but_oilcooler.TabIndex = 23;
             this.but_oilcooler.Text = "Oil Cooler";
             this.but_oilcooler.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -1804,10 +1832,11 @@
             // led_oilcooler
             // 
             this.led_oilcooler.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_oilcooler.Location = new System.Drawing.Point(302, 357);
+            this.led_oilcooler.Location = new System.Drawing.Point(403, 425);
+            this.led_oilcooler.Margin = new System.Windows.Forms.Padding(4);
             this.led_oilcooler.Name = "led_oilcooler";
             this.led_oilcooler.On = false;
-            this.led_oilcooler.Size = new System.Drawing.Size(23, 23);
+            this.led_oilcooler.Size = new System.Drawing.Size(31, 28);
             this.led_oilcooler.TabIndex = 24;
             this.led_oilcooler.Text = "ledBulb4";
             // 
@@ -1816,9 +1845,10 @@
             this.but_auxpump.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_auxpump.Location = new System.Drawing.Point(3, 282);
+            this.but_auxpump.Location = new System.Drawing.Point(4, 333);
+            this.but_auxpump.Margin = new System.Windows.Forms.Padding(4);
             this.but_auxpump.Name = "but_auxpump";
-            this.but_auxpump.Size = new System.Drawing.Size(293, 30);
+            this.but_auxpump.Size = new System.Drawing.Size(391, 36);
             this.but_auxpump.TabIndex = 30;
             this.but_auxpump.Text = "Aux Fuel Pump";
             this.but_auxpump.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -1830,9 +1860,10 @@
             this.but_empump.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_empump.Location = new System.Drawing.Point(3, 318);
+            this.but_empump.Location = new System.Drawing.Point(4, 377);
+            this.but_empump.Margin = new System.Windows.Forms.Padding(4);
             this.but_empump.Name = "but_empump";
-            this.but_empump.Size = new System.Drawing.Size(293, 30);
+            this.but_empump.Size = new System.Drawing.Size(391, 36);
             this.but_empump.TabIndex = 15;
             this.but_empump.Text = "Emergency Fuel Pump";
             this.but_empump.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
@@ -1842,17 +1873,48 @@
             // led_empump
             // 
             this.led_empump.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_empump.Location = new System.Drawing.Point(302, 321);
+            this.led_empump.Location = new System.Drawing.Point(403, 381);
+            this.led_empump.Margin = new System.Windows.Forms.Padding(4);
             this.led_empump.Name = "led_empump";
             this.led_empump.On = false;
-            this.led_empump.Size = new System.Drawing.Size(23, 23);
+            this.led_empump.Size = new System.Drawing.Size(31, 28);
             this.led_empump.TabIndex = 18;
             this.led_empump.Text = "ledBulb2";
+            // 
+            // tableLayoutPanel1
+            // 
+            this.tableLayoutPanel1.ColumnCount = 2;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 65);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+            this.tableLayoutPanel1.RowCount = 2;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(200, 19);
+            this.tableLayoutPanel1.TabIndex = 32;
+            // 
+            // table_numericdisplays
+            // 
+            this.table_numericdisplays.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.table_numericdisplays.AutoSize = true;
+            this.table_numericdisplays.ColumnCount = 2;
+            this.table_control.SetColumnSpan(this.table_numericdisplays, 2);
+            this.table_numericdisplays.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.table_numericdisplays.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.table_numericdisplays.Location = new System.Drawing.Point(2, 548);
+            this.table_numericdisplays.Name = "table_numericdisplays";
+            this.table_numericdisplays.RowCount = 1;
+            this.table_numericdisplays.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.table_numericdisplays.Size = new System.Drawing.Size(432, 20);
+            this.table_numericdisplays.TabIndex = 33;
             // 
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer1.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer1.Margin = new System.Windows.Forms.Padding(4);
             this.splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
@@ -1863,8 +1925,9 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.table_control);
-            this.splitContainer1.Size = new System.Drawing.Size(1015, 573);
-            this.splitContainer1.SplitterDistance = 683;
+            this.splitContainer1.Size = new System.Drawing.Size(1353, 803);
+            this.splitContainer1.SplitterDistance = 910;
+            this.splitContainer1.SplitterWidth = 5;
             this.splitContainer1.TabIndex = 16;
             // 
             // ui_timer
@@ -1885,11 +1948,11 @@
             // 
             // TurbineStatusUI
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1015, 573);
+            this.ClientSize = new System.Drawing.Size(1353, 803);
             this.Controls.Add(this.splitContainer1);
-            this.Margin = new System.Windows.Forms.Padding(2);
+            this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "TurbineStatusUI";
             this.ShowIcon = false;
             this.Text = "TurbineStatusUI";
@@ -1953,5 +2016,7 @@
         private MissionPlanner.Controls.MyButton but_alternatorengineconn;
         private Bulb.LedBulb led_alternatorengineconn;
         private MissionPlanner.Controls.MyButton but_auxpump;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private System.Windows.Forms.TableLayoutPanel table_numericdisplays;
     }
 }

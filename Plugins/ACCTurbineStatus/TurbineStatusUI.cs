@@ -27,6 +27,11 @@ namespace TurbineStatus
         PropertyInfo[] gauge_value_sources = new PropertyInfo[9];
         AGaugeApp.AGauge[] gauges = new AGaugeApp.AGauge[9];
 
+        // Settings from the config file of all additional numeric displays
+        List<NumericDisplaySettings> numeric_display_settings;
+        List<PropertyInfo> numeric_value_sources = new List<PropertyInfo>();
+        List<Label> numeric_labels = new List<Label>();
+
         PropertyInfo relay_status;
         PropertyInfo ecu_mode;
         PropertyInfo turbine_mode;
@@ -220,7 +225,7 @@ namespace TurbineStatus
                 g.RangesStartValue[2] = (gs.red_min is null) ? gs.min : (float)gs.red_min;
                 g.RangesEndValue[2] = (gs.red_max is null) ? gs.max : (float)gs.red_max;
 
-                // Assign the variable if it exists in CurrentState (otherwise, it will remain null)
+                // Assign the variable if it exists in CurrentState, otherwise assign custom field
                 gauge_value_sources[i] = Host.cs.GetType().GetProperty(gs.variable);
                 if (gauge_value_sources[i] is null && !(gs.variable.StartsWith("BATT") && gs.variable.EndsWith("_CAPACITY")))
                 {
@@ -245,8 +250,44 @@ namespace TurbineStatus
 
                 gauges[i] = g;
 
+                // Default to 0 offset and 1 scale
                 gs.variable_offset = (gs.variable_offset is null) ? 0 : gs.variable_offset;
                 gs.variable_scale = (gs.variable_scale is null) ? 1 : gs.variable_scale;
+            }
+
+            // Set up the numeric displays
+            foreach (NumericDisplaySettings nds in numeric_display_settings)
+            {
+                // Create description label
+                Label lbl = new Label
+                {
+                    Text = nds.desc,
+                    AutoSize = true,
+                    Anchor = AnchorStyles.Left
+                };
+                table_numericdisplays.Controls.Add(lbl);
+
+                // Create value label
+                lbl = new Label
+                {
+                    Text = "0.0",
+                    AutoSize = true,
+                    Anchor = AnchorStyles.Left
+                };
+                table_numericdisplays.Controls.Add(lbl);
+                numeric_labels.Add(lbl);
+
+                // Assign the variable if it exists in CurrentState, otherwise assign custom field
+                PropertyInfo propinfo = Host.cs.GetType().GetProperty(nds.variable);
+                if (propinfo is null)
+                {
+                    propinfo = get_customfield(nds.variable);
+                }
+                numeric_value_sources.Add(propinfo);
+
+                // Default to 0 offset and 1 scale
+                nds.variable_offset = (nds.variable_offset is null) ? 0 : nds.variable_offset;
+                nds.variable_scale = (nds.variable_scale is null) ? 1 : nds.variable_scale;
             }
         }
 
@@ -272,7 +313,9 @@ namespace TurbineStatus
                 }
             }
 
-            gauge_settings = JsonConvert.DeserializeObject<List<GaugeSettings>>(File.ReadAllText(settings_file));
+            var ui_settings = JsonConvert.DeserializeObject<UISettings>(File.ReadAllText(settings_file));
+            gauge_settings = ui_settings.gauge_settings;
+            numeric_display_settings = ui_settings.numeric_display_settings;
 
         }
 
@@ -510,6 +553,17 @@ namespace TurbineStatus
                         val = Math.Min(val, gauges[i].MaxValue);
                         gauges[i].Value0 = val;
                     }
+                }
+            }
+
+            // Update the numeric displays
+            for (int i = 0; i < numeric_labels.Count; i++)
+            {
+                if (numeric_value_sources[i] != null)
+                {
+                    float val = Convert.ToSingle(numeric_value_sources[i].GetValue(Host.cs)) * (float)numeric_display_settings[i].variable_scale + (float)gauge_settings[i].variable_offset;
+
+                    numeric_labels[i].Text = val.ToString(numeric_display_settings[i].val_format);
                 }
             }
 
@@ -819,4 +873,18 @@ namespace TurbineStatus
         public float? red_max;
     }
 
+    public class NumericDisplaySettings
+    {
+        public string variable;
+        public float? variable_offset;
+        public float? variable_scale;
+        public string desc;
+        public string val_format;
+    }
+
+    public class UISettings
+    {
+        public List<GaugeSettings> gauge_settings;
+        public List<NumericDisplaySettings> numeric_display_settings;
+    }
 }
