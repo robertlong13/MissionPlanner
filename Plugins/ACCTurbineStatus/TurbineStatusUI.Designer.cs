@@ -67,8 +67,8 @@
             this.but_auxpump = new MissionPlanner.Controls.MyButton();
             this.but_empump = new MissionPlanner.Controls.MyButton();
             this.led_empump = new Bulb.LedBulb();
-            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.table_numericdisplays = new System.Windows.Forms.TableLayoutPanel();
+            this.chk_lock = new System.Windows.Forms.CheckBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.ui_timer = new System.Windows.Forms.Timer(this.components);
             this.context_fuelmenu = new System.Windows.Forms.ContextMenu();
@@ -1535,38 +1535,40 @@
             this.table_control.ColumnCount = 2;
             this.table_control.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.table_control.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.table_control.Controls.Add(this.led_auxpump, 0, 11);
+            this.table_control.Controls.Add(this.led_auxpump, 0, 13);
             this.table_control.Controls.Add(this.lbl_ecumode, 0, 0);
             this.table_control.Controls.Add(this.lbl_turbinemode, 0, 1);
-            this.table_control.Controls.Add(this.label3, 0, 5);
-            this.table_control.Controls.Add(this.cmb_mode, 0, 6);
-            this.table_control.Controls.Add(this.label4, 0, 9);
-            this.table_control.Controls.Add(this.but_setmode, 0, 7);
-            this.table_control.Controls.Add(this.but_mainpump, 0, 10);
-            this.table_control.Controls.Add(this.led_mainpump, 1, 10);
-            this.table_control.Controls.Add(this.but_totalstop, 0, 18);
-            this.table_control.Controls.Add(this.led_totalstop, 1, 18);
+            this.table_control.Controls.Add(this.label3, 0, 7);
+            this.table_control.Controls.Add(this.cmb_mode, 0, 8);
+            this.table_control.Controls.Add(this.label4, 0, 11);
+            this.table_control.Controls.Add(this.but_setmode, 0, 9);
+            this.table_control.Controls.Add(this.but_mainpump, 0, 12);
+            this.table_control.Controls.Add(this.led_mainpump, 1, 12);
+            this.table_control.Controls.Add(this.but_totalstop, 0, 20);
+            this.table_control.Controls.Add(this.led_totalstop, 1, 20);
             this.table_control.Controls.Add(this.led_errors, 1, 3);
             this.table_control.Controls.Add(this.but_clearerrors, 0, 3);
-            this.table_control.Controls.Add(this.but_alternator, 0, 16);
-            this.table_control.Controls.Add(this.led_alternator, 1, 16);
-            this.table_control.Controls.Add(this.but_alternatorconn, 0, 15);
-            this.table_control.Controls.Add(this.led_alternatorconn, 1, 15);
-            this.table_control.Controls.Add(this.but_alternatorengineconn, 0, 14);
-            this.table_control.Controls.Add(this.led_alternatorengineconn, 1, 14);
-            this.table_control.Controls.Add(this.but_oilcooler, 0, 13);
-            this.table_control.Controls.Add(this.led_oilcooler, 1, 13);
-            this.table_control.Controls.Add(this.but_auxpump, 0, 11);
-            this.table_control.Controls.Add(this.but_empump, 0, 12);
-            this.table_control.Controls.Add(this.led_empump, 1, 12);
-            this.table_control.Controls.Add(this.tableLayoutPanel1, 0, 2);
-            this.table_control.Controls.Add(this.table_numericdisplays, 0, 20);
+            this.table_control.Controls.Add(this.but_alternator, 0, 18);
+            this.table_control.Controls.Add(this.led_alternator, 1, 18);
+            this.table_control.Controls.Add(this.but_alternatorconn, 0, 17);
+            this.table_control.Controls.Add(this.led_alternatorconn, 1, 17);
+            this.table_control.Controls.Add(this.but_alternatorengineconn, 0, 16);
+            this.table_control.Controls.Add(this.led_alternatorengineconn, 1, 16);
+            this.table_control.Controls.Add(this.but_oilcooler, 0, 15);
+            this.table_control.Controls.Add(this.led_oilcooler, 1, 15);
+            this.table_control.Controls.Add(this.but_auxpump, 0, 13);
+            this.table_control.Controls.Add(this.but_empump, 0, 14);
+            this.table_control.Controls.Add(this.led_empump, 1, 14);
+            this.table_control.Controls.Add(this.table_numericdisplays, 0, 22);
+            this.table_control.Controls.Add(this.chk_lock, 0, 5);
             this.table_control.Dock = System.Windows.Forms.DockStyle.Fill;
             this.table_control.Location = new System.Drawing.Point(0, 0);
             this.table_control.Margin = new System.Windows.Forms.Padding(4);
             this.table_control.Name = "table_control";
-            this.table_control.RowCount = 21;
+            this.table_control.RowCount = 23;
             this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.table_control.RowStyles.Add(new System.Windows.Forms.RowStyle());
@@ -1594,7 +1596,7 @@
             // led_auxpump
             // 
             this.led_auxpump.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_auxpump.Location = new System.Drawing.Point(403, 337);
+            this.led_auxpump.Location = new System.Drawing.Point(403, 388);
             this.led_auxpump.Margin = new System.Windows.Forms.Padding(4);
             this.led_auxpump.Name = "led_auxpump";
             this.led_auxpump.On = false;
@@ -1605,7 +1607,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(4, 152);
+            this.label3.Location = new System.Drawing.Point(4, 203);
             this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(65, 16);
@@ -1626,7 +1628,7 @@
             "Idle 1",
             "Idle 2",
             "Flight"});
-            this.cmb_mode.Location = new System.Drawing.Point(4, 172);
+            this.cmb_mode.Location = new System.Drawing.Point(4, 223);
             this.cmb_mode.Margin = new System.Windows.Forms.Padding(4);
             this.cmb_mode.Name = "cmb_mode";
             this.cmb_mode.Size = new System.Drawing.Size(391, 24);
@@ -1635,7 +1637,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(4, 269);
+            this.label4.Location = new System.Drawing.Point(4, 320);
             this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(50, 16);
@@ -1647,7 +1649,7 @@
             this.but_setmode.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_setmode.Location = new System.Drawing.Point(4, 204);
+            this.but_setmode.Location = new System.Drawing.Point(4, 255);
             this.but_setmode.Margin = new System.Windows.Forms.Padding(4);
             this.but_setmode.Name = "but_setmode";
             this.but_setmode.Size = new System.Drawing.Size(391, 36);
@@ -1662,7 +1664,7 @@
             this.but_mainpump.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_mainpump.Location = new System.Drawing.Point(4, 289);
+            this.but_mainpump.Location = new System.Drawing.Point(4, 340);
             this.but_mainpump.Margin = new System.Windows.Forms.Padding(4);
             this.but_mainpump.Name = "but_mainpump";
             this.but_mainpump.Size = new System.Drawing.Size(391, 36);
@@ -1675,7 +1677,7 @@
             // led_mainpump
             // 
             this.led_mainpump.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_mainpump.Location = new System.Drawing.Point(403, 293);
+            this.led_mainpump.Location = new System.Drawing.Point(403, 344);
             this.led_mainpump.Margin = new System.Windows.Forms.Padding(4);
             this.led_mainpump.Name = "led_mainpump";
             this.led_mainpump.On = false;
@@ -1688,7 +1690,7 @@
             this.but_totalstop.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_totalstop.Location = new System.Drawing.Point(4, 622);
+            this.but_totalstop.Location = new System.Drawing.Point(4, 673);
             this.but_totalstop.Margin = new System.Windows.Forms.Padding(4);
             this.but_totalstop.Name = "but_totalstop";
             this.but_totalstop.Size = new System.Drawing.Size(391, 36);
@@ -1701,7 +1703,7 @@
             // led_totalstop
             // 
             this.led_totalstop.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_totalstop.Location = new System.Drawing.Point(403, 626);
+            this.led_totalstop.Location = new System.Drawing.Point(403, 677);
             this.led_totalstop.Margin = new System.Windows.Forms.Padding(4);
             this.led_totalstop.Name = "led_totalstop";
             this.led_totalstop.On = false;
@@ -1741,7 +1743,7 @@
             this.but_alternator.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_alternator.Location = new System.Drawing.Point(4, 553);
+            this.but_alternator.Location = new System.Drawing.Point(4, 604);
             this.but_alternator.Margin = new System.Windows.Forms.Padding(4);
             this.but_alternator.Name = "but_alternator";
             this.but_alternator.Size = new System.Drawing.Size(391, 36);
@@ -1754,7 +1756,7 @@
             // led_alternator
             // 
             this.led_alternator.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_alternator.Location = new System.Drawing.Point(403, 557);
+            this.led_alternator.Location = new System.Drawing.Point(403, 608);
             this.led_alternator.Margin = new System.Windows.Forms.Padding(4);
             this.led_alternator.Name = "led_alternator";
             this.led_alternator.On = false;
@@ -1767,7 +1769,7 @@
             this.but_alternatorconn.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_alternatorconn.Location = new System.Drawing.Point(4, 509);
+            this.but_alternatorconn.Location = new System.Drawing.Point(4, 560);
             this.but_alternatorconn.Margin = new System.Windows.Forms.Padding(4);
             this.but_alternatorconn.Name = "but_alternatorconn";
             this.but_alternatorconn.Size = new System.Drawing.Size(391, 36);
@@ -1780,7 +1782,7 @@
             // led_alternatorconn
             // 
             this.led_alternatorconn.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_alternatorconn.Location = new System.Drawing.Point(403, 513);
+            this.led_alternatorconn.Location = new System.Drawing.Point(403, 564);
             this.led_alternatorconn.Margin = new System.Windows.Forms.Padding(4);
             this.led_alternatorconn.Name = "led_alternatorconn";
             this.led_alternatorconn.On = false;
@@ -1793,7 +1795,7 @@
             this.but_alternatorengineconn.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_alternatorengineconn.Location = new System.Drawing.Point(4, 465);
+            this.but_alternatorengineconn.Location = new System.Drawing.Point(4, 516);
             this.but_alternatorengineconn.Margin = new System.Windows.Forms.Padding(4);
             this.but_alternatorengineconn.Name = "but_alternatorengineconn";
             this.but_alternatorengineconn.Size = new System.Drawing.Size(391, 36);
@@ -1806,7 +1808,7 @@
             // led_alternatorengineconn
             // 
             this.led_alternatorengineconn.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_alternatorengineconn.Location = new System.Drawing.Point(403, 469);
+            this.led_alternatorengineconn.Location = new System.Drawing.Point(403, 520);
             this.led_alternatorengineconn.Margin = new System.Windows.Forms.Padding(4);
             this.led_alternatorengineconn.Name = "led_alternatorengineconn";
             this.led_alternatorengineconn.On = false;
@@ -1819,7 +1821,7 @@
             this.but_oilcooler.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_oilcooler.Location = new System.Drawing.Point(4, 421);
+            this.but_oilcooler.Location = new System.Drawing.Point(4, 472);
             this.but_oilcooler.Margin = new System.Windows.Forms.Padding(4);
             this.but_oilcooler.Name = "but_oilcooler";
             this.but_oilcooler.Size = new System.Drawing.Size(391, 36);
@@ -1832,7 +1834,7 @@
             // led_oilcooler
             // 
             this.led_oilcooler.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_oilcooler.Location = new System.Drawing.Point(403, 425);
+            this.led_oilcooler.Location = new System.Drawing.Point(403, 476);
             this.led_oilcooler.Margin = new System.Windows.Forms.Padding(4);
             this.led_oilcooler.Name = "led_oilcooler";
             this.led_oilcooler.On = false;
@@ -1845,7 +1847,7 @@
             this.but_auxpump.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_auxpump.Location = new System.Drawing.Point(4, 333);
+            this.but_auxpump.Location = new System.Drawing.Point(4, 384);
             this.but_auxpump.Margin = new System.Windows.Forms.Padding(4);
             this.but_auxpump.Name = "but_auxpump";
             this.but_auxpump.Size = new System.Drawing.Size(391, 36);
@@ -1860,7 +1862,7 @@
             this.but_empump.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.but_empump.Location = new System.Drawing.Point(4, 377);
+            this.but_empump.Location = new System.Drawing.Point(4, 428);
             this.but_empump.Margin = new System.Windows.Forms.Padding(4);
             this.but_empump.Name = "but_empump";
             this.but_empump.Size = new System.Drawing.Size(391, 36);
@@ -1873,26 +1875,13 @@
             // led_empump
             // 
             this.led_empump.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.led_empump.Location = new System.Drawing.Point(403, 381);
+            this.led_empump.Location = new System.Drawing.Point(403, 432);
             this.led_empump.Margin = new System.Windows.Forms.Padding(4);
             this.led_empump.Name = "led_empump";
             this.led_empump.On = false;
             this.led_empump.Size = new System.Drawing.Size(31, 28);
             this.led_empump.TabIndex = 18;
             this.led_empump.Text = "ledBulb2";
-            // 
-            // tableLayoutPanel1
-            // 
-            this.tableLayoutPanel1.ColumnCount = 2;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 65);
-            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 2;
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(200, 19);
-            this.tableLayoutPanel1.TabIndex = 32;
             // 
             // table_numericdisplays
             // 
@@ -1903,12 +1892,22 @@
             this.table_control.SetColumnSpan(this.table_numericdisplays, 2);
             this.table_numericdisplays.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.table_numericdisplays.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.table_numericdisplays.Location = new System.Drawing.Point(2, 548);
+            this.table_numericdisplays.Location = new System.Drawing.Point(3, 736);
             this.table_numericdisplays.Name = "table_numericdisplays";
             this.table_numericdisplays.RowCount = 1;
             this.table_numericdisplays.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.table_numericdisplays.Size = new System.Drawing.Size(432, 20);
             this.table_numericdisplays.TabIndex = 33;
+            // 
+            // chk_lock
+            // 
+            this.chk_lock.AutoSize = true;
+            this.chk_lock.Location = new System.Drawing.Point(3, 155);
+            this.chk_lock.Name = "chk_lock";
+            this.chk_lock.Size = new System.Drawing.Size(118, 20);
+            this.chk_lock.TabIndex = 34;
+            this.chk_lock.Text = "Control Lockout";
+            this.chk_lock.UseVisualStyleBackColor = true;
             // 
             // splitContainer1
             // 
@@ -2016,7 +2015,7 @@
         private MissionPlanner.Controls.MyButton but_alternatorengineconn;
         private Bulb.LedBulb led_alternatorengineconn;
         private MissionPlanner.Controls.MyButton but_auxpump;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.TableLayoutPanel table_numericdisplays;
+        private System.Windows.Forms.CheckBox chk_lock;
     }
 }

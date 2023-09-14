@@ -40,6 +40,8 @@ namespace TurbineStatus
         PropertyInfo fuel_battery_usedmah;
         GaugeSettings fuel_battery_gauge_settings;
 
+        bool previous_arm_state = false;
+
         enum Relays
         {
             AlternatorToEngineBus = 0,
@@ -567,12 +569,24 @@ namespace TurbineStatus
                 }
             }
 
-            // Disable controls when armed
-            cmb_mode.Enabled = !Host.cs.armed;
-            but_setmode.Enabled = !Host.cs.armed;
-            but_mainpump.Enabled = !led_mainpump.On || !Host.cs.armed;
-            but_auxpump.Enabled = !led_auxpump.On || !Host.cs.armed;
-            but_empump.Enabled = !led_empump.On || !Host.cs.armed;
+            // Enable the lock when transitioning from disarmed to armed
+            if (Host.cs.armed && !previous_arm_state)
+            {
+                chk_lock.Checked = true;
+            }
+            // Disable the lock when transitioning from armed to disarmed
+            else if (!Host.cs.armed && previous_arm_state)
+            {
+                chk_lock.Checked = false;
+            }
+            previous_arm_state = Host.cs.armed;
+
+            // Disable controls when lock is enabled
+            cmb_mode.Enabled = !chk_lock.Checked;
+            but_setmode.Enabled = !chk_lock.Checked;
+            but_mainpump.Enabled = !led_mainpump.On || !chk_lock.Checked;
+            but_auxpump.Enabled = !led_auxpump.On || !chk_lock.Checked;
+            but_empump.Enabled = !led_empump.On || !chk_lock.Checked;
 
         }
 
