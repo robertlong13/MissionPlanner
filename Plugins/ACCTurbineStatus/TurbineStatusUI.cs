@@ -874,9 +874,9 @@ namespace TurbineStatus
         public int desc_pos;
         public string val_format;
         public int val_pos;
-        public int min;
-        public int max;
-        public int step;
+        public float min;
+        public float max;
+        public float step;
         public int number_radius;
         public int minor;
         public float? green_min;
