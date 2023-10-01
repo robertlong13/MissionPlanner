@@ -1,4 +1,4 @@
-﻿using System.Windows.Forms;
+using System.Windows.Forms;
 using MissionPlanner.Controls;
 
 namespace MissionPlanner.GCSViews
@@ -353,6 +353,7 @@ namespace MissionPlanner.GCSViews
             // 
             resources.ApplyResources(this.TXT_homealt, "TXT_homealt");
             this.TXT_homealt.Name = "TXT_homealt";
+            this.TXT_homealt.ReadOnly = true;
             this.TXT_homealt.TextChanged += new System.EventHandler(this.TXT_homealt_TextChanged);
             this.TXT_homealt.Enter += new System.EventHandler(this.TXT_homealt_Enter);
             this.TXT_homealt.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TXT_homealt_KeyPress);

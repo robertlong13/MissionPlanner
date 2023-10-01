@@ -4207,7 +4207,10 @@ namespace MissionPlanner.GCSViews
         {
             if (MainV2.comPort.MAV.cs.lat != 0)
             {
-                TXT_homealt.Text = (MainV2.comPort.MAV.cs.altasl).ToString("0.00");
+                // Soleon: always set home alt from SRTM
+                TXT_homealt.Text = CurrentState.toAltDisplayUnit(
+                    srtm.getAltitude(MainV2.comPort.MAV.cs.lat, MainV2.comPort.MAV.cs.lng).alt).ToString("0.00");
+                // TXT_homealt.Text = (MainV2.comPort.MAV.cs.altasl).ToString("0.00");
                 TXT_homelat.Text = MainV2.comPort.MAV.cs.lat.ToString();
                 TXT_homelng.Text = MainV2.comPort.MAV.cs.lng.ToString();
 
@@ -5265,14 +5268,19 @@ namespace MissionPlanner.GCSViews
 
                             if (dr == (int) DialogResult.Yes)
                             {
-                                TXT_homelat.Text = (double.Parse(cellhome.Value.ToString())).ToString();
+                                double lat_home = double.Parse(cellhome.Value.ToString());
+                                TXT_homelat.Text = lat_home.ToString();
+                                
                                 cellhome = Commands.Rows[0].Cells[Lon.Index] as DataGridViewTextBoxCell;
-                                TXT_homelng.Text = (double.Parse(cellhome.Value.ToString())).ToString();
+                                double lon_home = double.Parse(cellhome.Value.ToString());
+                                TXT_homelng.Text = lon_home.ToString();
+                                
                                 cellhome = Commands.Rows[0].Cells[Alt.Index] as DataGridViewTextBoxCell;
 
                                 suppress_textchanged = true;
-                                TXT_homealt.Text =
-                                    (double.Parse(cellhome.Value.ToString()) * CurrentState.multiplieralt).ToString();
+                                // Soleon: always set home alt from SRTM
+                                TXT_homealt.Text = CurrentState.toAltDisplayUnit(srtm.getAltitude(lat_home, lon_home).alt).ToString("0.00");
+                                // TXT_homealt.Text = double.Parse(cellhome.Value.ToString()).ToString("0.00");
                                 previous_homealt = TXT_homealt.Text;
                                 suppress_textchanged = false;
                                 
@@ -6235,7 +6243,7 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
         {
             TXT_homealt.Text =
                 (srtm.getAltitude(MouseDownStart.Lat, MouseDownStart.Lng).alt * CurrentState.multiplieralt)
-                .ToString("0");
+                .ToString("0.00");
             TXT_homelat.Text = MouseDownStart.Lat.ToString();
             TXT_homelng.Text = MouseDownStart.Lng.ToString();
         }
@@ -6810,7 +6818,10 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
 
                 TXT_homelng.Text = MainV2.comPort.MAV.cs.HomeLocation.Lng.ToString();
 
-                TXT_homealt.Text = MainV2.comPort.MAV.cs.HomeLocation.Alt.ToString("0.00");
+                // Soleon: always set home alt from SRTM
+                var homealt = srtm.getAltitude(MainV2.comPort.MAV.cs.HomeLocation.Lat, MainV2.comPort.MAV.cs.HomeLocation.Lng).alt;
+                TXT_homealt.Text = CurrentState.toAltDisplayUnit(homealt).ToString("0.00");
+                // TXT_homealt.Text = MainV2.comPort.MAV.cs.HomeLocation.Alt.ToString("0.00");
 
                 writeKML();
             }
@@ -6821,7 +6832,10 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
 
                 TXT_homelng.Text = MainV2.comPort.MAV.cs.PlannedHomeLocation.Lng.ToString();
 
-                TXT_homealt.Text = MainV2.comPort.MAV.cs.PlannedHomeLocation.Alt.ToString("0.00");
+                // Soleon: always set home alt from SRTM
+                var homealt = srtm.getAltitude(MainV2.comPort.MAV.cs.PlannedHomeLocation.Lat, MainV2.comPort.MAV.cs.PlannedHomeLocation.Lng).alt;
+                TXT_homealt.Text = CurrentState.toAltDisplayUnit(homealt).ToString("0.00");
+                // TXT_homealt.Text = MainV2.comPort.MAV.cs.PlannedHomeLocation.Alt.ToString("0.00");
 
                 writeKML();
             }
