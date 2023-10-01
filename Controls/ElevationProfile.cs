@@ -189,10 +189,10 @@ namespace MissionPlanner.Controls
                     disttotal += subdist;
 
                     // srtm alts
-                    list3.Add(disttotal * CurrentState.multiplierdist, Convert.ToInt32(newpoint.Alt * CurrentState.multiplieralt));
+                    list3.Add(disttotal * CurrentState.multiplierdist, newpoint.Alt * CurrentState.multiplieralt);
 
                     // terrain alt
-                    list4terrain.Add(disttotal * CurrentState.multiplierdist, Convert.ToInt32((newpoint.Alt + alt) * CurrentState.multiplieralt));
+                    list4terrain.Add(disttotal * CurrentState.multiplierdist, (newpoint.Alt + alt) * CurrentState.multiplieralt);
 
                     lastpnt = newpoint;
                 }
