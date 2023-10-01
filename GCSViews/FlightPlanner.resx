@@ -986,7 +986,7 @@
     <value>30</value>
   </data>
   <data name="Alt.Width" type="System.Int32, mscorlib">
-    <value>30</value>
+    <value>60</value>
   </data>
   <metadata name="Frame.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
@@ -1121,6 +1121,18 @@
   <data name="Down.Width" type="System.Int32, mscorlib">
     <value>30</value>
   </data>
+  <metadata name="AGL.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="AGL.HeaderText" xml:space="preserve">
+    <value>AGL</value>
+  </data>
+  <data name="AGL.MinimumWidth" type="System.Int32, mscorlib">
+    <value>30</value>
+  </data>
+  <data name="AGL.Width" type="System.Int32, mscorlib">
+    <value>50</value>
+  </data>
   <metadata name="Grad.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
@@ -1197,7 +1209,7 @@
     <value>Commands</value>
   </data>
   <data name="&gt;&gt;Commands.Type" xml:space="preserve">
-    <value>MissionPlanner.Controls.MyDataGridView, MissionPlanner, Version=1.3.8674.17562, Culture=neutral, PublicKeyToken=null</value>
+    <value>MissionPlanner.Controls.MyDataGridView, MissionPlanner, Version=1.3.8674.17913, Culture=neutral, PublicKeyToken=null</value>
   </data>
   <data name="&gt;&gt;Commands.Parent" xml:space="preserve">
     <value>panelWaypoints</value>
@@ -3091,6 +3103,12 @@
   </data>
   <data name="&gt;&gt;Down.Type" xml:space="preserve">
     <value>System.Windows.Forms.DataGridViewImageColumn, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AGL.Name" xml:space="preserve">
+    <value>AGL</value>
+  </data>
+  <data name="&gt;&gt;AGL.Type" xml:space="preserve">
+    <value>System.Windows.Forms.DataGridViewTextBoxColumn, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;Grad.Name" xml:space="preserve">
     <value>Grad</value>

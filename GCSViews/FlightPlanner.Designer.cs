@@ -217,6 +217,7 @@ namespace MissionPlanner.GCSViews
             this.Delete = new System.Windows.Forms.DataGridViewButtonColumn();
             this.Up = new System.Windows.Forms.DataGridViewImageColumn();
             this.Down = new System.Windows.Forms.DataGridViewImageColumn();
+            this.AGL = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Grad = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Angle = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Dist = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -1338,6 +1339,7 @@ namespace MissionPlanner.GCSViews
             this.Delete,
             this.Up,
             this.Down,
+            this.AGL,
             this.Grad,
             this.Angle,
             this.Dist,
@@ -1461,6 +1463,13 @@ namespace MissionPlanner.GCSViews
             this.Down.Image = ((System.Drawing.Image)(resources.GetObject("Down.Image")));
             this.Down.ImageLayout = System.Windows.Forms.DataGridViewImageCellLayout.Stretch;
             this.Down.Name = "Down";
+            // 
+            // AGL
+            // 
+            resources.ApplyResources(this.AGL, "AGL");
+            this.AGL.Name = "AGL";
+            this.AGL.ReadOnly = true;
+            this.AGL.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
             // Grad
             // 
@@ -1677,6 +1686,7 @@ namespace MissionPlanner.GCSViews
         private ToolStripMenuItem offsetPolygonToolStripMenuItem;
         private ToolStripMenuItem offsetPolygonToolStripMenuItem2;
         public CheckBox chk_usemavftp;
+        private ToolStripMenuItem gDALOpacityToolStripMenuItem;
         private DataGridViewComboBoxColumn Command;
         private DataGridViewTextBoxColumn Param1;
         private DataGridViewTextBoxColumn Param2;
@@ -1693,11 +1703,11 @@ namespace MissionPlanner.GCSViews
         private DataGridViewButtonColumn Delete;
         private DataGridViewImageColumn Up;
         private DataGridViewImageColumn Down;
+        private DataGridViewTextBoxColumn AGL;
         private DataGridViewTextBoxColumn Grad;
         private DataGridViewTextBoxColumn Angle;
         private DataGridViewTextBoxColumn Dist;
         private DataGridViewTextBoxColumn AZ;
         private DataGridViewTextBoxColumn TagData;
-        private ToolStripMenuItem gDALOpacityToolStripMenuItem;
     }
 }

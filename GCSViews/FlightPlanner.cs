@@ -1,4 +1,4 @@
-﻿using DotSpatial.Data;
+using DotSpatial.Data;
 using DotSpatial.Projections;
 using GeoUtility.GeoSystem;
 using GeoUtility.GeoSystem.Base;
@@ -6204,6 +6204,21 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
 
                         Commands.Rows[int.Parse(lla.Tag) - 1].Cells[AZ.Index].Value =
                             ((lla.GetBearing(last) + 180) % 360).ToString("0");
+
+                        // Calculate AGL
+                        double agl = lla.Alt - srtm.getAltitude(lla.Lat, lla.Lng).alt;
+                        Commands.Rows[int.Parse(lla.Tag) - 1].Cells[AGL.Index].Value =
+                            (agl * CurrentState.multiplieralt).ToString("0.00");
+
+                        // Warn if AGL is less than 0.1m
+                        if (agl < 0.1)
+                        {
+                            Commands.Rows[int.Parse(lla.Tag) - 1].Cells[AGL.Index].Style.BackColor = Color.Red;
+                        }
+                        else
+                        {
+                            Commands.Rows[int.Parse(lla.Tag) - 1].Cells[AGL.Index].Style.BackColor = Commands.BackgroundColor;
+                        }
                     }
                 }
                 catch (Exception ex)
