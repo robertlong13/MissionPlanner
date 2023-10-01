@@ -471,6 +471,7 @@ namespace MissionPlanner.GCSViews
             // 
             resources.ApplyResources(this.TXT_altwarn, "TXT_altwarn");
             this.TXT_altwarn.Name = "TXT_altwarn";
+            this.TXT_altwarn.TextChanged += new System.EventHandler(this.TXT_altwarn_TextChanged);
             // 
             // BUT_Add
             // 

@@ -689,7 +689,7 @@ namespace MissionPlanner.GCSViews
                     ushort cmd = getCmdID(Commands.Rows[a].Cells[Command.Index].Value.ToString());
 
                     if (cmd < (ushort) MAVLink.MAV_CMD.LAST &&
-                        double.Parse(Commands[Alt.Index, a].Value.ToString()) < double.Parse(TXT_altwarn.Text))
+                        double.Parse(Commands[AGL.Index, a].Value.ToString()) < double.Parse(TXT_altwarn.Text))
                     {
                         if (cmd != (ushort) MAVLink.MAV_CMD.TAKEOFF &&
                             cmd != (ushort) MAVLink.MAV_CMD.LAND &&
@@ -1908,7 +1908,7 @@ namespace MissionPlanner.GCSViews
 
                     ushort cmd = getCmdID(Commands.Rows[a].Cells[Command.Index].Value.ToString());
                     if (cmd < (ushort) MAVLink.MAV_CMD.LAST &&
-                        double.Parse(Commands[Alt.Index, a].Value.ToString()) < double.Parse(TXT_altwarn.Text))
+                        double.Parse(Commands[AGL.Index, a].Value.ToString()) < double.Parse(TXT_altwarn.Text))
                     {
                         if (cmd != (ushort) MAVLink.MAV_CMD.TAKEOFF &&
                             cmd != (ushort) MAVLink.MAV_CMD.LAND &&
@@ -6188,6 +6188,9 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
         {
             int a = 0;
             PointLatLngAlt last = HomeLocation;
+            double min_agl = 0;
+            double.TryParse(TXT_altwarn.Text.Replace(',', '.'), NumberStyles.Any, CultureInfo.InvariantCulture, out min_agl);
+
             foreach (var lla in pointlist)
             {
                 if (lla == null)
@@ -6214,12 +6217,11 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
                             ((lla.GetBearing(last) + 180) % 360).ToString("0");
 
                         // Calculate AGL
-                        double agl = lla.Alt - srtm.getAltitude(lla.Lat, lla.Lng).alt;
-                        Commands.Rows[int.Parse(lla.Tag) - 1].Cells[AGL.Index].Value =
-                            (agl * CurrentState.multiplieralt).ToString("0.00");
+                        double agl = CurrentState.toAltDisplayUnit(lla.Alt - srtm.getAltitude(lla.Lat, lla.Lng).alt);
+                        Commands.Rows[int.Parse(lla.Tag) - 1].Cells[AGL.Index].Value = agl.ToString("0.00");
 
-                        // Warn if AGL is less than 0.1m
-                        if (agl < 0.1)
+                        // Warn if AGL is less than the warning altitude
+                        if (agl < min_agl)
                         {
                             Commands.Rows[int.Parse(lla.Tag) - 1].Cells[AGL.Index].Style.BackColor = Color.Red;
                         }
@@ -8028,6 +8030,28 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
             {
                 TXT_homealt_Leave(null, null);
             }
+        }
+
+        private void TXT_altwarn_TextChanged(object sender, EventArgs e)
+        {
+            PointLatLngAlt home = new PointLatLngAlt();
+            if (TXT_homealt.Text != "" && TXT_homelat.Text != "" && TXT_homelng.Text != "")
+            {
+                try
+                {
+                    home = new PointLatLngAlt(
+                            double.Parse(TXT_homelat.Text), double.Parse(TXT_homelng.Text),
+                            double.Parse(TXT_homealt.Text) / CurrentState.multiplieralt, "H")
+                    { Tag2 = CMB_altmode.SelectedValue.ToString() };
+                }
+                catch (Exception ex)
+                {
+                    CustomMessageBox.Show(Strings.Invalid_home_location, Strings.ERROR);
+                    log.Error(ex);
+                }
+            }
+            
+            setgradanddistandaz(wpOverlay.pointlist, home);
         }
     }
 }
