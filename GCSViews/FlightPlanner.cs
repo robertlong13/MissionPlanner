@@ -6643,10 +6643,11 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
 
         public void TXT_homelat_Enter(object sender, EventArgs e)
         {
-            if (!sethome)
+            // Soleon: get rid of this annoying "feature". Does anyone actually use this??
+            /*if (!sethome)
                 CustomMessageBox.Show("Click on the Map to set Home ");
             sethome = true;
-
+            */
         }
 
         public void TXT_homelat_TextChanged(object sender, EventArgs e)
@@ -6655,6 +6656,9 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
             try
             {
                 MainV2.comPort.MAV.cs.PlannedHomeLocation.Lat = double.Parse(TXT_homelat.Text);
+                // Soleon: always set home alt from SRTM
+                var homealt = srtm.getAltitude(MainV2.comPort.MAV.cs.PlannedHomeLocation.Lat, MainV2.comPort.MAV.cs.PlannedHomeLocation.Lng).alt;
+                TXT_homealt.Text = CurrentState.toAltDisplayUnit(homealt).ToString("0.00");
             }
             catch (Exception ex)
             {
@@ -6670,6 +6674,9 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
             try
             {
                 MainV2.comPort.MAV.cs.PlannedHomeLocation.Lng = double.Parse(TXT_homelng.Text);
+                // Soleon: always set home alt from SRTM
+                var homealt = srtm.getAltitude(MainV2.comPort.MAV.cs.PlannedHomeLocation.Lat, MainV2.comPort.MAV.cs.PlannedHomeLocation.Lng).alt;
+                TXT_homealt.Text = CurrentState.toAltDisplayUnit(homealt).ToString("0.00");
             }
             catch (Exception ex)
             {
