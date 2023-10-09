@@ -3040,6 +3040,19 @@ namespace MissionPlanner.GCSViews
                 temp.lat = (double.Parse(Commands.Rows[a].Cells[Lat.Index].Value.ToString()));
                 temp.lng = (double.Parse(Commands.Rows[a].Cells[Lon.Index].Value.ToString()));
 
+                // Soleon: prevent any WAYPOINT commands from having literal-zero alt, which ArduPilot
+                //         interprets as "no change" instead of "zero meters". This changes them to 1cm,
+                //         which is the smallest possible value, and is still effectively zero for us.
+                //         (techincally we set to 1.1cm, to guarantee the float representation does not
+                //         truncate to zero when ArduPilot converts to int32 of centimeters)
+                if (Commands.Rows[a].Cells[Command.Index].Value.Equals("WAYPOINT"))
+                {
+                    if (-0.011 < temp.alt && temp.alt < 0.011)
+                    {
+                        temp.alt = 0.011f;
+                    }
+                }
+
                 temp.p2 = (float) (double.Parse(Commands.Rows[a].Cells[Param2.Index].Value.ToString()));
                 temp.p3 = (float) (double.Parse(Commands.Rows[a].Cells[Param3.Index].Value.ToString()));
                 temp.p4 = (float) (double.Parse(Commands.Rows[a].Cells[Param4.Index].Value.ToString()));
