@@ -5286,6 +5286,9 @@ namespace MissionPlanner.GCSViews
 
                             if (dr == (int) DialogResult.Yes)
                             {
+                                // Soleon: all home txt handlers touch the altitude now, so this is moved up here
+                                suppress_textchanged = true;
+
                                 double lat_home = double.Parse(cellhome.Value.ToString());
                                 TXT_homelat.Text = lat_home.ToString();
                                 
@@ -5295,7 +5298,6 @@ namespace MissionPlanner.GCSViews
                                 
                                 cellhome = Commands.Rows[0].Cells[Alt.Index] as DataGridViewTextBoxCell;
 
-                                suppress_textchanged = true;
                                 // Soleon: always set home alt from SRTM
                                 TXT_homealt.Text = CurrentState.toAltDisplayUnit(srtm.getAltitude(lat_home, lon_home).alt).ToString("0.00");
                                 // TXT_homealt.Text = double.Parse(cellhome.Value.ToString()).ToString("0.00");
