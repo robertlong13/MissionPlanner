@@ -741,10 +741,15 @@ namespace MissionPlanner.GCSViews
             {
                 // auto update home alt
                 updateUndoBuffer(true);
+
                 TXT_homealt.Text = (srtm.getAltitude(lat, lng).alt * CurrentState.multiplieralt).ToString("0.00");
 
+                // Soleon: update lat/lon but suppress homealt textchange handler
+                suppress_textchanged = true;
                 TXT_homelat.Text = lat.ToString();
                 TXT_homelng.Text = lng.ToString();
+                suppress_textchanged = false;
+                
                 return;
             }
 
