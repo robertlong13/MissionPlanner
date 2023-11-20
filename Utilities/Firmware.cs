@@ -604,7 +604,7 @@ namespace MissionPlanner.Utilities
 
             AttemptRebootToBootloader();
 
-            DateTime DEADLINE = DateTime.Now.AddSeconds(30);
+            DateTime DEADLINE = DateTime.Now.AddSeconds(120);
 
             updateProgress(-1, "Scanning comports");
 
