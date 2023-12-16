@@ -6,7 +6,7 @@ namespace TurbineStatus
     public class TurbineStatusPlugin : Plugin
     {
         private string _Name = "Turbine Status";
-        private string _Version = "1.1";
+        private string _Version = "1.2";
         private string _Author = "Bob Long";
 
         public override string Name { get { return _Name; } }

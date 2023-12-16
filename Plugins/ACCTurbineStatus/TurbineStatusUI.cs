@@ -42,6 +42,15 @@ namespace TurbineStatus
 
         bool previous_arm_state = false;
 
+        // Track last mode to detect mode changes for the mode timer
+        string previous_mode = "";
+
+        // Timer variables
+        DateTime last_mode_change = DateTime.Now;
+        DateTime manual_timer_started = DateTime.Now;
+        TimeSpan manual_timer_offset = TimeSpan.Zero;
+        bool manual_timer_running = false;
+
         enum Relays
         {
             AlternatorToEngineBus = 0,
@@ -93,7 +102,7 @@ namespace TurbineStatus
             "Internal SW error - task list is full",
             "Internal SW error - stored parameters are inconsistent",
         });
-        
+
         HashSet<string> degraded_errors = new HashSet<string>(new string[] {
             "Error of fuel valve control output",
             "Error of ignition control output",
@@ -179,7 +188,7 @@ namespace TurbineStatus
         public TurbineStatusUI(PluginHost host)
         {
             InitializeComponent();
-            
+
             Host = host;
 
             ThemeManager.ApplyThemeTo(this);
@@ -191,7 +200,7 @@ namespace TurbineStatus
             relay_status = get_customfield("MAV_TS100RELAY");
             ecu_mode = get_customfield("MAV_TS100_ECU");
             turbine_mode = get_customfield("MAV_TS100_TURB");
-            
+
             LoadSettings();
 
             // Set up the gauges
@@ -343,7 +352,7 @@ namespace TurbineStatus
                     }
                 }
             }
-            
+
             return Host.cs.GetType().GetProperty(cfname);
 
         }
@@ -433,22 +442,22 @@ namespace TurbineStatus
 
                     switch(highest_severity)
                     {
-                        case Severity.OK:
-                            led_errors.On = false;
-                            break;
-                        case Severity.Warning:
-                            led_errors.Color = Color.Yellow;
-                            led_errors.On = true;
-                            break;
-                        case Severity.Degraded:
-                            led_errors.Color = Color.Orange;
-                            led_errors.On = true;
-                            break;
-                        case Severity.Critical:
-                        default:
-                            led_errors.Color = Color.Red;
-                            led_errors.On = true;
-                            break;
+                    case Severity.OK:
+                        led_errors.On = false;
+                        break;
+                    case Severity.Warning:
+                        led_errors.Color = Color.Yellow;
+                        led_errors.On = true;
+                        break;
+                    case Severity.Degraded:
+                        led_errors.Color = Color.Orange;
+                        led_errors.On = true;
+                        break;
+                    case Severity.Critical:
+                    default:
+                        led_errors.Color = Color.Red;
+                        led_errors.On = true;
+                        break;
                     }
 
                     txt_messages.Text = message.ToString();
@@ -482,22 +491,46 @@ namespace TurbineStatus
             led_totalstop.On = ((flags >> (ushort)Relays.TotalStop1) & 0x3) > 0; // Either of the two bits can be set
 
             // Update the ECU Mode
-            string mode = "UNKNOWN";
+            string str_ecu_mode = "UNKNOWN";
             int n = (int)((float)ecu_mode.GetValue(Host.cs));
             if (disp_ecu_modes.ContainsKey(n))
             {
-                mode = disp_ecu_modes[n];
+                str_ecu_mode = disp_ecu_modes[n];
             }
-            lbl_ecumode.Text = "ECU: " + mode;
+            lbl_ecumode.Text = "ECU: " + str_ecu_mode;
 
             // Update the Turbine Mode
-            mode = "UNKNOWN";
+            string str_turbine_mode = "UNKNOWN";
             n = (int)((float)turbine_mode.GetValue(Host.cs));
             if (disp_turbine_modes.ContainsKey(n))
             {
-                mode = disp_turbine_modes[n];
+                str_turbine_mode = disp_turbine_modes[n];
             }
-            lbl_turbinemode.Text = "Turbine: " + mode;
+            lbl_turbinemode.Text = "Turbine: " + str_turbine_mode;
+
+            // Update the mode timer
+            if (str_ecu_mode == "UNKNOWN" || str_ecu_mode == "Stop" || str_turbine_mode == "UNKNOWN")
+            {
+                lbl_mode_time.Text = "";
+                previous_mode = "";
+            }
+            else
+            {
+                if(str_turbine_mode != previous_mode)
+                {
+                    previous_mode = str_turbine_mode;
+                    last_mode_change = DateTime.Now;
+                }
+                lbl_mode_time.Text = (DateTime.Now - last_mode_change).ToString(@"mm\:ss");
+            }
+
+            // Update the manual timer
+            TimeSpan ts = manual_timer_offset;
+            if(manual_timer_running)
+            {
+                ts += (DateTime.Now - manual_timer_started);
+            }
+            lbl_timer.Text = ts.ToString(@"mm\:ss\.f");
 
             // Update the gauges
             for (int i = 0; i < gauges.Length; i++)
@@ -588,6 +621,7 @@ namespace TurbineStatus
             but_auxpump.Enabled = !led_auxpump.On || !chk_lock.Checked;
             but_empump.Enabled = !led_empump.On || !chk_lock.Checked;
 
+
         }
 
         // Force the window to minimize instead of closing
@@ -596,7 +630,7 @@ namespace TurbineStatus
             e.Cancel = true;
             this.WindowState = FormWindowState.Minimized;
         }
-        
+
         private static bool RectVisible(Rectangle rectangle)
         {
             foreach (Screen screen in Screen.AllScreens)
@@ -608,7 +642,7 @@ namespace TurbineStatus
             }
             return false;
         }
-        
+
         public void RestoreStartupLocation()
         {
             var value = Settings.Instance[Text.Replace(" ", "_") + "_StartLocation"];
@@ -675,7 +709,7 @@ namespace TurbineStatus
             float fontSize = 24 * table_control.Width / 280;
             // Prevent 0 font size
             fontSize = fontSize > 0 ? fontSize : 24;
-            
+
             lbl_ecumode.Font = new Font(lbl_ecumode.Font.FontFamily, fontSize);
             lbl_turbinemode.Font = new Font(lbl_turbinemode.Font.FontFamily, fontSize);
         }
@@ -837,7 +871,7 @@ namespace TurbineStatus
 
             // Prompt the user for the fuel fill level
             string fuellevel_str = "";
-            if(InputBox.Show("Set Fuel Level", "Enter the fuel level", ref fuellevel_str) != DialogResult.OK)
+            if (InputBox.Show("Set Fuel Level", "Enter the fuel level", ref fuellevel_str) != DialogResult.OK)
             {
                 return;
             }
@@ -861,6 +895,26 @@ namespace TurbineStatus
             {
                 CustomMessageBox.Show("Invalid Entry", "Error");
             }
+        }
+
+        private void but_start_pause_Click(object sender, EventArgs e)
+        {
+            if(manual_timer_running)
+            {
+                manual_timer_running = false;
+                manual_timer_offset += DateTime.Now - manual_timer_started;
+            }
+            else
+            {
+                manual_timer_running = true;
+                manual_timer_started = DateTime.Now;
+            }
+        }
+
+        private void but_restart_Click(object sender, EventArgs e)
+        {
+            manual_timer_offset = TimeSpan.Zero;
+            manual_timer_started = DateTime.Now;
         }
     }
 
