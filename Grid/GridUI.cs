@@ -574,6 +574,10 @@ namespace MissionPlanner.Grid
             }
         }
 
+        // Max Amount of time each "chunk" or "segment" of the mission is allowed to be
+        // (too many things in the code already called segment, hence the "chunk" term)
+        double split_time = 0;
+
         // Do Work
         private async void domainUpDown1_ValueChanged(object sender, EventArgs e)
         {
@@ -657,19 +661,59 @@ namespace MissionPlanner.Grid
             int a = 1;
             PointLatLngAlt prevprevpoint = grid[0];
             PointLatLngAlt prevpoint = grid[0];
+            // prevpoint and prevprevpoint get updated in a weird way. I need to define
+            // another one that gets updated every loop (couldn't think of a better easy way)
+            PointLatLngAlt yet_another_prevpoint = grid[0];
             // distance to/from home
-            double routetotal = grid.First().GetDistance(MainV2.comPort.MAV.cs.PlannedHomeLocation) / 1000.0 +
-                               grid.Last().GetDistance(MainV2.comPort.MAV.cs.PlannedHomeLocation) / 1000.0;
+            double routetotal = 0;
             List<PointLatLng> segment = new List<PointLatLng>();
             double maxgroundelevation = double.MinValue;
             double mingroundelevation = double.MaxValue;
             double startalt = plugin.Host.cs.PlannedHomeLocation.Alt;
 
-            foreach (var item in grid)
+            double flyspeedms = CurrentState.fromSpeedDisplayUnit((double)NUM_UpDownFlySpeed.Value);
+            split_time = (double)num_splittime.Value * 60.0;
+            double chunk_dist = grid.First().GetDistance(MainV2.comPort.MAV.cs.PlannedHomeLocation) / 1000.0; ;
+
+            // If the round-trip time to/from the first waypoint is more than the split time, then we cannot
+            // possibly split the mission into the requested number of segments. So, we won't split the mission.
+            double chunk_time = (chunk_dist * 1000 + grid.First().GetDistance(MainV2.comPort.MAV.cs.PlannedHomeLocation)) / flyspeedms;
+            if (0 < split_time && split_time < chunk_time)
             {
+                split_time = 0;
+            }
+
+            foreach (var item in grid)
+            {                
                 double currentalt = srtm.getAltitude(item.Lat, item.Lng).alt;
                 mingroundelevation = Math.Min(mingroundelevation, currentalt);
                 maxgroundelevation = Math.Max(maxgroundelevation, currentalt);
+
+                // Handle splitting by time
+                if (split_time > 0)
+                {
+                    chunk_dist += item.GetDistance(yet_another_prevpoint) / 1000;
+                    double dist_to_home = item.GetDistance(MainV2.comPort.MAV.cs.PlannedHomeLocation) / 1000;
+                    chunk_time = (chunk_dist + dist_to_home) * 1000 / flyspeedms;
+                    if (chunk_time > split_time)
+                    {
+                        // Split the mission here
+                        chunk_dist = item.GetDistance(MainV2.comPort.MAV.cs.PlannedHomeLocation) / 1000.0;
+                        chunk_time = 2 * (chunk_dist * 1000) / flyspeedms; // round trip
+
+                        // If the round-trip time to/from this waypoint is more than the split time, then we cannot
+                        // possibly split the mission into the requested number of segments. So, we won't split the mission.
+                        if (split_time < chunk_time)
+                        {
+                            split_time = 0;
+                        }
+                        else
+                        {
+                            item.Tag2 = "SplitTime";
+                        }
+                    }
+                    yet_another_prevpoint = item;
+                }
 
                 prevprevpoint = prevpoint;
 
@@ -760,6 +804,13 @@ namespace MissionPlanner.Grid
                     prevpoint = item;
                     a++;
                 }
+
+                if(CHK_markers.Checked && item.Tag2 == "SplitTime")
+                {
+                    var marker = new GMarkerGoogle(item, GMarkerGoogleType.purple) { ToolTipText = "Break", ToolTipMode = MarkerTooltipMode.Always };
+                    routesOverlay.Markers.Add(marker);
+                }
+
                 GMapRoute seg = new GMapRoute(segment, "segment" + a.ToString());
                 seg.Stroke = new Pen(Color.Yellow, 4);
                 seg.Stroke.DashStyle = System.Drawing.Drawing2D.DashStyle.Custom;
@@ -866,14 +917,37 @@ namespace MissionPlanner.Grid
             }
             catch { }
 
-            double flyspeedms = CurrentState.fromSpeedDisplayUnit((double)NUM_UpDownFlySpeed.Value);
+            routetotal += (double)NUM_split.Value * (
+                    grid.First().GetDistance(plugin.Host.cs.PlannedHomeLocation) / 1000 +
+                    grid.Last().GetDistance(plugin.Host.cs.PlannedHomeLocation) / 1000
+            );
+
+            // Calculate the out/back time for each split
+            // Also add extra start/stop points so that trigger distance commands get added properly
+            if (split_time > 0)
+            {
+                // Loop backward through grid to avoid tricky index handling as we insert points
+                for (int i = grid.Count - 1; i >= 0; i--)
+                {
+                    if (grid[i].Tag2 != "SplitTime") continue;
+
+                    routetotal += 2 * grid[i].GetDistance(plugin.Host.cs.PlannedHomeLocation) / 1000;
+
+                    if (grid[i].Tag == "M" || grid[i].Tag == "SM")
+                    {
+                        grid[i].Tag = "SM";
+                        grid[i].Tag2 = "";
+                        grid.Insert(i, new PointLatLngAlt(grid[i]) { Tag = "S", Tag2 = "SplitTime" });
+                        grid.Insert(i, new PointLatLngAlt(grid[i]) { Tag = "E", Tag2 = "" });
+                        grid.Insert(i, new PointLatLngAlt(grid[i]) { Tag = "ME", Tag2 = "" });
+                    }
+                }
+            }
 
             lbl_pictures.Text = images.ToString();
             lbl_strips.Text = ((int)(strips / 2)).ToString();
-            double seconds = ((routetotal * 1000.0) / ((flyspeedms) * 0.8));
-            // reduce flying speed by 20 %
+            double seconds = ((routetotal * 1000.0) / (flyspeedms));
             lbl_flighttime.Text = secondsToNice(seconds);
-            seconds = ((routetotal * 1000.0) / (flyspeedms));
             lbl_photoevery.Text = secondsToNice(((double)NUM_spacing.Value / flyspeedms));
             map.HoldInvalidation = false;
             if (!isMouseDown && sender != NUM_angle)
@@ -1607,7 +1681,7 @@ namespace MissionPlanner.Grid
             {
                 MainV2.instance.FlightPlanner.quickadd = true;
 
-                if (NUM_split.Value > 1 && CHK_toandland.Checked != true)
+                if ((NUM_split.Value > 1 || num_splittime.Value > 0) && CHK_toandland.Checked != true)
                 {
                     CustomMessageBox.Show("You must use Land/RTL to split a mission", Strings.ERROR);
                     return;
@@ -1617,22 +1691,51 @@ namespace MissionPlanner.Grid
 
                 int wpsplit = (int)Math.Round(grid.Count / NUM_split.Value, MidpointRounding.AwayFromZero);
 
-                List<int> wpsplitstart = new List<int>();
+                // Tracks the start and end indices in grid
+                List<int> starts = new List<int>() {};
+                List<int> ends = new List<int>() {};
 
-                for (int splitno = 0; splitno < NUM_split.Value; splitno++)
+                // Tracks the actual waypoint numbers for the starts and end
+                List<int> wpsplitstart = new List<int>() { };
+
+                if (split_time > 0)
                 {
-                    int wpstart = wpsplit * splitno;
-                    int wpend = wpsplit * (splitno + 1);
-
-                    while (wpstart != 0 && wpstart < grid.Count && grid[wpstart].Tag != "E")
+                    starts.Add(0);
+                    for(int i = 0; i < grid.Count; i++)
                     {
-                        wpstart--;
+                        if (grid[i].Tag2 == "SplitTime")
+                        {
+                            starts.Add(i);
+                            ends.Add(i);
+                        }
                     }
-
-                    while (wpend > 0 && wpend < grid.Count && grid[wpend].Tag != "S")
+                    ends.Add(grid.Count);
+                }
+                else
+                {
+                    for (int i = 0; i < NUM_split.Value; i++)
                     {
-                        wpend--;
+                        int start = wpsplit * i;
+                        int end = wpsplit * (i + 1);
+
+                        while (start != 0 && start < grid.Count && grid[start].Tag != "E")
+                        {
+                            start--;
+                        }
+
+                        while (end > 0 && end < grid.Count && grid[end].Tag != "S")
+                        {
+                            end--;
+                        }
+                        starts.Add(start);
+                        ends.Add(end);
                     }
+                }
+
+                for (int splitno = 0; splitno < starts.Count; splitno++)
+                {
+                    int start = starts[splitno];
+                    int end = ends[splitno];
 
                     if (CHK_toandland.Checked)
                     {
@@ -1665,15 +1768,15 @@ namespace MissionPlanner.Grid
                     foreach (var plla in grid)
                     {
                         // skip before start point
-                        if (i < wpstart)
+                        if (i < start)
                         {
                             i++;
                             continue;
                         }
                         // skip after endpoint
-                        if (i >= wpend)
+                        if (i >= end)
                             break;
-                        if (i > wpstart)
+                        if (i > start)
                         {
                             // internal point check
                             if (plla.Tag == "M")
@@ -1926,6 +2029,50 @@ namespace MissionPlanner.Grid
                     Utilities.Grid.StartPointLatLngAlt = list[pnt - 1];
             }
 
+            domainUpDown1_ValueChanged(sender, e);
+        }
+
+        private void num_splittime_ValueChanged(object sender, EventArgs e)
+        {
+            if(!num_splittime.Enabled)
+            {
+                return;
+            }
+
+            // Sanity check that split x segments is not already in use
+            // Shouldn't be possible
+            if(NUM_split.Value > 1)
+            {
+                num_splittime.Value = 0;
+                num_splittime.Enabled = false;
+            }
+
+            // Disable split x if we are using split time
+            NUM_split.Enabled = num_splittime.Value == 0;
+
+            // Process changed value
+            domainUpDown1_ValueChanged(sender, e);
+        }
+
+        private void NUM_split_ValueChanged(object sender, EventArgs e)
+        {
+            if(!NUM_split.Enabled)
+            {
+                return;
+            }
+
+            // Sanity check that split time is not already in use
+            // Shouldn't be possible
+            if (num_splittime.Value > 0)
+            {
+                NUM_split.Enabled = false;
+                NUM_split.Value = 1;
+            }
+
+            // Disable split x if we are using split time
+            num_splittime.Enabled = NUM_split.Value == 1;
+
+            // Process changed value
             domainUpDown1_ValueChanged(sender, e);
         }
     }

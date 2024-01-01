@@ -30,6 +30,8 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GridUI));
             this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this.lbl_segments = new System.Windows.Forms.Label();
+            this.label47 = new System.Windows.Forms.Label();
             this.lbl_minshutter = new System.Windows.Forms.Label();
             this.label44 = new System.Windows.Forms.Label();
             this.lbl_gndelev = new System.Windows.Forms.Label();
@@ -144,6 +146,8 @@
             this.tabSimple = new System.Windows.Forms.TabPage();
             this.label38 = new System.Windows.Forms.Label();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.num_splittime = new System.Windows.Forms.NumericUpDown();
             this.label37 = new System.Windows.Forms.Label();
             this.NUM_split = new System.Windows.Forms.NumericUpDown();
             this.CHK_usespeed = new System.Windows.Forms.CheckBox();
@@ -200,6 +204,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.NUM_spacing)).BeginInit();
             this.tabSimple.SuspendLayout();
             this.groupBox6.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.num_splittime)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.NUM_split)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.NUM_UpDownFlySpeed)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.NUM_angle)).BeginInit();
@@ -211,6 +216,8 @@
             // 
             // groupBox5
             // 
+            this.groupBox5.Controls.Add(this.lbl_segments);
+            this.groupBox5.Controls.Add(this.label47);
             this.groupBox5.Controls.Add(this.lbl_minshutter);
             this.groupBox5.Controls.Add(this.label44);
             this.groupBox5.Controls.Add(this.lbl_gndelev);
@@ -240,6 +247,16 @@
             resources.ApplyResources(this.groupBox5, "groupBox5");
             this.groupBox5.Name = "groupBox5";
             this.groupBox5.TabStop = false;
+            // 
+            // lbl_segments
+            // 
+            resources.ApplyResources(this.lbl_segments, "lbl_segments");
+            this.lbl_segments.Name = "lbl_segments";
+            // 
+            // label47
+            // 
+            resources.ApplyResources(this.label47, "label47");
+            this.label47.Name = "label47";
             // 
             // lbl_minshutter
             // 
@@ -604,6 +621,7 @@
             // 
             resources.ApplyResources(this.BUT_samplephoto, "BUT_samplephoto");
             this.BUT_samplephoto.Name = "BUT_samplephoto";
+            this.BUT_samplephoto.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.BUT_samplephoto.UseVisualStyleBackColor = true;
             this.BUT_samplephoto.Click += new System.EventHandler(this.BUT_samplephoto_Click);
             // 
@@ -722,6 +740,7 @@
             // 
             resources.ApplyResources(this.BUT_save, "BUT_save");
             this.BUT_save.Name = "BUT_save";
+            this.BUT_save.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.BUT_save.UseVisualStyleBackColor = true;
             this.BUT_save.Click += new System.EventHandler(this.BUT_save_Click);
             // 
@@ -1186,6 +1205,8 @@
             // 
             // groupBox6
             // 
+            this.groupBox6.Controls.Add(this.label7);
+            this.groupBox6.Controls.Add(this.num_splittime);
             this.groupBox6.Controls.Add(this.label37);
             this.groupBox6.Controls.Add(this.NUM_split);
             this.groupBox6.Controls.Add(this.CHK_usespeed);
@@ -1203,6 +1224,22 @@
             resources.ApplyResources(this.groupBox6, "groupBox6");
             this.groupBox6.Name = "groupBox6";
             this.groupBox6.TabStop = false;
+            // 
+            // label7
+            // 
+            resources.ApplyResources(this.label7, "label7");
+            this.label7.Name = "label7";
+            // 
+            // num_splittime
+            // 
+            resources.ApplyResources(this.num_splittime, "num_splittime");
+            this.num_splittime.Maximum = new decimal(new int[] {
+            600,
+            0,
+            0,
+            0});
+            this.num_splittime.Name = "num_splittime";
+            this.num_splittime.ValueChanged += new System.EventHandler(this.num_splittime_ValueChanged);
             // 
             // label37
             // 
@@ -1228,7 +1265,7 @@
             0,
             0,
             0});
-            this.NUM_split.ValueChanged += new System.EventHandler(this.domainUpDown1_ValueChanged);
+            this.NUM_split.ValueChanged += new System.EventHandler(this.NUM_split_ValueChanged);
             // 
             // CHK_usespeed
             // 
@@ -1407,6 +1444,7 @@
             // 
             resources.ApplyResources(this.BUT_Accept, "BUT_Accept");
             this.BUT_Accept.Name = "BUT_Accept";
+            this.BUT_Accept.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.BUT_Accept.UseVisualStyleBackColor = true;
             this.BUT_Accept.Click += new System.EventHandler(this.BUT_Accept_Click);
             // 
@@ -1509,6 +1547,7 @@
             this.tabSimple.PerformLayout();
             this.groupBox6.ResumeLayout(false);
             this.groupBox6.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.num_splittime)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.NUM_split)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.NUM_UpDownFlySpeed)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.NUM_angle)).EndInit();
@@ -1664,5 +1703,9 @@
         private System.Windows.Forms.CheckBox CHK_match_spiral_perimeter;
         private System.Windows.Forms.NumericUpDown NUM_laps;
         private System.Windows.Forms.Label LBL_laps;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.NumericUpDown num_splittime;
+        private System.Windows.Forms.Label lbl_segments;
+        private System.Windows.Forms.Label label47;
     }
 }
