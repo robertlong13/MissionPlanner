@@ -62,26 +62,29 @@ namespace TurbineStatus
             Alternator = 6,
             TotalStop1 = 8,
             TotalStop2 = 9,
+            NavLights = 10,
+            LandingLights = 11,
         }
 
         enum ScriptingCommands
         {
-            RelayAlternatorToEngineBus = 1,
-            RelayOilCooler = 2,
-            RelayEmergencyFuelPump = 3,
-            RelayMainFuelPump = 4,
-            RelayAlternator = 5,
-            RelayTotalStop = 6,
-            ModeFalseStart = 7,
-            ModeStart = 8,
-            ModeStop = 9,
-            ModeCool = 10,
-            ModeColdStart = 11,
-            ModeIdle1 = 12,
-            ModeFlight = 13,
-            ModeIdle2 = 14,
-            RelayAlternatorBus = 15,
-            RelayAuxFuelPump = 16,
+            RelayLandingLights = 29,
+            RelayAlternatorToEngineBus = 300,
+            RelayOilCooler = 301,
+            RelayEmergencyFuelPump = 302,
+            RelayMainFuelPump = 303,
+            RelayAlternator = 304,
+            RelayTotalStop = 305,
+            ModeFalseStart = 306,
+            ModeStart = 307,
+            ModeStop = 308,
+            ModeCool = 309,
+            ModeColdStart = 310,
+            ModeIdle1 = 311,
+            ModeFlight = 312,
+            ModeIdle2 = 313,
+            RelayAlternatorBus = 314,
+            RelayAuxFuelPump = 315,
         }
 
         HashSet<string> critical_errors = new HashSet<string>(new string[] {
@@ -489,6 +492,7 @@ namespace TurbineStatus
             led_auxpump.On = ((flags >> (ushort)Relays.AuxFuelPump) & 0x1) > 0;
             led_alternator.On = ((flags >> (ushort)Relays.Alternator) & 0x1) > 0;
             led_totalstop.On = ((flags >> (ushort)Relays.TotalStop1) & 0x3) > 0; // Either of the two bits can be set
+            led_landinglights.On = ((flags >> (ushort)Relays.LandingLights) & 0x1) > 0;
 
             // Update the ECU Mode
             string str_ecu_mode = "UNKNOWN";
@@ -723,7 +727,7 @@ namespace TurbineStatus
                     (byte)Host.comPort.sysidcurrent,
                     (byte)Host.comPort.compidcurrent,
                     MAVLink.MAV_CMD.DO_AUX_FUNCTION,
-                    299 + n, // 300 is the Scripting1 function
+                    n,
                     val,
                     0, 0, 0, 0, 0))
                 {
@@ -788,6 +792,10 @@ namespace TurbineStatus
         private void but_oilcooler_Click(object sender, EventArgs e)
         {
             send_scripting((ushort)ScriptingCommands.RelayOilCooler, led_oilcooler.On ? 0 : 2);
+        }
+        private void but_landinglights_Click(object sender, EventArgs e)
+        {
+            send_scripting((ushort)ScriptingCommands.RelayLandingLights, led_landinglights.On ? 0 : 2);
         }
 
         private void but_totalstop_Click(object sender, EventArgs e)
