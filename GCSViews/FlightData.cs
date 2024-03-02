@@ -1383,10 +1383,9 @@ namespace MissionPlanner.GCSViews
         private void BUT_resetGimbalPos_Click(object sender, EventArgs e)
         {
             trackBarPitch.Value = 0;
-            trackBarRoll.Value = 0;
             trackBarYaw.Value = 0;
             MainV2.comPort.setMountConfigure(MAVLink.MAV_MOUNT_MODE.MAVLINK_TARGETING, false, false, false);
-            MainV2.comPort.setMountControl((float) trackBarPitch.Value * 100.0f, (float) trackBarRoll.Value * 100.0f,
+            MainV2.comPort.setMountControl((float) trackBarPitch.Value * 100.0f, 0,
                 (float) trackBarYaw.Value * 100.0f, false);
         }
 
@@ -2803,7 +2802,7 @@ namespace MissionPlanner.GCSViews
 
         private void gimbalTrackbar_Scroll(object sender, EventArgs e)
         {
-            MainV2.comPort.setMountControl((float) trackBarPitch.Value * 100.0f, (float) trackBarRoll.Value * 100.0f,
+            MainV2.comPort.setMountControl((float) trackBarPitch.Value * 100.0f, 0,
                 (float) trackBarYaw.Value * 100.0f, false);
         }
 
@@ -6271,6 +6270,46 @@ namespace MissionPlanner.GCSViews
             catch (Exception ex)
             {
                 CustomMessageBox.Show(Strings.CommandFailed + ex.ToString(), Strings.ERROR);
+            }
+        }
+
+        private void myButton5_Click(object sender, EventArgs e)
+        {
+            var form = new Form()
+            {
+                Text = "Gimbal Control",
+                Size = new Size(300, 200),
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            form.Controls.Add(new GimbalVideoControl()
+            {
+                Dock = DockStyle.Fill
+            });
+            form.Show();
+        }
+
+        private void myButton4_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Task.Run(async () =>
+                {
+                    //await MainV2.comPort.doCommandAsync(
+                    //    (byte)MainV2.comPort.sysidcurrent, (byte)MainV2.comPort.compidcurrent,
+                    //    MAVLink.MAV_CMD.REQUEST_MESSAGE,
+                    //    (float)MAVLink.MAVLINK_MSG_ID.VIDEO_STREAM_INFORMATION,
+                    //    0, 0, 0, 0, 0, 0).ConfigureAwait(false
+                    //);
+                    await MainV2.comPort.doCommandAsync(
+                        (byte)MainV2.comPort.sysidcurrent, (byte)MainV2.comPort.compidcurrent,
+                        MAVLink.MAV_CMD.REQUEST_VIDEO_STREAM_INFORMATION,
+                        0, 0, 0, 0, 0, 0, 0).ConfigureAwait(false
+                    );
+                });
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
             }
         }
     }
