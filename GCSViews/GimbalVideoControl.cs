@@ -2,20 +2,49 @@
 extern alias Drawing;
 using MPBitmap = Drawing::System.Drawing.Bitmap;
 
-using SkiaSharp;
+using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
+using MissionPlanner.Utilities;
+using SkiaSharp;
+using OpenTK.Input;
+using log4net;
 
 namespace MissionPlanner
 {
     public partial class GimbalVideoControl : UserControl
     {
+        // logger
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        private GimbalControlPreferences _preferences = new GimbalControlPreferences();
+
         public GimbalVideoControl()
         {
             InitializeComponent();
 
-            MissionPlanner.Utilities.GStreamer.onNewImage += RenderFrame;
+            GStreamer.onNewImage += RenderFrame;
+
+            var json = Settings.Instance["GimbalControlPreferences", ""];
+            if (json != "")
+            {
+                try
+                {
+                    _preferences = Newtonsoft.Json.JsonConvert.DeserializeObject<GimbalControlPreferences>(json);
+                }
+                catch (Exception ex)
+                {
+                    log.Error("Invalid GimbalControlPreferences, reverting to default", ex);
+                }
+            }
+
+            setCameraControlPanelVisibility(_preferences.ShowCameraControls);
+        }
+
+        private void setCameraControlPanelVisibility(bool visibility)
+        {
+            CameraLayoutPanel.Visible = visibility;
         }
 
         private void RenderFrame(object sender, MPBitmap image)
@@ -45,6 +74,115 @@ namespace MissionPlanner
         private void GimbalVideoControl_Disposed(object sender, System.EventArgs e)
         {
             MissionPlanner.Utilities.GStreamer.onNewImage -= RenderFrame;
+        }
+    }
+
+    public class GimbalControlPreferences
+    {
+        // Keybindings for various actions
+        public Keys SlewLeft { get; set; }
+        public Keys SlewRight { get; set; }
+        public Keys SlewUp { get; set; }
+        public Keys SlewDown { get; set; }
+
+        public Keys SlewFastLeft { get; set; }
+        public Keys SlewFastRight { get; set; }
+        public Keys SlewFastUp { get; set; }
+        public Keys SlewFastDown { get; set; }
+
+        public Keys SlewSlowLeft { get; set; }
+        public Keys SlewSlowRight { get; set; }
+        public Keys SlewSlowUp { get; set; }
+        public Keys SlewSlowDown { get; set; }
+
+        public Keys ZoomIn { get; set; }
+        public Keys ZoomOut { get; set; }
+
+        public Keys TakePicture { get; set; }
+        public Keys ToggleRecording { get; set; }
+        public Keys StartRecording { get; set; }
+        public Keys StopRecording { get; set; }
+
+        public Keys ToggleLockFollow { get; set; }
+        public Keys SetLock { get; set; }
+        public Keys SetFollow { get; set; }
+
+        public MouseButton MoveCameraToMouseLocation { get; set; }
+        public MouseButton MoveCameraPOIToMouseLocation { get; set; }
+        public MouseButton SlewCameraBasedOnMouse { get; set; }
+        public MouseButton TrackObjectUnderMouse { get; set; }
+        
+        public Keys MoveCameraToMouseLocationModifier { get; set; }
+        public Keys MoveCameraPOIToMouseLocationModifier { get; set; }
+        public Keys SlewCameraBasedOnMouseModifier { get; set; }
+        public Keys TrackObjectUnderMouseModifier { get; set; }
+
+        // Speed settings
+        public decimal SlewSpeedSlow { get; set; }
+        public decimal SlewSpeedNormal { get; set; }
+        public decimal SlewSpeedFast { get; set; }
+        public int ZoomSpeed { get; set; }
+        public decimal CameraFOV { get; set; }
+        public decimal MouseSlewSpeed { get; set; }
+
+        // Boolean options
+        public bool UseScrollForZoom { get; set; }
+        public bool DefaultLockedMode { get; set; }
+        public bool UseFOVReportedByCamera { get; set; }
+        public bool ShowCameraControls { get; set; }
+
+        public GimbalControlPreferences()
+        {
+            SlewLeft = Keys.A;
+            SlewRight = Keys.D;
+            SlewUp = Keys.W;
+            SlewDown = Keys.S;
+
+            SlewSlowLeft = Keys.Control | SlewLeft;
+            SlewSlowRight = Keys.Control | SlewRight;
+            SlewSlowUp = Keys.Control | SlewUp;
+            SlewSlowDown = Keys.Control | SlewDown;
+
+            SlewFastLeft = Keys.Shift | SlewLeft;
+            SlewFastRight = Keys.Shift | SlewRight;
+            SlewFastUp = Keys.Shift | SlewUp;
+            SlewFastDown = Keys.Shift | SlewDown;
+            
+            ZoomIn = Keys.E;
+            ZoomOut = Keys.Q;
+            
+            TakePicture = Keys.F;
+            ToggleRecording = Keys.R;
+            StartRecording = Keys.None;
+            StopRecording = Keys.None;
+
+            ToggleLockFollow = Keys.L;
+            SetLock = Keys.K;
+            SetFollow = Keys.J;
+
+            MoveCameraToMouseLocation = MouseButton.Left;
+            MoveCameraPOIToMouseLocation = MouseButton.Left;
+            SlewCameraBasedOnMouse = MouseButton.Left;
+            TrackObjectUnderMouse = MouseButton.Left;
+
+            MoveCameraToMouseLocationModifier = Keys.None;
+            MoveCameraPOIToMouseLocationModifier = Keys.Shift;
+            SlewCameraBasedOnMouseModifier = Keys.Alt;
+            TrackObjectUnderMouseModifier = Keys.Control;
+
+            // Default speed settings
+            SlewSpeedSlow = 0.1m; // in FOV per second
+            SlewSpeedNormal = 0.5m; // in FOV per second
+            SlewSpeedFast = 1.0m; // in FOV per second
+            ZoomSpeed = 5; // In % per second
+            CameraFOV = 50.0m; // in degrees
+            MouseSlewSpeed = 0.2m; // in FOV per second
+
+            // Default boolean options
+            UseScrollForZoom = true;
+            DefaultLockedMode = false;
+            UseFOVReportedByCamera = true;
+            ShowCameraControls = true;
         }
     }
 }

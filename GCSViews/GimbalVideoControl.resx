@@ -124,7 +124,7 @@
   <data name="VideoBox.ErrorImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAAoAAAAHgCAYAAAA10dzkAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
-        vgAADr4B6kKxwAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAC/kSURBVHhe7d13
+        vQAADr0BR/uQrQAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAC/kSURBVHhe7d13
         tHR3VTfwJE8SQnovJKSH9ERlIVFRo0YRNbhIQhJIJyE9b0IqKRAUFEVdWFBERQV7F8uy8IKvva1Ylw1F
         lu0PVOwd9b57X+aEeebumTv33innzPn81voseHb2mfs8987M2fd8zzmzx1l77HHDHnvs8ZdhDQCA1fPM
         cHV43cAeT+yxx/9elP8HAICVc3y4LzTD3/177PHhPZo/5FSY02G1IQAA3fPc8JrQzHsvC+vz3r1DxZwO
@@ -335,7 +335,7 @@
   <data name="VideoBox.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAAoAAAAHgCAYAAAA10dzkAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
-        vgAADr4B6kKxwAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAC/kSURBVHhe7d13
+        vQAADr0BR/uQrQAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAC/kSURBVHhe7d13
         tHR3VTfwJE8SQnovJKSH9ERlIVFRo0YRNbhIQhJIJyE9b0IqKRAUFEVdWFBERQV7F8uy8IKvva1Ylw1F
         lu0PVOwd9b57X+aEeebumTv33innzPn81voseHb2mfs8987M2fd8zzmzx1l77HHDHnvs8ZdhDQCA1fPM
         cHV43cAeT+yxx/9elP8HAICVc3y4LzTD3/177PHhPZo/5FSY02G1IQAA3fPc8JrQzHsvC+vz3r1DxZwO
