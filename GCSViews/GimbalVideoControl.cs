@@ -24,7 +24,7 @@ namespace MissionPlanner
         {
             InitializeComponent();
 
-            GStreamer.onNewImage += RenderFrame;
+            GStreamer.OnNewImage += RenderFrame;
 
             var json = Settings.Instance["GimbalControlPreferences", ""];
             if (json != "")
@@ -73,7 +73,7 @@ namespace MissionPlanner
 
         private void GimbalVideoControl_Disposed(object sender, System.EventArgs e)
         {
-            MissionPlanner.Utilities.GStreamer.onNewImage -= RenderFrame;
+            MissionPlanner.Utilities.GStreamer.OnNewImage -= RenderFrame;
         }
     }
 
