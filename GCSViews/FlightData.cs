@@ -2997,8 +2997,6 @@ namespace MissionPlanner.GCSViews
 
         private void HereLinkVideoToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            hudGStreamer.Stop();
-
             string ipaddr = "192.168.43.1";
 
             if (Settings.Instance["herelinkip"] != null)
@@ -3024,7 +3022,7 @@ namespace MissionPlanner.GCSViews
                 }
             }
 
-            GCSViews.FlightData.hudGStreamer.StartA(url);
+            GCSViews.FlightData.hudGStreamer.Start(url);
         }
 
         private void hud_UserItem(object sender, EventArgs e)
@@ -4616,8 +4614,6 @@ namespace MissionPlanner.GCSViews
             {
                 Settings.Instance["gstreamer_url"] = url;
 
-                hudGStreamer.Stop();
-
                 GStreamer.GstLaunch = GStreamer.LookForGstreamer();
 
                 if (!GStreamer.GstLaunchExists)
@@ -4632,7 +4628,7 @@ namespace MissionPlanner.GCSViews
 
                 try
                 {
-                    hudGStreamer.StartA(url);
+                    hudGStreamer.Start(url);
                 }
                 catch (Exception ex)
                 {
