@@ -7,19 +7,6 @@
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary> 
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
         #region Component Designer generated code
 
         /// <summary> 
@@ -82,46 +69,47 @@
             this.hideControlsToolStripMenuItem,
             this.settingsToolStripMenuItem});
             this.VideoBoxContextMenu.Name = "VideoBoxContextMenu";
-            this.VideoBoxContextMenu.Size = new System.Drawing.Size(148, 126);
+            this.VideoBoxContextMenu.Size = new System.Drawing.Size(181, 148);
             // 
             // videoStreamToolStripMenuItem
             // 
             this.videoStreamToolStripMenuItem.Name = "videoStreamToolStripMenuItem";
-            this.videoStreamToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.videoStreamToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.videoStreamToolStripMenuItem.Text = "Video Stream";
+            this.videoStreamToolStripMenuItem.Click += new System.EventHandler(this.videoStreamToolStripMenuItem_Click);
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(144, 6);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(177, 6);
             // 
             // retractToolStripMenuItem
             // 
             this.retractToolStripMenuItem.Name = "retractToolStripMenuItem";
-            this.retractToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.retractToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.retractToolStripMenuItem.Text = "Retract";
             // 
             // neutralToolStripMenuItem
             // 
             this.neutralToolStripMenuItem.Name = "neutralToolStripMenuItem";
-            this.neutralToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.neutralToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.neutralToolStripMenuItem.Text = "Neutral";
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(144, 6);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(177, 6);
             // 
             // hideControlsToolStripMenuItem
             // 
             this.hideControlsToolStripMenuItem.Name = "hideControlsToolStripMenuItem";
-            this.hideControlsToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.hideControlsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.hideControlsToolStripMenuItem.Text = "Hide Controls";
             // 
             // settingsToolStripMenuItem
             // 
             this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
-            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.settingsToolStripMenuItem.Text = "Settings";
             // 
             // MainLayoutPanel
