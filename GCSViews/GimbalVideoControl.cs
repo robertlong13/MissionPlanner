@@ -21,7 +21,7 @@ namespace MissionPlanner
         // logger
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private GimbalControlPreferences _preferences = new GimbalControlPreferences();
+        private GimbalControlPreferences preferences = new GimbalControlPreferences();
 
         private readonly GStreamer _stream = new GStreamer();
 
@@ -31,12 +31,17 @@ namespace MissionPlanner
 
             _stream.OnNewImage += RenderFrame;
 
+            loadPreferences();
+        }
+
+        private void loadPreferences()
+        {
             var json = Settings.Instance["GimbalControlPreferences", ""];
             if (json != "")
             {
                 try
                 {
-                    _preferences = Newtonsoft.Json.JsonConvert.DeserializeObject<GimbalControlPreferences>(json);
+                    preferences = Newtonsoft.Json.JsonConvert.DeserializeObject<GimbalControlPreferences>(json);
                 }
                 catch (Exception ex)
                 {
@@ -44,7 +49,7 @@ namespace MissionPlanner
                 }
             }
 
-            setCameraControlPanelVisibility(_preferences.ShowCameraControls);
+            setCameraControlPanelVisibility(preferences.ShowCameraControls);
         }
 
         private void setCameraControlPanelVisibility(bool visibility)
@@ -106,15 +111,8 @@ namespace MissionPlanner
         public Keys SlewUp { get; set; }
         public Keys SlewDown { get; set; }
 
-        public Keys SlewFastLeft { get; set; }
-        public Keys SlewFastRight { get; set; }
-        public Keys SlewFastUp { get; set; }
-        public Keys SlewFastDown { get; set; }
-
-        public Keys SlewSlowLeft { get; set; }
-        public Keys SlewSlowRight { get; set; }
-        public Keys SlewSlowUp { get; set; }
-        public Keys SlewSlowDown { get; set; }
+        public Keys SlewFastModifier { get; set; }
+        public Keys SlewSlowModifier { get; set; }
 
         public Keys ZoomIn { get; set; }
         public Keys ZoomOut { get; set; }
@@ -159,15 +157,8 @@ namespace MissionPlanner
             SlewUp = Keys.W;
             SlewDown = Keys.S;
 
-            SlewSlowLeft = Keys.Control | SlewLeft;
-            SlewSlowRight = Keys.Control | SlewRight;
-            SlewSlowUp = Keys.Control | SlewUp;
-            SlewSlowDown = Keys.Control | SlewDown;
-
-            SlewFastLeft = Keys.Shift | SlewLeft;
-            SlewFastRight = Keys.Shift | SlewRight;
-            SlewFastUp = Keys.Shift | SlewUp;
-            SlewFastDown = Keys.Shift | SlewDown;
+            SlewSlowModifier = Keys.Control;
+            SlewFastModifier = Keys.Shift;
             
             ZoomIn = Keys.E;
             ZoomOut = Keys.Q;
@@ -192,12 +183,11 @@ namespace MissionPlanner
             TrackObjectUnderMouseModifier = Keys.Control;
 
             // Default speed settings
-            SlewSpeedSlow = 0.1m; // in FOV per second
-            SlewSpeedNormal = 0.5m; // in FOV per second
-            SlewSpeedFast = 1.0m; // in FOV per second
-            ZoomSpeed = 5; // In % per second
-            CameraFOV = 50.0m; // in degrees
-            MouseSlewSpeed = 0.2m; // in FOV per second
+            SlewSpeedSlow = 0.1m; // unitless [-1, 1]
+            SlewSpeedNormal = 0.5m; // unitless [-1, 1]
+            SlewSpeedFast = 1.0m; // unitless [-1, 1]
+            ZoomSpeed = 5; // % per second
+            CameraFOV = 50.0m; // degrees
 
             // Default boolean options
             UseScrollForZoom = true;
