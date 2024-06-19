@@ -34,6 +34,10 @@ namespace MissionPlanner
             { Keys.Alt, Keys.Menu }
         };
 
+        private float yawRate = 0;
+        private float pitchRate = 0;
+        private float zoomRate = 0;
+
         public GimbalVideoControl()
         {
             InitializeComponent();
@@ -226,38 +230,46 @@ namespace MissionPlanner
 
         private void HandleHeldKeys()
         {
-            int slewYaw = 0;
-            int slewPitch = 0;
+            float yaw = 0;
+            float pitch = 0;
             if (heldKeys.Contains(preferences.SlewLeft))
             {
-                slewYaw -= 1;
+                yaw -= 1;
             }
             if (heldKeys.Contains(preferences.SlewRight))
             {
-                slewYaw += 1;
+                yaw += 1;
             }
             if (heldKeys.Contains(preferences.SlewUp))
             {
-                slewPitch += 1;
+                pitch += 1;
             }
             if (heldKeys.Contains(preferences.SlewDown))
             {
-                slewPitch -= 1;
+                pitch -= 1;
             }
 
-            double speed = (double)preferences.SlewSpeedNormal;
+            float speed = (float)preferences.SlewSpeedNormal;
             if (Control.ModifierKeys == preferences.SlewFastModifier)
             {
-                speed = (double)preferences.SlewSpeedFast;
+                speed = (float)preferences.SlewSpeedFast;
             }
             else if (Control.ModifierKeys == preferences.SlewSlowModifier)
             {
-                speed = (double)preferences.SlewSpeedSlow;
+                speed = (float)preferences.SlewSpeedSlow;
             }
 
-            Console.WriteLine($"Slew: {slewYaw}, {slewPitch}, {speed}");
+            yaw *= speed;
+            pitch *= speed;
 
-            int zoom = 0;
+            if (yaw != yawRate || pitch != pitchRate)
+            {
+                yawRate = yaw;
+                pitchRate = pitch;
+                Console.WriteLine($"Slew: {yaw}, {pitch}, {speed}");
+            }
+
+            float zoom = 0;
             if (heldKeys.Contains(preferences.ZoomIn))
             {
                 zoom += 1;
