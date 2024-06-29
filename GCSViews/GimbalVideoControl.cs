@@ -11,6 +11,9 @@ using SkiaSharp;
 using OpenTK.Input;
 using log4net;
 using System.Collections.Generic;
+using static MAVLink;
+using MissionPlanner.GCSViews;
+using System.Threading.Tasks;
 
 namespace MissionPlanner
 {
@@ -34,9 +37,10 @@ namespace MissionPlanner
             { Keys.Alt, Keys.Menu }
         };
 
-        private float yawRate = 0;
-        private float pitchRate = 0;
-        private float zoomRate = 0;
+        private float previousZoomRate = 0;
+        private UInt32 gimbalManagerFlags = 0;
+        private byte gimbalDeviceId = 0;
+        private bool yaw_lock = false;
 
         public GimbalVideoControl()
         {
@@ -48,6 +52,9 @@ namespace MissionPlanner
 
             // Register the global key handler
             Application.AddMessageFilter(this);
+
+            // Start the gimbal manager thread
+            Task.Run(gimbalManagerSend);
         }
 
         private void loadPreferences()
@@ -144,6 +151,13 @@ namespace MissionPlanner
                 {
                     components.Dispose();
                 }
+
+                // Stop the gimbal manager thread
+                gimbalManagerThreadRun = false;
+                while (!gimbalThreadExited)
+                {
+                    Application.DoEvents();
+                }
             }
             base.Dispose(disposing);
         }
@@ -174,7 +188,7 @@ namespace MissionPlanner
                 if(heldKeys.Count > 0)
                 {
                     heldKeys.Clear();
-                    HandleHeldKeys();
+                    //HandleHeldKeys();
                 }
                 return false;
             }
@@ -206,7 +220,7 @@ namespace MissionPlanner
             if (boundHoldKeys.Contains(key))
             {
                 heldKeys.Add(key);
-                HandleHeldKeys();
+                //HandleHeldKeys();
                 return true;
             }
             else if (boundPressKeys.Contains(key | Control.ModifierKeys))
@@ -223,15 +237,23 @@ namespace MissionPlanner
             heldKeys.Remove(key);
             if (boundHoldKeys.Contains(key))
             {
-                HandleHeldKeys();
+                //HandleHeldKeys();
             }
             return boundHoldKeys.Contains(key);
         }
 
         private void HandleHeldKeys()
         {
-            float yaw = 0;
             float pitch = 0;
+            float yaw = 0;
+            if (heldKeys.Contains(preferences.SlewDown))
+            {
+                pitch -= 1;
+            }
+            if (heldKeys.Contains(preferences.SlewUp))
+            {
+                pitch += 1;
+            }
             if (heldKeys.Contains(preferences.SlewLeft))
             {
                 yaw -= 1;
@@ -239,14 +261,6 @@ namespace MissionPlanner
             if (heldKeys.Contains(preferences.SlewRight))
             {
                 yaw += 1;
-            }
-            if (heldKeys.Contains(preferences.SlewUp))
-            {
-                pitch += 1;
-            }
-            if (heldKeys.Contains(preferences.SlewDown))
-            {
-                pitch -= 1;
             }
 
             float speed = (float)preferences.SlewSpeedNormal;
@@ -259,15 +273,17 @@ namespace MissionPlanner
                 speed = (float)preferences.SlewSpeedSlow;
             }
 
-            yaw *= speed;
             pitch *= speed;
+            yaw *= speed;
 
-            if (yaw != yawRate || pitch != pitchRate)
+            // If neutral flag is set, and command is non-zero, clear the flag
+            // (we don't necessarily want to do that for retract though)
+            if ((gimbalManagerFlags & (uint)MAVLink.GIMBAL_MANAGER_FLAGS.NEUTRAL) != 0 && (pitch != 0 || yaw != 0))
             {
-                yawRate = yaw;
-                pitchRate = pitch;
-                Console.WriteLine($"Slew: {yaw}, {pitch}, {speed}");
+                gimbalManagerFlags &= ~(uint)MAVLink.GIMBAL_MANAGER_FLAGS.NEUTRAL;
             }
+
+            MainV2.comPort?.MAV?.GimbalManager?.SetRatesStream(pitch, yaw, yaw_lock, gimbalDeviceId);
 
             float zoom = 0;
             if (heldKeys.Contains(preferences.ZoomIn))
@@ -279,26 +295,44 @@ namespace MissionPlanner
                 zoom -= 1;
             }
 
-            Console.WriteLine($"Zoom: {zoom}");
+            zoom *= preferences.ZoomSpeed / 100.0f;
+
+            if (zoom != 0 || previousZoomRate != 0)
+            {
+                previousZoomRate = zoom;
+                MainV2.comPort.doCommand(
+                    (byte)MainV2.comPort.sysidcurrent,
+                    (byte)MainV2.comPort.compidcurrent,
+                    MAV_CMD.SET_CAMERA_ZOOM,
+                    (float)MAVLink.CAMERA_ZOOM_TYPE.ZOOM_TYPE_CONTINUOUS,
+                    zoom,
+                    0, 0, 0, 0, 0,
+                    requireack: zoom == 0);
+                Console.WriteLine($"Zoom: {zoom}");
+            }
+
+            Console.WriteLine($"Pitch: {pitch}, Yaw: {yaw}");
+
         }
 
+        private bool recording = false;
+        private bool lockMode = false;
         private void HandleKeyPress(Keys key)
         {
             if (key == preferences.TakePicture)
             {
                 Console.WriteLine("Take picture");
+                MainV2.comPort.MAV.Camera.TakeSinglePictureAsync();
             }
-            else if (key == preferences.ToggleRecording)
-            {
-                Console.WriteLine("Toggle recording");
-            }
-            else if (key == preferences.StartRecording)
+            else if (key == preferences.StartRecording || (key == preferences.ToggleRecording && !recording))
             {
                 Console.WriteLine("Start recording");
+                MainV2.comPort.MAV.Camera.StartRecordingAsync();
             }
-            else if (key == preferences.StopRecording)
+            else if (key == preferences.StopRecording || (key == preferences.ToggleRecording && recording))
             {
                 Console.WriteLine("Stop recording");
+                MainV2.comPort.MAV.Camera.StopRecordingAsync();
             }
             else if (key == preferences.ToggleLockFollow)
             {
@@ -325,6 +359,33 @@ namespace MissionPlanner
                 Console.WriteLine("Home");
             }
         }
+
+        private bool gimbalManagerThreadRun = false;
+        private bool gimbalThreadExited = true;
+        private async void gimbalManagerSend()
+        {
+            gimbalManagerThreadRun = true;
+
+            while (gimbalManagerThreadRun)
+            {
+                gimbalThreadExited = false;
+                try
+                {
+                    if (MainV2.comPort?.BaseStream?.IsOpen ?? false)
+                    {
+                        HandleHeldKeys();
+                    }
+
+                    await Task.Delay(200).ConfigureAwait(false);
+                }
+                catch
+                {
+                }
+            }
+
+            gimbalThreadExited = true;
+        }
+
     }
 
     public class GimbalControlPreferences
