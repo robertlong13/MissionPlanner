@@ -1,6 +1,10 @@
 // XXX: We need both the System.Drawing.Bitmap from System.Drawing and MissionPlanner.Drawing
+#if !LIB
 extern alias Drawing;
 using MPBitmap = Drawing::System.Drawing.Bitmap;
+#else
+using MPBitmap = System.Drawing.Bitmap;
+#endif
 
 using System;
 using System.Drawing;
