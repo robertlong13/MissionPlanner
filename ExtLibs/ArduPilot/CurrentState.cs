@@ -4460,7 +4460,7 @@ namespace MissionPlanner
                                 MAV.sysid,
                                 MAV.compid); // request rc info
                             MAV.Camera?.RequestMessageIntervals(MAV.cs.ratestatus); // use ratestatus until we create a new setting for this
-                            MAV.GimbalManager?.Discover();
+                            MAV.GimbalManager?.RequestMessageIntervals(MAV.cs.ratesensors); // use ratesensors (same rate as EXTRA3, which carries other gimbal messages)
                         }
                         catch
                         {

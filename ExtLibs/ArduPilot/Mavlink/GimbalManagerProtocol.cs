@@ -47,9 +47,28 @@ namespace MissionPlanner.ArduPilot.Mavlink
                 mavint.OnPacketReceived += MessagesHandler;
             }
 
+            // One-shot request for gimbal manager information (this will optionally be
+            // configured to stream slowly later, but we want this at least once)
             mavint.doCommand(0, 0, MAVLink.MAV_CMD.REQUEST_MESSAGE,
                 (float)MAVLink.MAVLINK_MSG_ID.GIMBAL_MANAGER_INFORMATION,
                 0, 0, 0, 0, 0, 0, false);
+        }
+
+        /// <summary>
+        /// Request extra messages from the gimbal manager at a periodic rate.
+        /// </summary>
+        /// <param name="ratehz"></param>
+        public void RequestMessageIntervals(int ratehz)
+        {
+            mavint.requestMessageStream(MAVLink.MAVLINK_MSG_ID.GIMBAL_MANAGER_STATUS, ratehz, sysid, compid);
+
+            // We ask for gimbal manager info to stream at a very low rate, if ratehz is positive
+            // We default to 0.1Hz, but leave the option of config hacking if this causes problems for someone specifically.
+            if(!float.TryParse(Settings.Instance["gimbal_manager_info_hz"], out float gimbal_info_rate_hz))
+            {
+                gimbal_info_rate_hz = ratehz > 0 ? 0.1f : 0;
+            }
+            mavint.requestMessageStream(MAVLink.MAVLINK_MSG_ID.GIMBAL_MANAGER_INFORMATION, gimbal_info_rate_hz, sysid, compid);
         }
 
         private void MessagesHandler(object sender, MAVLink.MAVLinkMessage message)
