@@ -211,49 +211,47 @@ namespace MissionPlanner.ArduPilot.Mavlink
         /// <param name="mavState">MAVState parent of this driver</param>
         public Task StartID(MAVState mavState)
         {
+            // Only start once
+            if (parent != null)
+            {
+                return Task.CompletedTask;
+            }
             parent = mavState;
-
             mavState.parent.OnPacketReceived += ParseMessages;
 
+            // One-shot request for camera information (this will optionally be
+            // configured to stream slowly later, but we want this at least once)
             return RequestCameraInformationAsync();
         }
 
         /// <summary>
-        /// Sends an asynchronous request to fetch camera information via.
+        /// Asynchronous request to fetch one camera information message and one video stream information message.
         /// </summary>
         public async Task RequestCameraInformationAsync()
         {
+            if (parent?.parent == null)
+            {
+                return;
+            }
             try
             {
-                if (parent?.parent != null)
-                {
-                    // New-style request
-                    var resp = await parent.parent.doCommandAsync(
-                        parent.sysid, parent.compid,
-                        MAVLink.MAV_CMD.REQUEST_MESSAGE,
-                        (float)MAVLink.MAVLINK_MSG_ID.CAMERA_INFORMATION,
-                        0, 0, 0, 0, 0, 0
-                    );
-                    // Fall back to deprecated request message
-                    if (!resp)
-                    {
-                        await parent.parent.doCommandAsync(
-                            parent.sysid, parent.compid,
-                            MAVLink.MAV_CMD.REQUEST_CAMERA_INFORMATION,
-                            0, 0, 0, 0, 0, 0, 0,
-                            false // Don't wait for response
-                        );
-                    }
+                var resp = await parent.parent.doCommandAsync(
+                    parent.sysid, parent.compid,
+                    MAVLink.MAV_CMD.REQUEST_MESSAGE,
+                    (float)MAVLink.MAVLINK_MSG_ID.CAMERA_INFORMATION,
+                    0, 0, 0, 0, 0, 0,
+                    false // Don't wait for response
 
-                    // Get video stream information as well
-                    await parent.parent.doCommandAsync(
-                        parent.sysid, parent.compid,
-                        MAVLink.MAV_CMD.REQUEST_MESSAGE,
-                        (float)MAVLink.MAVLINK_MSG_ID.VIDEO_STREAM_INFORMATION,
-                        0, 0, 0, 0, 0, 0,
-                        false // Don't wait for response
-                    );
-                }
+                );
+
+                // Get video stream information as well
+                await parent.parent.doCommandAsync(
+                    parent.sysid, parent.compid,
+                    MAVLink.MAV_CMD.REQUEST_MESSAGE,
+                    (float)MAVLink.MAVLINK_MSG_ID.VIDEO_STREAM_INFORMATION,
+                    0, 0, 0, 0, 0, 0,
+                    false // Don't wait for response
+                );
             }
             catch (Exception ex)
             {
@@ -315,56 +313,35 @@ namespace MissionPlanner.ArduPilot.Mavlink
                 return;
             }
 
-            // ratehz of 0 means "stop sending", which is what -1 interval_us means in the MAVLink message
-            float interval_us = ratehz > 0 ? (float)(1e6 / ratehz) : -1;
+            // We ask for camera and video stream information to stream at a very low rate, if ratehz is not zero.
+            // We default to 0.1Hz, but leave the option of config hacking if this causes problems for someone specifically.
+            if (!float.TryParse(Settings.Instance["camera_info_hz"], out float camera_info_hz))
+            {
+                camera_info_hz = ratehz > 0 ? 0.1f : 0;
+            }
+            if (!float.TryParse(Settings.Instance["video_stream_info_hz"], out float video_stream_info_hz))
+            {
+                video_stream_info_hz = ratehz > 0 ? 0.1f : 0;
+            }
+            parent.parent.requestMessageStream(MAVLink.MAVLINK_MSG_ID.CAMERA_INFORMATION, camera_info_hz, 0);
+            parent.parent.requestMessageStream(MAVLink.MAVLINK_MSG_ID.VIDEO_STREAM_INFORMATION, video_stream_info_hz, 0);
 
-            Task.Run(RequestCameraInformationAsync);
 
             // Request FOV status
-            Task.Run(async () =>
-            {
-                await parent.parent.doCommandAsync(
-                    parent.sysid, parent.compid,
-                    MAVLink.MAV_CMD.SET_MESSAGE_INTERVAL,
-                    (float)MAVLink.MAVLINK_MSG_ID.CAMERA_FOV_STATUS,
-                    interval_us,
-                    0, 0, 0, 0, 0,
-                    false // Don't wait for response
-                ).ConfigureAwait(false);
-            });
+            parent.parent.requestMessageStream(MAVLink.MAVLINK_MSG_ID.CAMERA_FOV_STATUS, ratehz, parent.sysid, parent.compid);
 
             // Get camera settings
             if (HasModes || HasZoom || HasFocus)
             {
-                Task.Run(async () =>
-                {
-                    await parent.parent.doCommandAsync(
-                        parent.sysid, parent.compid,
-                        MAVLink.MAV_CMD.SET_MESSAGE_INTERVAL,
-                        (float)MAVLink.MAVLINK_MSG_ID.CAMERA_SETTINGS,
-                        interval_us,
-                        0, 0, 0, 0, 0,
-                        false // Don't wait for response
-                    ).ConfigureAwait(false);
-                });
+                parent.parent.requestMessageStream(MAVLink.MAVLINK_MSG_ID.CAMERA_SETTINGS, ratehz, parent.sysid, parent.compid);
             }
 
-            // We use the capability flags directly here, and NOT whether we are currently able to do these things
+            // We use the capability flags directly here, and NOT whether the camera is currently in video/image mode
             var can_capture_video = (CameraInformation.flags & (int)MAVLink.CAMERA_CAP_FLAGS.CAPTURE_VIDEO) > 0;
             var can_capture_image = (CameraInformation.flags & (int)MAVLink.CAMERA_CAP_FLAGS.CAPTURE_IMAGE) > 0;
             if (can_capture_video || can_capture_image)
             {
-                Task.Run(async () =>
-                {
-                    await parent.parent.doCommandAsync(
-                        parent.sysid, parent.compid,
-                        MAVLink.MAV_CMD.SET_MESSAGE_INTERVAL,
-                        (float)MAVLink.MAVLINK_MSG_ID.CAMERA_CAPTURE_STATUS,
-                        interval_us,
-                        0, 0, 0, 0, 0,
-                        false // Don't wait for response
-                    ).ConfigureAwait(false);
-                });
+                parent.parent.requestMessageStream(MAVLink.MAVLINK_MSG_ID.CAMERA_CAPTURE_STATUS, ratehz, parent.sysid, parent.compid);
             }
         }
 
@@ -375,19 +352,7 @@ namespace MissionPlanner.ArduPilot.Mavlink
                 return;
             }
 
-            float interval_us = (float)(1e6 / ratehz);
-
-            Task.Run(async () =>
-            {
-                await parent.parent.doCommandAsync(
-                        parent.sysid, parent.compid,
-                        MAVLink.MAV_CMD.SET_MESSAGE_INTERVAL,
-                        (float)MAVLink.MAVLINK_MSG_ID.CAMERA_TRACKING_IMAGE_STATUS,
-                        interval_us,
-                        0, 0, 0, 0, 0,
-                        false // Don't wait for response
-                ).ConfigureAwait(false);
-            });
+            parent.parent.requestMessageStream(MAVLink.MAVLINK_MSG_ID.CAMERA_TRACKING_IMAGE_STATUS, ratehz, parent.sysid, parent.compid);
         }
 
         /// <summary>
