@@ -3215,17 +3215,52 @@ Mission Planner waits for 2 valid heartbeat packets before connecting
             getDatastream((byte) sysid, (byte) compid, id, hzrate);
         }
 
+        public void requestMessageStream(MAVLINK_MSG_ID id, float hzrate, int sysid = -1, int compid = -1)
+        {
+            if (sysid == -1)
+                sysid = sysidcurrent;
+
+            if (compid == -1)
+                compid = compidcurrent;
+
+            if (hzrate < 0)
+                return;
+
+            // Check if it has been a long time since we last got this packet
+            // (this check is necessary because packetspersecond gets calculated when the packet is received)
+            double pps = 0;
+            if (MAVlist[sysid, compid].packetspersecondbuild.ContainsKey((byte)id))
+            {
+                var nonzero_rate = hzrate == 0 ? 1 : hzrate;
+                // See if we've gotten any packets in 3 / hzrate seconds, or 2s, whichever is larger.
+                // If not, consider pps to be 0
+                var max_time_delta = Math.Max(3.0 / nonzero_rate, 2);
+                if (MAVlist[sysid, compid].packetspersecondbuild[(byte)id] > DateTime.UtcNow.AddSeconds(-max_time_delta))
+                {
+                    pps = MAVlist[sysid, compid].packetspersecond[(byte)id];
+                }
+            }
+
+            if (hzratecheck(pps, hzrate))
+            {
+                return;
+            }
+
+            log.InfoFormat($"Request message {id}:{(uint)id} at {hzrate:0.00} hz for {sysid}:{compid}");
+            getMessageStream((byte) sysid, (byte) compid, id, hzrate);
+        }
+
         // returns true for ok
-        private bool hzratecheck(double pps, int hzrate)
+        private bool hzratecheck(double pps, double hzrate)
         {
             if (double.IsInfinity(pps))
             {
                 return false;
             }
             // 0 request
-            else if (hzrate == 0 && pps == 0)
+            else if (pps == 0)
             {
-                return true;
+                return hzrate == 0;
             }
 
             // range check pps, include packetloss
@@ -3258,6 +3293,33 @@ Mission Planner waits for 2 valid heartbeat packets before connecting
             // send each one twice.
             generatePacket((byte) MAVLINK_MSG_ID.REQUEST_DATA_STREAM, req, sysid, compid);
             generatePacket((byte) MAVLINK_MSG_ID.REQUEST_DATA_STREAM, req, sysid, compid);
+        }
+
+        private void getMessageStream(byte sysid, byte compid, MAVLINK_MSG_ID id, float hzrate)
+        {
+            if (hzrate == -1)
+                return;
+
+            float interval_us = hzrate > 0 ? (float)(1e6 / hzrate) : -1;
+
+            var req = new mavlink_command_long_t
+            {
+                target_system = sysid,
+                target_component = compid,
+                command = (ushort) MAV_CMD.SET_MESSAGE_INTERVAL,
+                confirmation = 0,
+                param1 = (float) id,
+                param2 = interval_us,
+                param3 = 0,
+                param4 = 0,
+                param5 = 0,
+                param6 = 0,
+                param7 = 0
+            };
+
+            // send each one twice.
+            generatePacket((byte) MAVLINK_MSG_ID.COMMAND_LONG, req, sysid, compid);
+            generatePacket((byte) MAVLINK_MSG_ID.COMMAND_LONG, req, sysid, compid);
         }
 
         [Obsolete]
