@@ -7,8 +7,6 @@ namespace MissionPlanner.ArduPilot.Mavlink
 {
     public class GimbalManagerProtocol
     {
-        CurrentState cs;
-
         // Stores the last GIMBAL_MANAGER_INFORMATION message for each gimbal device/component ID.
         // This index will be 1-6, or MAVLink component IDs 154, 171-175.
         // Index 0 is used to store the message of the first (lowest) gimbal ID.
@@ -28,11 +26,16 @@ namespace MissionPlanner.ArduPilot.Mavlink
             new ConcurrentDictionary<byte, MAVLink.mavlink_gimbal_device_attitude_status_t>();
 
         private readonly MAVLinkInterface mavint;
+        private readonly CurrentState cs;
+        private readonly byte sysid;
+        private readonly byte compid;
 
-        public GimbalManagerProtocol(MAVLinkInterface mavint, CurrentState cs)
+        public GimbalManagerProtocol(MAVState parent)
         {
-            this.mavint = mavint;
-            this.cs = cs;
+            mavint = parent.parent;
+            sysid = parent.sysid;
+            compid = parent.compid;
+            cs = parent.cs;
         }
 
         private bool first_discover = true;
@@ -51,6 +54,11 @@ namespace MissionPlanner.ArduPilot.Mavlink
 
         private void MessagesHandler(object sender, MAVLink.MAVLinkMessage message)
         {
+            if (message.sysid != sysid || message.compid != compid)
+            {
+                // This is a different gimbal manager
+                return;
+            }
             if (message.msgid == (uint)MAVLink.MAVLINK_MSG_ID.GIMBAL_MANAGER_INFORMATION)
             {
                 var gmi = (MAVLink.mavlink_gimbal_manager_information_t)message.data;
@@ -143,8 +151,8 @@ namespace MissionPlanner.ArduPilot.Mavlink
                 return Task.FromResult(false);
             }
             return mavint.doCommandAsync(
-                (byte)mavint.sysidcurrent,
-                (byte)mavint.compidcurrent,
+                sysid,
+                compid,
                 MAVLink.MAV_CMD.DO_GIMBAL_MANAGER_PITCHYAW,
                 float.NaN, // pitch angle
                 float.NaN, // yaw angle
@@ -162,8 +170,8 @@ namespace MissionPlanner.ArduPilot.Mavlink
                 return Task.FromResult(false);
             }
             return mavint.doCommandAsync(
-                (byte)mavint.sysidcurrent,
-                (byte)mavint.compidcurrent,
+                sysid,
+                compid,
                 MAVLink.MAV_CMD.DO_GIMBAL_MANAGER_PITCHYAW,
                 float.NaN, // pitch angle
                 float.NaN, // yaw angle
@@ -183,8 +191,8 @@ namespace MissionPlanner.ArduPilot.Mavlink
             }
 
             return mavint.doCommandAsync(
-                (byte)mavint.sysidcurrent,
-                (byte)mavint.compidcurrent,
+                sysid,
+                compid,
                 MAVLink.MAV_CMD.DO_GIMBAL_MANAGER_PITCHYAW,
                 float.NaN, // pitch angle
                 float.NaN, // yaw angle
@@ -242,8 +250,8 @@ namespace MissionPlanner.ArduPilot.Mavlink
             }
 
             return mavint.doCommandAsync(
-                (byte)mavint.sysidcurrent,
-                (byte)mavint.compidcurrent,
+                sysid,
+                compid,
                 MAVLink.MAV_CMD.DO_GIMBAL_MANAGER_PITCHYAW,
                 (float)wrap_180(pitch),
                 (float)wrap_180(yaw),
@@ -258,8 +266,8 @@ namespace MissionPlanner.ArduPilot.Mavlink
         {
             MAVLink.mavlink_gimbal_manager_set_pitchyaw_t set = new MAVLink.mavlink_gimbal_manager_set_pitchyaw_t()
             {
-                target_system = (byte)mavint.sysidcurrent,
-                target_component = (byte)mavint.compidcurrent,
+                target_system = sysid,
+                target_component = compid,
                 gimbal_device_id = gimbal_device_id,
                 pitch = pitch,
                 yaw = yaw,
@@ -281,8 +289,8 @@ namespace MissionPlanner.ArduPilot.Mavlink
             }
 
             return mavint.doCommandAsync(
-                (byte)mavint.sysidcurrent,
-                (byte)mavint.compidcurrent,
+                sysid,
+                compid,
                 MAVLink.MAV_CMD.DO_GIMBAL_MANAGER_PITCHYAW,
                 float.NaN, // pitch angle
                 float.NaN, // yaw angle
@@ -297,8 +305,8 @@ namespace MissionPlanner.ArduPilot.Mavlink
         {
             MAVLink.mavlink_gimbal_manager_set_pitchyaw_t set = new MAVLink.mavlink_gimbal_manager_set_pitchyaw_t()
             {
-                target_system = (byte)mavint.sysidcurrent,
-                target_component = (byte)mavint.compidcurrent,
+                target_system = sysid,
+                target_component = compid,
                 gimbal_device_id = gimbal_device_id,
                 pitch = float.NaN,
                 yaw = float.NaN,
@@ -317,8 +325,8 @@ namespace MissionPlanner.ArduPilot.Mavlink
             }
 
             return mavint.doCommandIntAsync(
-                (byte)mavint.sysidcurrent,
-                (byte)mavint.compidcurrent,
+                sysid,
+                compid,
                 MAVLink.MAV_CMD.DO_SET_ROI_LOCATION,
                 gimbal_device_id,
                 0, 0, 0, // unused
@@ -331,8 +339,8 @@ namespace MissionPlanner.ArduPilot.Mavlink
         public Task<bool> SetROINoneAsync(byte gimbal_device_id = 0)
         {
             return mavint.doCommandAsync(
-                (byte)mavint.sysidcurrent,
-                (byte)mavint.compidcurrent,
+                sysid,
+                compid,
                 MAVLink.MAV_CMD.DO_SET_ROI_NONE,
                 gimbal_device_id,
                 0, 0, 0, 0, 0, 0);
@@ -346,8 +354,8 @@ namespace MissionPlanner.ArduPilot.Mavlink
             }
 
             return mavint.doCommandAsync(
-                (byte)mavint.sysidcurrent,
-                (byte)mavint.compidcurrent,
+                sysid,
+                compid,
                 MAVLink.MAV_CMD.DO_SET_ROI_SYSID,
                 sysid,
                 gimbal_device_id,
