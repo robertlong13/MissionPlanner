@@ -6,48 +6,16 @@ using static MAVLink;
 
 namespace MissionPlanner.ArduPilot
 {
-    public enum MissionNodeKind
-    {
-        Home,
-        Nav,         // WAYPOINT, SPLINE_WAYPOINT, LAND, TAKEOFF, VTOL_*, etc
-        Circle,      // LOITER_TURNS, LOITER_TO_ALT, etc
-        Roi,         // DO_SET_ROI
-        PosBookmark, // DO_LAND_START
-        FencePolygon,
-        FenceCircle,
-        Rally,
-        OtherPositional,
-        NonPositional, // DO_DIGICAM_CONTROL, DO_SET_SERVO, etc
-    }
-
-    public enum MissionEdgeKind
-    {
-        Sequential,
-        Jump,
-    }
-
     public sealed class MissionNode
     {
-        public int NodeIndex { get; }
-        public int MissionIndex { get; }     // -1 for home
-        public MissionNodeKind Kind { get; }
-        public ushort Command { get; }
-        public PointLatLngAlt Position { get; }
+        public int MissionIndex { get; }
+        public Locationwp Command { get; }
+        public bool CanContinue { get; internal set; } = true;
 
-        public MissionNode(int missionIndex,
-                           MissionNodeKind kind,
-                           ushort command,
-                           PointLatLngAlt position)
+        public MissionNode(int missionIndex, Locationwp command)
         {
             MissionIndex = missionIndex;
-            Kind = kind;
             Command = command;
-            Position = position;
-        }
-
-        public override string ToString()
-        {
-            return $"{NodeIndex}: [{Kind}] seq={MissionIndex + 1} cmd={(MAVLink.MAV_CMD)Command}";
         }
     }
 
@@ -55,26 +23,20 @@ namespace MissionPlanner.ArduPilot
     {
         public int FromNode { get; }
         public int ToNode { get; }
-        public MissionEdgeKind Kind { get; }
-        public int? JumpTargetSeq { get; }   // 1-based mission seq for DO_JUMP, if applicable
-        public int? JumpRepeat { get; }      // repeat count from DO_JUMP
+        public bool IsJump { get; }
+        public int? JumpRepeat { get; }
 
-        public MissionEdge(int fromNode,
-                           int toNode,
-                           MissionEdgeKind kind,
-                           int? jumpTargetSeq = null,
-                           int? jumpRepeat = null)
+        public MissionEdge(int fromNode, int toNode, bool isJump, int? jumpRepeat = null)
         {
             FromNode = fromNode;
             ToNode = toNode;
-            Kind = kind;
-            JumpTargetSeq = jumpTargetSeq;
+            IsJump = isJump;
             JumpRepeat = jumpRepeat;
         }
 
         public override string ToString()
         {
-            return $"{Kind}: {FromNode} -> {ToNode}";
+            return $"{(IsJump ? "Jump" : "Seq")}: {FromNode} -> {ToNode}";
         }
     }
 
@@ -82,15 +44,12 @@ namespace MissionPlanner.ArduPilot
     {
         public IReadOnlyList<MissionNode> Nodes { get; }
         public IReadOnlyList<MissionEdge> Edges { get; }
-        public int HomeNodeIndex { get; }
 
         public MissionGraph(List<MissionNode> nodes,
-                            List<MissionEdge> edges,
-                            int homeNodeIndex)
+                            List<MissionEdge> edges)
         {
             Nodes = nodes;
             Edges = edges;
-            HomeNodeIndex = homeNodeIndex;
         }
     }
 
@@ -98,138 +57,211 @@ namespace MissionPlanner.ArduPilot
     {
         public static MissionGraph Build(PointLatLngAlt home, List<Locationwp> missionitems)
         {
-            var navNodes = new List<MissionNode>();
-            var navEdges = new List<MissionEdge>();
-            var fenceNodes = new List<MissionNode>();
-            var fenceEdges = new List<MissionEdge>();
+            var nodes = new List<MissionNode>();
+            var edges = new List<MissionEdge>();
 
-            // Map from mission index (0-based) to node index, or -1
+            // Map from mission index (0-based) to node index. -1 means not a node.
             var missionToNode = new int[missionitems.Count];
             for (int i = 0; i < missionToNode.Length; i++)
             {
                 missionToNode[i] = -1;
             }
 
-            var homeCopy = new PointLatLngAlt(home.Lat, home.Lng, home.Alt, "H");
-            var node = new MissionNode(-1,
-                                       MissionNodeKind.Home,
-                                       0,  // no MAV_CMD
-                                       homeCopy);
-            navNodes.Add(node);
+            var jumpTags = new Dictionary<float, int>(); // key=tag, value=mission index
 
-            // Mission nodes
-            for (int i = 0; i < missionitems.Count; i++)
+            if (home != PointLatLngAlt.Zero)
             {
-                var cmd = missionitems[i].id;
-                bool has_lat_lon = !(missionitems[i].lat == 0 && missionitems[i].lng == 0) &&
-                                   !double.IsNaN(missionitems[i].lat) &&
-                                   !double.IsNaN(missionitems[i].lng);
-                var kind = ClassifyNodeKind(cmd, has_lat_lon);
-                var position = new PointLatLngAlt(missionitems[i]) { Tag = (i + 1).ToString() };
-                node = new MissionNode(i, kind, cmd, position);
+
+                var homeCopy = new Locationwp
+                {
+                    id = 0,
+                    lat = home.Lat,
+                    lng = home.Lng,
+                    alt = (float)home.Alt,
+                    frame = (byte)MAVLink.MAV_FRAME.GLOBAL,
+                };
+                nodes.Add(new MissionNode(-1, homeCopy));
             }
 
-            // Sequential edges over nav nodes (plus optional edge from home to first nav)
+            for (int i = 0; i < missionitems.Count; i++)
+            {
+                var cmd = missionitems[i];
+                if (IsNode(cmd))
+                {
+                    var node = new MissionNode(i, cmd)
+                    {
+                        CanContinue = !IsTerminal(cmd.id)
+                    };
+                    nodes.Add(node);
+                    missionToNode[i] = nodes.Count - 1;
+                }
+                if (cmd.id == (ushort)MAV_CMD.JUMP_TAG)
+                {
+                    jumpTags[cmd.p1] = i;
+                }
+                if ((cmd.id == (ushort)MAV_CMD.DO_JUMP || cmd.id == (ushort)MAV_CMD.DO_JUMP_TAG)
+                    && cmd.p2 < 0 && nodes.Count > 0)
+                {
+                    nodes[nodes.Count - 1].CanContinue = false;
+                }
+            }
+
+            // Sequential edges over nodes
+            for (int i = 0; i < nodes.Count - 1; i++)
+            {
+                if (nodes[i].CanContinue)
+                {
+                    edges.Add(new MissionEdge(i, i + 1, false));
+                }
+            }
+
+            // Jump edges
             for (int i = 0; i < missionitems.Count; i++)
             {
                 var item = missionitems[i];
-                ushort cmd = item.id;
-                int nodeIndex = missionToNode[i];
-
-                if (nodeIndex == -1)
-                    continue;
-
-                if (IsNavCommand(cmd))
+                int jumpTargetMissionIndex;
+                if (item.id == (ushort)MAV_CMD.DO_JUMP)
                 {
-                    if (lastNavNode != -1)
-                    {
-                        edges.Add(new MissionEdge(lastNavNode, nodeIndex, MissionEdgeKind.Sequential));
-                    }
-                    lastNavNode = nodeIndex;
+                    jumpTargetMissionIndex = (int)item.p1 - 1; // p1 is 1-based seq
+                }
+                else if (item.id == (ushort)MAV_CMD.DO_JUMP_TAG)
+                {
+                    float tag = item.p1;
+                    if (!jumpTags.TryGetValue(tag, out jumpTargetMissionIndex))
+                        continue;   // invalid tag
                 }
                 else
                 {
-                    // ROI, fence, rally etc are not on the nav path;
-                    // they stand alone and may get markers but no sequential leg.
+                    continue; // not a jump
                 }
-            }
 
-            // Jump edges: from last nav before DO_JUMP to first nav at/after target
-            for (int i = 0; i < missionitems.Count; i++)
-            {
-                var item = missionitems[i];
-                if (item.id != (ushort)MAVLink.MAV_CMD.DO_JUMP)
-                    continue;
+                if (jumpTargetMissionIndex < 0 || jumpTargetMissionIndex >= missionitems.Count)
+                {
+                    continue;   // invalid target
+                }
 
-                int jumpTargetSeq = (int)Math.Max(item.p1, 0);   // this is 1-based in missions
+                int srcNodeIndex = FindLastNodeBeforeOrAt(i, missionToNode);
+                if (srcNodeIndex < 0 || srcNodeIndex >= nodes.Count)
+                {
+                    continue;   // source is not a node
+                }
+
+                int destNodeIndex = FindFirstNodeAtOrAfter(jumpTargetMissionIndex, missionToNode);
+                if (destNodeIndex < 0 || destNodeIndex >= nodes.Count)
+                {
+                    continue;   // target is not a node
+                }
+
                 int jumpRepeat = (int)item.p2;
 
-                int srcNavNode = FindLastNavNodeBefore(i, missionitems, missionToNode);
-                if (srcNavNode == -1)
-                    continue;
-
-                int dstNavNode = FindFirstNavNodeAtOrAfter(jumpTargetSeq - 1, missionitems, missionToNode);
-                if (dstNavNode == -1)
-                    continue;
-
                 edges.Add(new MissionEdge(
-                    srcNavNode,
-                    dstNavNode,
-                    MissionEdgeKind.Jump,
-                    jumpTargetSeq,
+                    srcNodeIndex,
+                    destNodeIndex,
+                    true,
                     jumpRepeat));
             }
 
-            return new MissionGraph(nodes, edges, homeNodeIndex);
+            return new MissionGraph(nodes, edges);
         }
 
-        static MissionNodeKind ClassifyNodeKind(ushort cmd, bool has_lat_lon)
+        static int FindLastNodeBeforeOrAt(int missionIndex, int[] missionToNode)
+        {
+            if (missionToNode == null || missionToNode.Length == 0 || missionIndex < 0)
+            {
+                return -1;
+            }
+
+            if (missionIndex >= missionToNode.Length)
+            {
+                missionIndex = missionToNode.Length - 1;
+            }
+
+            for (int i = missionIndex; i >= 0; i--)
+            {
+                var nodeIndex = missionToNode[i];
+                if (nodeIndex != -1)
+                {
+                    return nodeIndex;
+                }
+            }
+
+            return -1;
+        }
+
+        static int FindFirstNodeAtOrAfter(int missionIndex, int[] missionToNode)
+        {
+            if (missionToNode == null || missionToNode.Length == 0 || missionIndex >= missionToNode.Length)
+            {
+                return -1;
+            }
+
+            if (missionIndex < 0)
+            {
+                missionIndex = 0;
+            }
+
+            for (int i = missionIndex; i < missionToNode.Length; i++)
+            {
+                var nodeIndex = missionToNode[i];
+                if (nodeIndex != -1)
+                {
+                    return nodeIndex;
+                }
+            }
+
+            return -1;
+        }
+
+        /// <summary>
+        /// Whether a command is a connected point in a route (like nav commands in missions, or polygon fence points)
+        /// </summary>
+        static bool IsNode(Locationwp locationwp)
+        {
+            var command = locationwp.id;
+
+            // Despite not being NAV commands, these fence polygon commands are connected nodes
+            if (command == (ushort)MAV_CMD.FENCE_POLYGON_VERTEX_EXCLUSION ||
+                command == (ushort)MAV_CMD.FENCE_POLYGON_VERTEX_INCLUSION)
+            {
+                return true;
+            }
+
+            // The obsolete "ROI" command is in the "NAV" range, but is not actually a NAV command
+            if (command == (ushort)MAV_CMD.ROI ||
+                command == (ushort)MAV_CMD.DO_SET_ROI_LOCATION)
+            {
+                return false;
+            }
+
+            // These commands terminate the flight, so even though some do not have a location, they get a node
+            if (IsTerminal(command))
+            {
+                return true;
+            }
+
+            // Otherwise, anything in the NAV command range that has a location is a connected node
+            if (command < (ushort)MAV_CMD.LAST)
+            {
+                return HasLocation(locationwp);
+            }
+
+            return false;
+        }
+
+        static bool IsTerminal(ushort cmd)
         {
             switch (cmd)
             {
-                case (ushort)MAVLink.MAV_CMD.LOITER_TURNS:
-                case (ushort)MAVLink.MAV_CMD.LOITER_TIME:
-                case (ushort)MAVLink.MAV_CMD.LOITER_TO_ALT:
-                case (ushort)MAVLink.MAV_CMD.LOITER_UNLIM:
-                    return MissionNodeKind.Circle;
-
-                case (ushort)MAVLink.MAV_CMD.ROI:
-                case (ushort)MAVLink.MAV_CMD.DO_SET_ROI_LOCATION:
-                    return MissionNodeKind.Roi;
-
-                case (ushort)MAVLink.MAV_CMD.DO_LAND_START:
-                    return MissionNodeKind.PosBookmark;
-
-                case (ushort)MAVLink.MAV_CMD.FENCE_POLYGON_VERTEX_INCLUSION:
-                case (ushort)MAVLink.MAV_CMD.FENCE_POLYGON_VERTEX_EXCLUSION:
-                    return MissionNodeKind.FencePolygon;
-
-                case (ushort)MAVLink.MAV_CMD.FENCE_CIRCLE_INCLUSION:
-                case (ushort)MAVLink.MAV_CMD.FENCE_CIRCLE_EXCLUSION:
-                    return MissionNodeKind.FenceCircle;
-
-                case (ushort)MAVLink.MAV_CMD.RALLY_POINT:
-                    return MissionNodeKind.Rally;
-
-                default:
-                    if (IsNavCommand(cmd, has_lat_lon))
-                        return MissionNodeKind.Nav;
-                    else if (has_lat_lon)
-                        return MissionNodeKind.OtherPositional;
-                    else
-                        return MissionNodeKind.NonPositional;
+            case (ushort)MAV_CMD.LAND:
+            case (ushort)MAV_CMD.VTOL_LAND:
+            case (ushort)MAV_CMD.LAND_LOCAL:
+            case (ushort)MAV_CMD.DO_RALLY_LAND:
+            case (ushort)MAV_CMD.RETURN_TO_LAUNCH:
+            case (ushort)MAV_CMD.DO_FLIGHTTERMINATION:
+                return true;
+            default:
+                return false;
             }
-        }
-
-        static bool IsNavCommand(ushort command, bool has_lat_lon)
-        {
-            if (command >= (ushort)MAVLink.MAV_CMD.LAST)
-                return false;
-
-            if (command == (ushort)MAVLink.MAV_CMD.ROI)
-                return false;
-
-            return HasLocation(command, has_lat_lon);
         }
 
 
@@ -238,16 +270,15 @@ namespace MissionPlanner.ArduPilot
         /// </summary>
         /// <param name="command"></param>
         /// <returns></returns>
-        static bool HasLocation(ushort command, bool has_lat_lon)
+        static bool HasLocation(Locationwp locationwp)
         {
-            if (command >= (ushort)MAVLink.MAV_CMD.LAST)
-                return false;
-
+            var command = locationwp.id;
+            bool has_lat_lon = !(locationwp.lat == 0 && locationwp.lng == 0) &&
+                   !double.IsNaN(locationwp.lat) &&
+                   !double.IsNaN(locationwp.lng);
             var mavCmdType = typeof(MAVLink.MAV_CMD);
-
             if (!Enum.IsDefined(mavCmdType, command))
                 return has_lat_lon; // unknown, assume positional if lat/lon present
-
             var name = ((MAVLink.MAV_CMD)command).ToString();
             var memberInfo = mavCmdType.GetMember(name).FirstOrDefault();
             if (memberInfo == null)
@@ -257,38 +288,6 @@ namespace MissionPlanner.ArduPilot
                 .GetCustomAttributes(false)
                 .OfType<hasLocation>()
                 .Any();
-        }
-
-        static int FindLastNavNodeBefore(int missionIndex,
-                                         List<Locationwp> missionitems,
-                                         int[] missionToNode)
-        {
-            for (int i = missionIndex - 1; i >= 0; i--)
-            {
-                ushort cmd = missionitems[i].id;
-                if (!IsNavCommand(cmd))
-                    continue;
-                int nodeIndex = missionToNode[i];
-                if (nodeIndex != -1)
-                    return nodeIndex;
-            }
-            return -1;
-        }
-
-        static int FindFirstNavNodeAtOrAfter(int missionIndex,
-                                             List<Locationwp> missionitems,
-                                             int[] missionToNode)
-        {
-            for (int i = Math.Max(missionIndex, 0); i < missionitems.Count; i++)
-            {
-                ushort cmd = missionitems[i].id;
-                if (!IsNavCommand(cmd))
-                    continue;
-                int nodeIndex = missionToNode[i];
-                if (nodeIndex != -1)
-                    return nodeIndex;
-            }
-            return -1;
         }
     }
 }
