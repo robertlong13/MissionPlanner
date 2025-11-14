@@ -11,6 +11,8 @@ namespace MissionPlanner.ArduPilot
         public int MissionIndex { get; }
         public Locationwp Command { get; }
         public bool CanContinue { get; internal set; } = true;
+        public List<int> IncomingEdges { get; } = new List<int>();
+        public List<int> OutgoingEdges { get; } = new List<int>();
 
         public MissionNode(int missionIndex, Locationwp command)
         {
@@ -112,6 +114,8 @@ namespace MissionPlanner.ArduPilot
                 if (nodes[i].CanContinue)
                 {
                     edges.Add(new MissionEdge(i, i + 1, false));
+                    nodes[i].OutgoingEdges.Add(edges.Count - 1);
+                    nodes[i + 1].IncomingEdges.Add(edges.Count - 1);
                 }
             }
 
@@ -159,6 +163,8 @@ namespace MissionPlanner.ArduPilot
                     destNodeIndex,
                     true,
                     jumpRepeat));
+                nodes[srcNodeIndex].OutgoingEdges.Add(edges.Count - 1);
+                nodes[destNodeIndex].IncomingEdges.Add(edges.Count - 1);
             }
 
             return new MissionGraph(nodes, edges);
