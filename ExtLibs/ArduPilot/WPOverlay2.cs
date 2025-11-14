@@ -30,7 +30,7 @@ namespace MissionPlanner.ArduPilot
             BuildPointList(home, missionitems);
 
             // 2) Build a mission graph (no jump expansion)
-            var graph = MissionGraphBuilder.Build(home, missionitems, pointlist, loiterradius);
+            var graph = MissionGraphBuilder.Build(home, missionitems);
 
             //// 3) Generate segments from the graph
             //var segments = Segmentizer.BuildSegments(graph);
