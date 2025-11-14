@@ -4,6 +4,7 @@ using MissionPlanner.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using static netDxf.Entities.HatchBoundaryPath;
 
 namespace MissionPlanner.ArduPilot
 {
@@ -16,6 +17,31 @@ namespace MissionPlanner.ArduPilot
         /// compatible with WPOverlay.pointlist semantics.
         /// </summary>
         public List<PointLatLngAlt> pointlist = new List<PointLatLngAlt>();
+        enum VehicleType
+        {
+            Copter,
+            Plane,
+            Rover,
+        }
+
+        readonly VehicleType vehicleType = VehicleType.Copter;
+
+        public WPOverlay2(Firmwares firmware)
+        {
+            switch (firmware)
+            {
+            case Firmwares.ArduPlane:
+            case Firmwares.Ateryx:
+                vehicleType = VehicleType.Plane;
+                break;
+            case Firmwares.ArduRover:
+                vehicleType = VehicleType.Rover;
+                break;
+            default:
+                vehicleType = VehicleType.Copter;
+                break;
+            }
+        }
 
         public void CreateOverlay(
             PointLatLngAlt home,
@@ -39,6 +65,109 @@ namespace MissionPlanner.ArduPilot
             //MissionRenderer.RenderMarkers(overlay, graph, wpradius, loiterradius, altunitmultiplier);
             //MissionRenderer.RenderSegments(overlay, graph, segments);
         }
+
+        public sealed class MissionSegmentizer
+        {
+            public enum SegmentKind
+            {
+                Straight,
+                Spline,
+                LoiterArc,  // Synthetic arc between entry/exit on circle
+                ArcTurn,
+                Unknown,    // Same as straght, but might use a different rendering style
+            }
+
+            public sealed class Segment
+            {
+                public SegmentKind Kind;              // Straight, Spline, LoiterArc, ArcTurn, etc.
+                public bool IsPrimary;                // Primary or jump/alternate
+                public MissionNode StartNode;
+                public MissionNode EndNode;           // Equal to StartNode for synthetic segments (like loiter arcs)
+                public List<PointLatLngAlt> Path;     // Always nonempty
+            }
+
+            public static List<Segment> BuildSegments(MissionGraph graph, VehicleType vehicleType, double loiterRadius)
+            {
+                foreach (var edge in graph.Edges)
+                {
+                    var a = graph.Nodes[edge.FromNode];
+                    var b = graph.Nodes[edge.ToNode];
+
+                    bool isPrimary = !edge.IsJump;
+
+                    bool kind = GetSegmentKind(a, b, vehicleType);
+
+                    bool capture = NeedsLoiterCapture(b, vehicleType);
+                    bool exit = NeedsLoiterExit(a, vehicleType);
+
+                    PointLatLngAlt startPoint = a.Position;
+                    PointLatLngAlt endPoint = b.Position;
+
+                    // Loiter capture modifies the destination point of the core segment
+                    PointLatLngAlt loiterEntry = null;
+                    PointLatLngAlt loiterExit = null;
+                }
+            }
+
+            static SegmentKind GetSegmentKind(MissionNode src, MissionNode dest, VehicleType vehicleType)
+            {
+                switch (dest.Command.id)
+                {
+                case (ushort)MAVLink.MAV_CMD.SPLINE_WAYPOINT:
+                    return SegmentKind.Spline;
+                case (ushort)MAVLink.MAV_CMD.WAYPOINT:
+                case (ushort)MAVLink.MAV_CMD.LOITER_UNLIM:
+                case (ushort)MAVLink.MAV_CMD.LOITER_TURNS:
+                case (ushort)MAVLink.MAV_CMD.LOITER_TIME:
+                case (ushort)MAVLink.MAV_CMD.LOITER_TO_ALT:
+                case (ushort)MAVLink.MAV_CMD.RETURN_TO_LAUNCH:
+                case (ushort)MAVLink.MAV_CMD.LAND:
+                case (ushort)MAVLink.MAV_CMD.LAND_LOCAL:
+                case (ushort)MAVLink.MAV_CMD.VTOL_LAND:
+                case (ushort)MAVLink.MAV_CMD.PAYLOAD_PLACE:
+                    return SegmentKind.Straight;
+                case (ushort)36: // arc turn, not in MAVLink enum yet
+                    return SegmentKind.ArcTurn;
+                default:
+                    return SegmentKind.Unknown;
+                }
+            }
+
+            static bool NeedsLoiterCapture(MissionNode dest, VehicleType vehicleType)
+            {
+                if (vehicleType != VehicleType.Plane)
+                {
+                    return false;
+                }
+                switch (dest.Command.id)
+                {
+                case (ushort)MAVLink.MAV_CMD.LOITER_TIME:
+                    case (ushort)MAVLink.MAV_CMD.LOITER_TURNS:
+                    case (ushort)MAVLink.MAV_CMD.LOITER_TO_ALT:
+                    case (ushort)MAVLink.MAV_CMD.LOITER_UNLIM:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            static bool NeedsLoiterExit(MissionNode src, VehicleType vehicleType)
+            {
+                if (vehicleType != VehicleType.Plane)
+                {
+                    return false;
+                }
+                switch (src.Command.id)
+                {
+                case (ushort)MAVLink.MAV_CMD.LOITER_TIME:
+                case (ushort)MAVLink.MAV_CMD.LOITER_TURNS:
+                case (ushort)MAVLink.MAV_CMD.LOITER_TO_ALT:
+                    return true;
+                case (ushort)MAVLink.MAV_CMD.LOITER_UNLIM: // no exit for unlimited loiter
+                default:
+                    return false;
+                }
+            }
 
         /// <summary>
         /// Build the public `pointlist` from the mission items exactly the same way as the old WPOverlay did.
