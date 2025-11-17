@@ -3765,7 +3765,8 @@ namespace MissionPlanner.GCSViews
                                         MainV2.comPort.MAV.cs.PlannedHomeLocation.Alt / CurrentState.multiplieralt, "H");
                                 }
 
-                                var wpOverlay = new WPOverlay();
+                                //var wpOverlay = new WPOverlay();
+                                var wpOverlay = new WPOverlay2(MainV2.comPort.MAV.cs.vehicleClass);
 
                                 {
                                     List<Locationwp> mission_items;

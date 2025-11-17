@@ -127,6 +127,7 @@ namespace MissionPlanner.GCSViews
         private PointLatLng MouseDownStart;
         private PointLatLngAlt mouseposdisplay = new PointLatLngAlt(0, 0);
         private WPOverlay wpOverlay;
+        private WPOverlay2 wpOverlay2;
         private bool polygongridmode;
         private MissionPlanner.Controls.Icon.Polygon polyicon = new MissionPlanner.Controls.Icon.Polygon();
         private MissionPlanner.Controls.Icon.Zoom zoomicon = new MissionPlanner.Controls.Icon.Zoom();
@@ -1419,6 +1420,8 @@ namespace MissionPlanner.GCSViews
                 {
                     wpOverlay = new WPOverlay();
                     wpOverlay.overlay.Id = "WPOverlay";
+                    wpOverlay2 = new WPOverlay2(MainV2.comPort.MAV.cs.vehicleClass);
+                    wpOverlay2.overlay.Id = "WPOverlay";
 
                     try
                     {
@@ -1426,6 +1429,10 @@ namespace MissionPlanner.GCSViews
                         if (TXT_loiterrad.Text == "") TXT_loiterrad.Text = "30";
 
                         wpOverlay.CreateOverlay(home,
+                            commandlist,
+                            double.Parse(TXT_WPRad.Text) / CurrentState.multiplierdist,
+                            double.Parse(TXT_loiterrad.Text) / CurrentState.multiplierdist, CurrentState.multiplieralt);
+                        wpOverlay2.CreateOverlay(home,
                             commandlist,
                             double.Parse(TXT_WPRad.Text) / CurrentState.multiplierdist,
                             double.Parse(TXT_loiterrad.Text) / CurrentState.multiplierdist, CurrentState.multiplieralt);
@@ -1444,9 +1451,9 @@ namespace MissionPlanner.GCSViews
                         MainMap.Overlays.Remove(b);
                     }
 
-                    MainMap.Overlays.Insert(1, wpOverlay.overlay);
+                    MainMap.Overlays.Insert(1, wpOverlay2.overlay);
 
-                    wpOverlay.overlay.ForceUpdate();
+                    wpOverlay2.overlay.ForceUpdate();
 
                     lbl_distance.Text = rm.GetString("lbl_distance.Text") + ": " +
                                         FormatDistance((
@@ -1455,11 +1462,11 @@ namespace MissionPlanner.GCSViews
                                                 .Aggregate(0.0, (d, p1, p2) => d + p1.GetDistance(p2))
                                         ) / 1000.0, false);
 
-                    setgradanddistandaz(wpOverlay.pointlist, home);
+                    setgradanddistandaz(wpOverlay2.pointlist, home);
 
-                    if (wpOverlay.pointlist.Count <= 1)
+                    if (wpOverlay2.pointlist.Count <= 1)
                     {
-                        RectLatLng? rect = MainMap.GetRectOfAllMarkers(wpOverlay.overlay.Id);
+                        RectLatLng? rect = MainMap.GetRectOfAllMarkers(wpOverlay2.overlay.Id);
                         if (rect.HasValue)
                         {
                             MainMap.Position = rect.Value.LocationMiddle;
@@ -1468,7 +1475,7 @@ namespace MissionPlanner.GCSViews
                         MainMap_OnMapZoomChanged();
                     }
 
-                    pointlist = wpOverlay.pointlist;
+                    pointlist = wpOverlay2.pointlist;
 
                     {
                         foreach (var pointLatLngAlt in pointlist.PrevNowNext())
@@ -1485,7 +1492,7 @@ namespace MissionPlanner.GCSViews
 
                             var pnt = new GMapMarkerPlus(mid);
                             pnt.Tag = new midline() {now = now, next = next};
-                            wpOverlay.overlay.Markers.Add(pnt);
+                            wpOverlay2.overlay.Markers.Add(pnt);
                         }
                     }
 
