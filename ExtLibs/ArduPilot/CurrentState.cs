@@ -99,6 +99,25 @@ namespace MissionPlanner
 
         // current firmware
         public Firmwares firmware = Firmwares.ArduCopter2;
+        public VehicleClass vehicleClass
+        {
+            get
+            {
+                switch(firmware)
+                {
+                    case Firmwares.ArduPlane:
+                    case Firmwares.Ateryx:
+                        return VehicleClass.Plane;
+                    case Firmwares.ArduRover:
+                        return VehicleClass.Rover;
+                    case Firmwares.ArduCopter2:
+                        return VehicleClass.Copter;
+                    default:
+                        return VehicleClass.Unknown;
+                }
+            }
+        }
+
         private bool gotwind;
 
         // HIL
