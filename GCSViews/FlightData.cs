@@ -3766,7 +3766,11 @@ namespace MissionPlanner.GCSViews
                                 }
 
                                 //var wpOverlay = new WPOverlay();
-                                var wpOverlay = new WPOverlay2(MainV2.comPort.MAV.cs.vehicleClass);
+                                var wpOverlay = new WPOverlay2()
+                                {
+                                    VehicleClass = MainV2.comPort.MAV.cs.vehicleClass,
+                                    ShowPlusMarkers = false,
+                                };
 
                                 {
                                     List<Locationwp> mission_items;

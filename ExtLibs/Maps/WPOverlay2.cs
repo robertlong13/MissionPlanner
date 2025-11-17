@@ -20,12 +20,8 @@ namespace MissionPlanner.Maps
         /// </summary>
         public List<PointLatLngAlt> pointlist = new List<PointLatLngAlt>();
 
-        readonly VehicleClass vehicleClass = VehicleClass.Copter;
-
-        public WPOverlay2(VehicleClass vehicle)
-        {
-            vehicleClass = vehicle;
-        }
+        public VehicleClass VehicleClass = VehicleClass.Copter;
+        public bool ShowPlusMarkers = true;
 
         public void CreateOverlay(
             PointLatLngAlt home,
@@ -37,7 +33,7 @@ namespace MissionPlanner.Maps
             overlay.Clear();
             
             // Only planes should have a default loiter radius
-            if (vehicleClass != VehicleClass.Plane)
+            if (VehicleClass != VehicleClass.Plane)
             {
                 loiterradius = wpradius;
             }
@@ -49,11 +45,11 @@ namespace MissionPlanner.Maps
             var graph = MissionGraphBuilder.Build(home, missionitems);
 
             // 3) Generate segments from the graph
-            var segments = MissionSegmentizer.BuildSegments(graph, vehicleClass, loiterradius);
+            var segments = MissionSegmentizer.BuildSegments(graph, VehicleClass, loiterradius);
 
             // 4) Render markers and segments to overlay
             MissionRenderer.RenderMarkers(overlay, graph, wpradius, loiterradius, altunitmultiplier);
-            MissionRenderer.RenderSegments(overlay, segments);
+            MissionRenderer.RenderSegments(overlay, segments, ShowPlusMarkers);
         }
 
         public sealed class MissionRenderer
@@ -72,7 +68,7 @@ namespace MissionPlanner.Maps
                         continue;
                     }
                     var point = new PointLatLng(node.Command.lat, node.Command.lng);
-                    var tag = node.MissionIndex >= 0 ? (node.MissionIndex + 1).ToString() : "H";
+                    var tag = PointTag(node.MissionIndex);
                     var alt = node.Command.alt * altunitmultiplier;
                     // TODO: vary marker style based on command type
                     var marker = new GMapMarkerWP(point, tag)
@@ -94,7 +90,8 @@ namespace MissionPlanner.Maps
 
             public static void RenderSegments(
                 GMapOverlay overlay,
-                List<MissionSegmentizer.Segment> segments)
+                List<MissionSegmentizer.Segment> segments,
+                bool showPlusMarkers)
             {
                 foreach (var segment in segments)
                 {
@@ -113,7 +110,43 @@ namespace MissionPlanner.Maps
                         ArrowMode = GMapRoute.ArrowDrawMode.SinglePerRoute,
                     };
                     overlay.Routes.Add(route);
+
+                    // These markers are handled FlightPlanner to insert waypoints
+                    if (showPlusMarkers && segment.IsPrimary && segment.Midpoint != null)
+                    {
+                        var plusMarker = new GMapMarkerPlus(segment.Midpoint)
+                        {
+                            Tag = MakeMidlineObject(segment),
+                        };
+                        overlay.Markers.Add(plusMarker);
+                    }
                 }
+            }
+
+            static midline MakeMidlineObject(MissionSegmentizer.Segment segment)
+            {
+                var startNode = segment.StartNode;
+                var endNode = segment.EndNode;
+                return new midline
+                {
+                    now = new PointLatLngAlt(
+                        startNode.Command.lat,
+                        startNode.Command.lng,
+                        startNode.Command.alt,
+                        PointTag(startNode.MissionIndex)
+                    ),
+                    next = new PointLatLngAlt(
+                        endNode.Command.lat,
+                        endNode.Command.lng,
+                        endNode.Command.alt,
+                        PointTag(endNode.MissionIndex)
+                    )
+                };
+            }
+
+            static string PointTag(int index)
+            {
+                return (index < 0) ? "H" : (index + 1).ToString();
             }
         }
 

@@ -24,6 +24,7 @@ namespace MissionPlanner.Utilities
             public MissionNode StartNode;
             public MissionNode EndNode;           // Equal to StartNode for synthetic segments (like loiter arcs)
             public List<PointLatLngAlt> Path;     // Always nonempty
+            public PointLatLngAlt Midpoint;
         }
 
         static public List<Segment> BuildSegments(MissionGraph graph, VehicleClass vehicleClass, double loiterRadius)
@@ -34,6 +35,12 @@ namespace MissionPlanner.Utilities
             {
                 var a = graph.Nodes[edge.FromNode];
                 var b = graph.Nodes[edge.ToNode];
+
+                if (a == null || b == null || !HasLatLon(a.Command) || !HasLatLon(b.Command))
+                {
+                    continue;
+                }
+
                 PointLatLngAlt overrideSrcPos = null;
                 if (NeedsLoiterExit(a, vehicleClass))
                 {
@@ -176,6 +183,8 @@ namespace MissionPlanner.Utilities
             var src = graph.Nodes[edge.FromNode];
             var dest = graph.Nodes[edge.ToNode];
             var srcPos = overrideSrcPos ?? new PointLatLngAlt(src.Command);
+            var bearing = srcPos.GetBearing(new PointLatLngAlt(dest.Command));
+            var distance = srcPos.GetDistance2(new PointLatLngAlt(dest.Command));
             var segment = new Segment
             {
                 Kind = SegmentKind.Straight,
@@ -186,7 +195,8 @@ namespace MissionPlanner.Utilities
                     {
                         srcPos,
                         new PointLatLngAlt(dest.Command)
-                    }
+                    },
+                Midpoint = srcPos.newpos(bearing, distance / 2.0),
             };
             return segment;
         }
@@ -246,7 +256,7 @@ namespace MissionPlanner.Utilities
                     }
                     var prevPos = prev != null ? new PointLatLngAlt(prev.Command) : null;
                     var nextPos = next != null ? new PointLatLngAlt(next.Command) : null;
-                    var path = Spline3.BuildSegment(
+                    var splineGenerator = new Spline3(
                         prevPos,
                         srcPos,
                         new PointLatLngAlt(dest.Command),
@@ -254,6 +264,8 @@ namespace MissionPlanner.Utilities
                         startType,
                         endType
                     );
+                    var path = splineGenerator.BuildPath();
+                    var midpoint = splineGenerator.GetPointAt(0.5);
                     segments.Add(
                         new Segment
                         {
@@ -262,6 +274,7 @@ namespace MissionPlanner.Utilities
                             StartNode = src,
                             EndNode = dest,
                             Path = path,
+                            Midpoint = midpoint,
                         }
                     );
 

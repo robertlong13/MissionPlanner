@@ -1414,7 +1414,11 @@ namespace MissionPlanner.GCSViews
                 {
                     wpOverlay = new WPOverlay();
                     wpOverlay.overlay.Id = "WPOverlay";
-                    wpOverlay2 = new WPOverlay2(MainV2.comPort.MAV.cs.vehicleClass);
+                    wpOverlay2 = new WPOverlay2()
+                    {
+                        VehicleClass = MainV2.comPort.MAV.cs.vehicleClass,
+                        ShowPlusMarkers = true,
+                    };
                     wpOverlay2.overlay.Id = "WPOverlay";
 
                     try
@@ -1471,24 +1475,24 @@ namespace MissionPlanner.GCSViews
 
                     pointlist = wpOverlay2.pointlist;
 
-                    {
-                        foreach (var pointLatLngAlt in pointlist.PrevNowNext())
-                        {
-                            var prev = pointLatLngAlt.Item1;
-                            var now = pointLatLngAlt.Item2;
-                            var next = pointLatLngAlt.Item3;
+                    //{
+                    //    foreach (var pointLatLngAlt in pointlist.PrevNowNext())
+                    //    {
+                    //        var prev = pointLatLngAlt.Item1;
+                    //        var now = pointLatLngAlt.Item2;
+                    //        var next = pointLatLngAlt.Item3;
 
-                            if (now == null || next == null)
-                                continue;
+                    //        if (now == null || next == null)
+                    //            continue;
 
-                            var mid = new PointLatLngAlt((now.Lat + next.Lat) / 2, (now.Lng + next.Lng) / 2,
-                                (now.Alt + next.Alt) / 2);
+                    //        var mid = new PointLatLngAlt((now.Lat + next.Lat) / 2, (now.Lng + next.Lng) / 2,
+                    //            (now.Alt + next.Alt) / 2);
 
-                            var pnt = new GMapMarkerPlus(mid);
-                            pnt.Tag = new midline() {now = now, next = next};
-                            wpOverlay2.overlay.Markers.Add(pnt);
-                        }
-                    }
+                    //        var pnt = new GMapMarkerPlus(mid);
+                    //        pnt.Tag = new midline() {now = now, next = next};
+                    //        wpOverlay2.overlay.Markers.Add(pnt);
+                    //    }
+                    //}
 
                     // draw fence
                     {
