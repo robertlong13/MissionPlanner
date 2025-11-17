@@ -1,0 +1,222 @@
+﻿using System;
+using System.Linq;
+
+namespace MissionPlanner.Utilities.Mission
+{
+    public class CommandUtils
+    {
+        public static bool IsLoiter(Locationwp cmd)
+        {
+            return cmd.id == (ushort)MAVLink.MAV_CMD.LOITER_UNLIM ||
+                   cmd.id == (ushort)MAVLink.MAV_CMD.LOITER_TIME ||
+                   cmd.id == (ushort)MAVLink.MAV_CMD.LOITER_TURNS ||
+                   cmd.id == (ushort)MAVLink.MAV_CMD.LOITER_TO_ALT;
+        }
+
+        public static double LoiterRadius(Locationwp cmd, double defaultRadius)
+        {
+            switch (cmd.id)
+            {
+            case (ushort)MAVLink.MAV_CMD.LOITER_TURNS:
+            case (ushort)MAVLink.MAV_CMD.LOITER_TIME:
+            case (ushort)MAVLink.MAV_CMD.LOITER_UNLIM:
+                return cmd.p3 != 0 ? cmd.p3 : defaultRadius;
+            case (ushort)MAVLink.MAV_CMD.LOITER_TO_ALT:
+                return cmd.p2 != 0 ? cmd.p2 : defaultRadius;
+            default:
+                throw new ArgumentException("Command is not a loiter command");
+            }
+        }
+
+        public static bool LoiterXTrackTangent(Locationwp cmd)
+        {
+            return IsLoiter(cmd) && !IsTerminal(cmd) && cmd.p4 == 1;
+        }
+
+        public static double MarkerRadius(Locationwp cmd, double defaultLoiterRadius, double defaultWPRadius)
+        {
+            if (IsLoiter(cmd))
+            {
+                return LoiterRadius(cmd, defaultLoiterRadius);
+            }
+            else
+            {
+                return defaultWPRadius;
+            }
+        }
+
+        public static bool HasLocation(Locationwp cmd)
+        {
+            var command = cmd.id;
+            bool has_lat_lon = HasLatLon(cmd);
+            var mavCmdType = typeof(MAVLink.MAV_CMD);
+            if (!Enum.IsDefined(mavCmdType, command))
+                return has_lat_lon; // unknown, assume positional if lat/lon present
+            var name = ((MAVLink.MAV_CMD)command).ToString();
+            var memberInfo = mavCmdType.GetMember(name).FirstOrDefault();
+            if (memberInfo == null)
+                return has_lat_lon; // should not be possible
+
+            return memberInfo
+                .GetCustomAttributes(false)
+                .OfType<MAVLink.hasLocation>()
+                .Any();
+        }
+
+        public static bool HasLatLon(Locationwp cmd)
+        {
+            return !(cmd.lat == 0 && cmd.lng == 0) &&
+                   !double.IsNaN(cmd.lat) &&
+                   !double.IsNaN(cmd.lng);
+        }
+
+        public static bool IsTerminal(Locationwp cmd)
+        {
+            switch (cmd.id)
+            {
+            case (ushort)MAVLink.MAV_CMD.LAND:
+            case (ushort)MAVLink.MAV_CMD.VTOL_LAND:
+            case (ushort)MAVLink.MAV_CMD.LAND_LOCAL:
+            case (ushort)MAVLink.MAV_CMD.DO_RALLY_LAND:
+            case (ushort)MAVLink.MAV_CMD.RETURN_TO_LAUNCH:
+            case (ushort)MAVLink.MAV_CMD.DO_FLIGHTTERMINATION:
+            case (ushort)MAVLink.MAV_CMD.LOITER_UNLIM:
+                return true;
+            default:
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Whether a command is a connected point in a route (like nav commands in missions, or polygon fence points)
+        /// </summary>
+        public static bool IsNode(Locationwp cmd)
+        {
+            var id = cmd.id;
+
+            // Despite not being NAV commands, these fence polygon commands are connected nodes
+            if (id == (ushort)MAVLink.MAV_CMD.FENCE_POLYGON_VERTEX_EXCLUSION ||
+                id == (ushort)MAVLink.MAV_CMD.FENCE_POLYGON_VERTEX_INCLUSION)
+            {
+                return true;
+            }
+
+            // The obsolete "ROI" command is in the "NAV" range, but is not actually a NAV command
+            if (id == (ushort)MAVLink.MAV_CMD.ROI ||
+                id == (ushort)MAVLink.MAV_CMD.DO_SET_ROI_LOCATION)
+            {
+                return false;
+            }
+
+            // These commands terminate the flight, so even though some do not have a location, they get a node
+            if (IsTerminal(cmd))
+            {
+                return true;
+            }
+
+            // Otherwise, anything in the NAV command range that has a location is a connected node
+            if (id < (ushort)MAVLink.MAV_CMD.LAST)
+            {
+                return HasLocation(cmd);
+            }
+
+            return false;
+        }
+
+        public static bool IsDoJump(Locationwp cmd)
+        {
+            return cmd.id == (ushort)MAVLink.MAV_CMD.DO_JUMP;
+        }
+
+        public static bool IsSplineWP(Locationwp cmd)
+        {
+            return cmd.id == (ushort)MAVLink.MAV_CMD.SPLINE_WAYPOINT;
+        }
+
+        public static int GetJumpTarget(Locationwp cmd)
+        {
+            if (IsJumpCommand(cmd))
+            {
+                return (int)cmd.p1;
+            }
+            else
+            {
+                throw new ArgumentException("Command is not a jump");
+            }
+        }
+
+        public static bool IsDoJumpTag(Locationwp cmd)
+        {
+            return cmd.id == (ushort)MAVLink.MAV_CMD.DO_JUMP_TAG;
+        }
+        public static bool IsJumpTag(Locationwp cmd)
+        {
+            return cmd.id == (ushort)MAVLink.MAV_CMD.JUMP_TAG;
+        }
+
+        public static int GetJumpTag(Locationwp cmd)
+        {
+            if (IsJumpTag(cmd))
+            {
+                return (int)cmd.p1;
+            }
+            else
+            {
+                throw new ArgumentException("Command is not a jump tag");
+            }
+        }
+
+        public static bool IsJumpCommand(Locationwp cmd)
+        {
+            return IsDoJump(cmd) || IsDoJumpTag(cmd);
+        }
+
+        public static int GetJumpCount(Locationwp cmd)
+        {
+            if (IsDoJump(cmd))
+            {
+                return (int)cmd.p2;
+            }
+            else
+            {
+                throw new ArgumentException("Command is not a jump");
+            }
+        }
+
+        public static bool IsSplineStoppedCopter(Locationwp cmd)
+        {
+            switch (cmd.id)
+            {
+            case (ushort)MAVLink.MAV_CMD.WAYPOINT:
+            case (ushort)MAVLink.MAV_CMD.SPLINE_WAYPOINT:
+            case (ushort)MAVLink.MAV_CMD.LOITER_TIME:
+                return cmd.p1 > 0;
+            case (ushort)MAVLink.MAV_CMD.LOITER_TURNS:
+            case (ushort)MAVLink.MAV_CMD.TAKEOFF:
+            case (ushort)MAVLink.MAV_CMD.TAKEOFF_LOCAL:
+            case (ushort)MAVLink.MAV_CMD.PAYLOAD_PLACE:
+                return true;
+            default:
+                return false;
+            }
+        }
+
+        public static bool NeedsLoiterCapture(MissionNode dest, VehicleClass vehicleClass)
+        {
+            if (vehicleClass != VehicleClass.Plane)
+            {
+                return false;
+            }
+            return IsLoiter(dest.Command);
+        }
+
+        public static bool NeedsLoiterExit(MissionNode src, VehicleClass vehicleClass)
+        {
+            if (vehicleClass != VehicleClass.Plane)
+            {
+                return false;
+            }
+            return IsLoiter(src.Command) && !IsTerminal(src.Command);
+        }
+    }
+}
