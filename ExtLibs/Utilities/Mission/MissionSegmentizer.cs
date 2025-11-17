@@ -94,6 +94,11 @@ namespace MissionPlanner.Utilities
 
                     loiterCapturePoint = null;
                 }
+                double captureDistance = 0;
+                if (NeedsLoiterCapture(b, vehicleClass))
+                {
+                    captureDistance = Math.Abs(LoiterRadius(b.Command, loiterRadius));
+                }
 
                 SegmentKind kind = GetSegmentKind(a, b, vehicleClass);
 
@@ -102,49 +107,20 @@ namespace MissionPlanner.Utilities
                     case SegmentKind.Straight:
                     case SegmentKind.Unknown:
                     default:
-                        segments.Add(GenerateStraightSegment(graph, edge, overrideSrcPos));
+                        segments.Add(GenerateStraightSegment(graph, edge, overrideSrcPos, captureDistance));
                         break;
                     case SegmentKind.Spline:
                         segments.AddRange(GenerateSplineSegments(graph, edge, overrideSrcPos));
                         break;
                     case SegmentKind.ArcTurn:
                         // TODO: generate arc turn segment
-                        segments.Add(GenerateStraightSegment(graph, edge, overrideSrcPos));
+                        segments.Add(GenerateStraightSegment(graph, edge, overrideSrcPos, captureDistance));
                         break;
                 }
 
-                if (NeedsLoiterCapture(b, vehicleClass))
+                if (captureDistance > 0)
                 {
-                    var center = new PointLatLngAlt(b.Command);
-                    var radius = Math.Abs(LoiterRadius(b.Command, loiterRadius));
-
-                    // Pop points off the end of the path, and find a line segment that intersects the loiter circle
-                    // to modify the end point to be on the loiter circle.
-                    var path = segments[segments.Count - 1].Path;
-                    for (int i = path.Count - 2; i >= 0; i--)
-                    {
-                        var p1 = path[i];
-                        var p2 = path[i + 1];
-                        if (p1.GetDistance2(center) < radius)
-                        {
-                            path.RemoveAt(i + 1);
-                            continue;
-                        }
-                        var distToCenter = p2.GetDistance2(center);
-                        var moveDirection = p2.GetBearing(p1);
-                        path[path.Count - 1] = p2.newpos(
-                            moveDirection,
-                            radius - distToCenter
-                        );
-                    }
-                    // If path has only 1 element, it means the entire segment is within the loiter circle.
-                    // Draw a segment to the nearest point on the loiter circle.
-                    if (path.Count == 1)
-                    {
-                        var moveDirection = center.GetBearing(path[0]);
-                        path.Add(center.newpos(moveDirection, radius));
-                    }
-                    loiterCapturePoint = path[path.Count - 1];
+                    loiterCapturePoint = segments.Last().Path.Last();
                 }
                 else
                 {
@@ -178,13 +154,21 @@ namespace MissionPlanner.Utilities
             }
         }
 
-        static Segment GenerateStraightSegment(MissionGraph graph, MissionEdge edge, PointLatLngAlt overrideSrcPos)
+        static Segment GenerateStraightSegment(MissionGraph graph, MissionEdge edge, PointLatLngAlt overrideSrcPos, double captureDistance)
         {
             var src = graph.Nodes[edge.FromNode];
             var dest = graph.Nodes[edge.ToNode];
             var srcPos = overrideSrcPos ?? new PointLatLngAlt(src.Command);
-            var bearing = srcPos.GetBearing(new PointLatLngAlt(dest.Command));
+            var destPos = new PointLatLngAlt(dest.Command);
             var distance = srcPos.GetDistance2(new PointLatLngAlt(dest.Command));
+            var bearing = (distance > 1e-6) ? srcPos.GetBearing(new PointLatLngAlt(dest.Command)) : 0;
+            if (captureDistance > 0)
+            {
+                // Shorten the segment to end at capture distance from dest
+                // (this also works if src is inside the capture distance; it turns around and extends out)
+                destPos = srcPos.newpos(bearing, distance - captureDistance);
+                distance = srcPos.GetDistance2(destPos);
+            }
             var segment = new Segment
             {
                 Kind = SegmentKind.Straight,
@@ -192,10 +176,10 @@ namespace MissionPlanner.Utilities
                 StartNode = src,
                 EndNode = dest,
                 Path = new List<PointLatLngAlt>
-                    {
-                        srcPos,
-                        new PointLatLngAlt(dest.Command)
-                    },
+                {
+                    srcPos,
+                    destPos
+                },
                 Midpoint = srcPos.newpos(bearing, distance / 2.0),
             };
             return segment;
