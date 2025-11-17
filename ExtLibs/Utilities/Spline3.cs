@@ -26,19 +26,24 @@ namespace MissionPlanner.Utilities
     /// If 'prev' or 'next' are null, the corresponding endpoint velocity falls back
     /// to a Stop-like behaviour.
     /// </summary>
-    public static class Spline3
+    public class Spline3
     {
         const double Deg2Rad = Math.PI / 180.0;
         const double LATLON_TO_M = 0.01113195;
 
-        public static List<PointLatLngAlt> BuildSegment(
+        readonly Vector3 c0;
+        readonly Vector3 c1;
+        readonly Vector3 c2;
+        readonly Vector3 c3;
+        readonly PointLatLngAlt origin;
+
+        public Spline3(
             PointLatLngAlt wpBefore,
             PointLatLngAlt wpStart,
             PointLatLngAlt wpEnd,
             PointLatLngAlt wpAfter,
             SplineEndpointType startType,
-            SplineEndpointType endType,
-            int samples = 40)
+            SplineEndpointType endType)
         {
             if (wpStart == null || wpEnd == null)
             {
@@ -47,14 +52,15 @@ namespace MissionPlanner.Utilities
 
             // The math works in cartesian coordinates, so we turn these all into
             // position vectors relative to wpStart.
+            origin = wpStart;
             Vector3 startLocal = Vector3.Zero;
-            Vector3 endLocal = ToLocalVector(wpEnd, wpStart);
+            Vector3 endLocal = ToLocalVector(wpEnd);
             // If either neighbour is missing, the corresponding endpoint should be a Stop.
             // The caller should be doing that, but we'll enforce it here.
             Vector3 beforeLocal = startLocal;
             if (wpBefore != null)
             {
-                beforeLocal = ToLocalVector(wpBefore, wpStart);
+                beforeLocal = ToLocalVector(wpBefore);
             }
             else
             {
@@ -63,7 +69,7 @@ namespace MissionPlanner.Utilities
             Vector3 afterLocal = endLocal;
             if (wpAfter != null)
             {
-                afterLocal = ToLocalVector(wpAfter, wpStart);
+                afterLocal = ToLocalVector(wpAfter);
             }
             else
             {
@@ -115,36 +121,44 @@ namespace MissionPlanner.Utilities
             }
 
             // Hermite coefficients
-            Vector3 c0 = startLocal;
-            Vector3 c1 = startTangent;
-            Vector3 c2 = (-3 * startLocal) - (2 * startTangent) + (3 * endLocal) - endTangent;
-            Vector3 c3 = (2 * startLocal) + startTangent - (2 * endLocal) + endTangent;
+            c0 = startLocal;
+            c1 = startTangent;
+            c2 = (-3 * startLocal) - (2 * startTangent) + (3 * endLocal) - endTangent;
+            c3 = (2 * startLocal) + startTangent - (2 * endLocal) + endTangent;
+        }
+        
+        public List<PointLatLngAlt> BuildPath(int samples = 40)
+        {
 
             var result = new List<PointLatLngAlt>(samples + 1);
 
             for (int i = 0; i <= samples; i++)
             {
-                double t = (double)i / samples;
-                double t2 = t * t;
-                double t3 = t2 * t;
-
-                Vector3 local =
-                    c0 +
-                    c1 * t +
-                    c2 * t2 +
-                    c3 * t3;
-
-                result.Add(FromLocalVector(local, wpStart));
+                result.Add(GetPointAt((double)i / samples));
             }
 
             return result;
+        }
+
+        public PointLatLngAlt GetPointAt(double t)
+        {
+            double t2 = t * t;
+            double t3 = t2 * t;
+
+            Vector3 local =
+                c0 +
+                c1 * t +
+                c2 * t2 +
+                c3 * t3;
+
+            return FromLocalVector(local);
         }
 
         /// <summary>
         /// Convert a PointLatLngAlt into a local Vector3 (m, m, m) in a frame
         /// centered at origin.
         /// </summary>
-        static Vector3 ToLocalVector(PointLatLngAlt pt, PointLatLngAlt origin)
+        Vector3 ToLocalVector(PointLatLngAlt pt)
         {
             if (pt == null || origin == null)
                 return new Vector3();
@@ -166,7 +180,7 @@ namespace MissionPlanner.Utilities
         /// Convert a local Vector3 (m, m, m) back into PointLatLngAlt using
         /// origin as the reference.
         /// </summary>
-        static PointLatLngAlt FromLocalVector(Vector3 local, PointLatLngAlt origin)
+        PointLatLngAlt FromLocalVector(Vector3 local)
         {
             double lat0 = origin.Lat;
             double lon0 = origin.Lng;
