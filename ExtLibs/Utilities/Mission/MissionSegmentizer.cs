@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using MissionPlanner.Utilities.Mission;
 using static MissionPlanner.Utilities.Mission.CommandUtils;
 
@@ -56,7 +55,7 @@ namespace MissionPlanner.Utilities
                 var a = edge.FromNode;
                 var b = edge.ToNode;
 
-                if (a == null || b == null || !HasLatLon(a.Command) || !HasLatLon(b.Command))
+                if (a == null || b == null)
                 {
                     continue;
                 }
@@ -109,7 +108,14 @@ namespace MissionPlanner.Utilities
                 }
                 if (IsTakeoff(a.Command))
                 {
+                    overrideSrcPos = GetTakeoffLocation(a, graph.Home);
                     flags |= SegmentFlags.FromTakeoff;
+                }
+
+                if (!HasLatLon(a.Command) && overrideSrcPos == null)
+                {
+                    // Can't generate segment from a command with no lat/lon
+                    continue;
                 }
 
                 switch (kind)
@@ -188,7 +194,7 @@ namespace MissionPlanner.Utilities
             if (IsToHomeSegment(edge, graph))
             {
                 flags |= SegmentFlags.ToHome;
-                //destPos 
+                destPos = graph.Home;
             }
             if (captureDistance > 0)
             {

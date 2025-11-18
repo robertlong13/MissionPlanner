@@ -61,6 +61,20 @@ namespace MissionPlanner.Maps
                 double loiterradius,
                 double altunitmultiplier)
             {
+                if(graph.Home != PointLatLngAlt.Zero)
+                {
+                    var point = new PointLatLng(graph.Home.Lat, graph.Home.Lng);
+                    var tag = PointTag(-1);
+                    var alt = graph.Home.Alt * altunitmultiplier;
+                    var marker = new GMapMarkerWP(point, tag)
+                    {
+                        ToolTipMode = MarkerTooltipMode.OnMouseOver,
+                        ToolTipText = "Alt: " + alt.ToString("0"),
+                        Tag = tag
+                    };
+                    overlay.Markers.Add(marker);
+                }
+
                 foreach (var node in graph.Nodes)
                 {
                     if (!HasLatLon(node.Command))
@@ -102,9 +116,10 @@ namespace MissionPlanner.Maps
                     }
                     // TODO: vary color/style based on segment kind
                     bool isAlternate = segment.Flags.HasFlag(SegmentFlags.Alternate);
+                    bool isTakeoff = segment.Flags.HasFlag(SegmentFlags.FromTakeoff);
                     var route = new GMapRoute(points, "segment")
                     {
-                        Stroke = new Pen(Color.Yellow, isAlternate ? 2 : 4)
+                        Stroke = new Pen(isTakeoff ? Color.Blue : Color.Yellow, isAlternate ? 2 : 4)
                         {
                             DashStyle = isAlternate ? DashStyle.Dash : DashStyle.Solid,
                         },

@@ -43,12 +43,15 @@ namespace MissionPlanner.Utilities.Mission
     {
         public IReadOnlyList<MissionNode> Nodes { get; }
         public IReadOnlyList<MissionEdge> Edges { get; }
+        public readonly PointLatLngAlt Home;
 
         public MissionGraph(List<MissionNode> nodes,
-                            List<MissionEdge> edges)
+                            List<MissionEdge> edges,
+                            PointLatLngAlt home)
         {
             Nodes = nodes;
             Edges = edges;
+            Home = home;
         }
     }
 
@@ -64,20 +67,6 @@ namespace MissionPlanner.Utilities.Mission
 
             var jumpTags = new Dictionary<int, int>(); // key=tag, value=mission index
             var landNodes = new List<MissionNode>();
-
-            if (home != PointLatLngAlt.Zero)
-            {
-
-                var homeCopy = new Locationwp
-                {
-                    id = 0,
-                    lat = home.Lat,
-                    lng = home.Lng,
-                    alt = (float)home.Alt,
-                    frame = (byte)MAVLink.MAV_FRAME.GLOBAL,
-                };
-                nodes.Add(new MissionNode(-1, homeCopy));
-            }
 
             for (int i = 0; i < missionitems.Count; i++)
             {
@@ -189,7 +178,7 @@ namespace MissionPlanner.Utilities.Mission
                 }
             }
 
-            return new MissionGraph(nodes, edges);
+            return new MissionGraph(nodes, edges, home);
         }
 
         static MissionNode FindLastNodeBeforeOrAt(int missionIndex, MissionNode[] missionToNode)
