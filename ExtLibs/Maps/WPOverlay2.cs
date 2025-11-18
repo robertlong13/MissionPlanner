@@ -101,40 +101,38 @@ namespace MissionPlanner.Maps
                         points.Add(new PointLatLng(pt.Lat, pt.Lng));
                     }
                     // TODO: vary color/style based on segment kind
+                    bool isAlternate = segment.Flags.HasFlag(SegmentFlags.Alternate);
                     var route = new GMapRoute(points, "segment")
                     {
-                        Stroke = new Pen(Color.Yellow, segment.IsPrimary ? 4 : 2)
+                        Stroke = new Pen(Color.Yellow, isAlternate ? 2 : 4)
                         {
-                            DashStyle = segment.IsPrimary ? DashStyle.Solid : DashStyle.Dash,
+                            DashStyle = isAlternate ? DashStyle.Dash : DashStyle.Solid,
                         },
                         ArrowMode = GMapRoute.ArrowDrawMode.SinglePerRoute,
                     };
                     overlay.Routes.Add(route);
 
                     // These markers are handled FlightPlanner to insert waypoints
-                    if (showPlusMarkers && segment.IsPrimary && segment.Midpoint != null)
+                    if (showPlusMarkers && 
+                        !isAlternate &&
+                        segment.StartNode != null &&
+                        segment.EndNode != null &&
+                        segment.Midpoint != null)
                     {
                         var midLine = MakeMidlineObject(segment);
-                        if (midLine.HasValue)
+                        var plusMarker = new GMapMarkerPlus(segment.Midpoint)
                         {
-                            var plusMarker = new GMapMarkerPlus(segment.Midpoint)
-                            {
-                                Tag = midLine.Value,
-                            };
-                            overlay.Markers.Add(plusMarker);
-                        }
+                            Tag = midLine,
+                        };
+                        overlay.Markers.Add(plusMarker);
                     }
                 }
             }
 
-            static midline? MakeMidlineObject(MissionSegmentizer.Segment segment)
+            static midline MakeMidlineObject(MissionSegmentizer.Segment segment)
             {
                 var startNode = segment.StartNode;
                 var endNode = segment.EndNode;
-                if (startNode == null || endNode == null)
-                {
-                    return null;
-                }
                 return new midline
                 {
                     now = new PointLatLngAlt(

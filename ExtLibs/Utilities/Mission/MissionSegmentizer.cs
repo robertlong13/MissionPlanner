@@ -6,24 +6,34 @@ using static MissionPlanner.Utilities.Mission.CommandUtils;
 
 namespace MissionPlanner.Utilities
 {
+    [Flags]
+    public enum SegmentFlags
+    {
+        None = 0,
+        Alternate = 1 << 0, // All jumps and non-jump (spline) segments whose shape depends on a jump segment
+        Jump = 1 << 1,
+        UnknownCommand = 1 << 2,
+        ToHome = 1 << 3,
+        FromTakeoff = 1 << 4,
+    }
+
     public class MissionSegmentizer
     {
         public enum SegmentKind
         {
             Straight,
             Spline,
-            LoiterArc,  // Synthetic arc between entry/exit on circle
+            LoiterArc,
             ArcTurn,
-            Unknown,    // Same as straght, but might use a different rendering style
         }
 
         public sealed class Segment
         {
-            public SegmentKind Kind;              // Straight, Spline, LoiterArc, ArcTurn, etc.
-            public bool IsPrimary;                // Primary or jump/alternate
+            public SegmentKind Kind;
+            public SegmentFlags Flags;
             public MissionNode StartNode;
-            public MissionNode EndNode;           // null for synthetic segments (like loiter arcs)
-            public List<PointLatLngAlt> Path;     // Always nonempty
+            public MissionNode EndNode;         // null for things like loiter arcs
+            public List<PointLatLngAlt> Path;
             public PointLatLngAlt Midpoint;
         }
 
@@ -43,8 +53,8 @@ namespace MissionPlanner.Utilities
             var loiterInfoDict = new Dictionary<int, LoiterInfo>();
             foreach (var edge in graph.Edges)
             {
-                var a = graph.Nodes[edge.FromNode];
-                var b = graph.Nodes[edge.ToNode];
+                var a = edge.FromNode;
+                var b = edge.ToNode;
 
                 if (a == null || b == null || !HasLatLon(a.Command) || !HasLatLon(b.Command))
                 {
@@ -55,7 +65,7 @@ namespace MissionPlanner.Utilities
                 PointLatLngAlt overrideDestPos = null;
                 if (NeedsLoiterExit(a, vehicleClass))
                 {
-                    var loiterInfo = EnsureLoiterInfo(ref loiterInfoDict, edge.FromNode, a, loiterRadius);
+                    var loiterInfo = EnsureLoiterInfo(ref loiterInfoDict, a, loiterRadius);
                     bool crosstrackTangent = LoiterXTrackTangent(a.Command);
 
                     var dest = new PointLatLngAlt(b.Command);
@@ -85,30 +95,41 @@ namespace MissionPlanner.Utilities
                 double captureDistance = 0;
                 if (NeedsLoiterCapture(b, vehicleClass))
                 {
-                    captureDistance = EnsureLoiterInfo(ref loiterInfoDict, edge.ToNode, b, loiterRadius).Radius;
+                    captureDistance = EnsureLoiterInfo(ref loiterInfoDict, b, loiterRadius).Radius;
                 }
 
-                SegmentKind kind = GetSegmentKind(a, b, vehicleClass);
+                SegmentFlags flags = SegmentFlags.None;
+                if(!TryGetSegmentKind(a, b, vehicleClass, out SegmentKind kind))
+                {
+                    flags |= SegmentFlags.UnknownCommand;
+                }
+                if (edge.IsJump)
+                {
+                    flags |= SegmentFlags.Jump | SegmentFlags.Alternate;
+                }
+                if (IsTakeoff(a.Command))
+                {
+                    flags |= SegmentFlags.FromTakeoff;
+                }
 
                 switch (kind)
                 {
                     case SegmentKind.Straight:
-                    case SegmentKind.Unknown:
                     default:
-                        segments.Add(GenerateStraightSegment(graph, edge, overrideSrcPos, captureDistance, out overrideDestPos));
+                        segments.Add(GenerateStraightSegment(graph, edge, flags, overrideSrcPos, captureDistance, out overrideDestPos));
                         break;
                     case SegmentKind.Spline:
-                        segments.AddRange(GenerateSplineSegments(graph, edge, overrideSrcPos));
+                        segments.AddRange(GenerateSplineSegments(graph, edge, flags, overrideSrcPos));
                         break;
                     case SegmentKind.ArcTurn:
                         // TODO: generate arc turn segment
-                        segments.Add(GenerateStraightSegment(graph, edge, overrideSrcPos, captureDistance, out overrideDestPos));
+                        segments.Add(GenerateStraightSegment(graph, edge, flags, overrideSrcPos, captureDistance, out overrideDestPos));
                         break;
                 }
 
-                if (!edge.IsJump && overrideDestPos != null && loiterInfoDict.ContainsKey(edge.ToNode))
+                if (!edge.IsJump && overrideDestPos != null && loiterInfoDict.ContainsKey(edge.ToNode.MissionIndex))
                 {
-                    loiterInfoDict[edge.ToNode].EntryPoint = overrideDestPos;
+                    loiterInfoDict[edge.ToNode.MissionIndex].EntryPoint = overrideDestPos;
                 }
             }
 
@@ -123,12 +144,13 @@ namespace MissionPlanner.Utilities
             return segments;
         }
 
-        static SegmentKind GetSegmentKind(MissionNode src, MissionNode dest, VehicleClass vehicleClass)
+        static bool TryGetSegmentKind(MissionNode src, MissionNode dest, VehicleClass vehicleClass, out SegmentKind kind)
         {
             switch (dest.Command.id)
             {
                 case (ushort)MAVLink.MAV_CMD.SPLINE_WAYPOINT:
-                    return SegmentKind.Spline;
+                    kind = SegmentKind.Spline;
+                    return true;
                 case (ushort)MAVLink.MAV_CMD.WAYPOINT:
                 case (ushort)MAVLink.MAV_CMD.LOITER_UNLIM:
                 case (ushort)MAVLink.MAV_CMD.LOITER_TURNS:
@@ -139,22 +161,35 @@ namespace MissionPlanner.Utilities
                 case (ushort)MAVLink.MAV_CMD.LAND_LOCAL:
                 case (ushort)MAVLink.MAV_CMD.VTOL_LAND:
                 case (ushort)MAVLink.MAV_CMD.PAYLOAD_PLACE:
-                    return SegmentKind.Straight;
+                    kind = SegmentKind.Straight;
+                    return true;
                 case (ushort)36: // arc turn, not in MAVLink enum yet
-                    return SegmentKind.ArcTurn;
+                    kind = SegmentKind.ArcTurn;
+                    return true;
                 default:
-                    return SegmentKind.Unknown;
+                    kind = SegmentKind.Straight;
+                    return false;
             }
         }
 
-        static Segment GenerateStraightSegment(MissionGraph graph, MissionEdge edge, PointLatLngAlt overrideSrcPos, double captureDistance, out PointLatLngAlt overrideDestPos)
+        static bool IsToHomeSegment(MissionEdge edge, MissionGraph graph)
         {
-            var src = graph.Nodes[edge.FromNode];
-            var dest = graph.Nodes[edge.ToNode];
+            return edge.ToNode.Command.id == (ushort)MAVLink.MAV_CMD.RETURN_TO_LAUNCH;
+        }
+
+        static Segment GenerateStraightSegment(MissionGraph graph, MissionEdge edge, SegmentFlags flags, PointLatLngAlt overrideSrcPos, double captureDistance, out PointLatLngAlt overrideDestPos)
+        {
+            var src = edge.FromNode;
+            var dest = edge.ToNode;
             var srcPos = overrideSrcPos ?? new PointLatLngAlt(src.Command);
             var distance = srcPos.GetDistance2(new PointLatLngAlt(dest.Command));
             var bearing = (distance > 1e-6) ? srcPos.GetBearing(new PointLatLngAlt(dest.Command)) : 0;
             var destPos = new PointLatLngAlt(dest.Command);
+            if (IsToHomeSegment(edge, graph))
+            {
+                flags |= SegmentFlags.ToHome;
+                //destPos 
+            }
             if (captureDistance > 0)
             {
                 // Shorten the segment to end at capture distance from dest
@@ -170,7 +205,7 @@ namespace MissionPlanner.Utilities
             return new Segment
             {
                 Kind = SegmentKind.Straight,
-                IsPrimary = !edge.IsJump,
+                Flags = flags,
                 StartNode = src,
                 EndNode = dest,
                 Path = new List<PointLatLngAlt>
@@ -182,29 +217,28 @@ namespace MissionPlanner.Utilities
             };
         }
 
-        static List<Segment> GenerateSplineSegments(MissionGraph graph, MissionEdge edge, PointLatLngAlt overrideSrcPos)
+        static List<Segment> GenerateSplineSegments(MissionGraph graph, MissionEdge edge, SegmentFlags flags, PointLatLngAlt overrideSrcPos)
         {
-            bool isPrimary = !edge.IsJump;
-            var src = graph.Nodes[edge.FromNode];
-            var dest = graph.Nodes[edge.ToNode];
+            var src = edge.FromNode;
+            var dest = edge.ToNode;
             var srcPos = overrideSrcPos ?? new PointLatLngAlt(src.Command);
             var segments = new List<Segment>();
 
-            var IncomingEdges = src.IncomingEdges.Select(idx => graph.Edges[idx]).ToList();
+            var IncomingEdges = src.IncomingEdges;
             if (IncomingEdges.Count == 0)
             {
-                IncomingEdges.Add(null);
+                IncomingEdges = new List<MissionEdge> { null };
             }
-            var OutgoingEdges = dest.OutgoingEdges.Select(idx => graph.Edges[idx]).ToList();
+            var OutgoingEdges = src.OutgoingEdges;
             if (OutgoingEdges.Count == 0)
             {
-                OutgoingEdges.Add(null);
+                OutgoingEdges = new List<MissionEdge> { null };
             }
 
 
             foreach (var inEdge in IncomingEdges)
             {
-                var prev = inEdge != null ? graph.Nodes[inEdge.FromNode] : null;
+                var prev = inEdge?.FromNode;
                 var startType = SplineEndpointType.Stop;
                 // This isn't perfect. If the previous command has no lat/lon, it takes the current
                 // position of the vehicle whenever this command is loaded. That is hard to handle
@@ -222,7 +256,7 @@ namespace MissionPlanner.Utilities
                 }
                 foreach (var outEdge in OutgoingEdges)
                 {
-                    var next = outEdge != null ? graph.Nodes[outEdge.ToNode] : null;
+                    var next = outEdge?.ToNode;
                     var endType = SplineEndpointType.Stop;
                     if (next != null && !dest.IsTerminal && HasLatLon(next.Command))
                     {
@@ -251,7 +285,7 @@ namespace MissionPlanner.Utilities
                         new Segment
                         {
                             Kind = SegmentKind.Spline,
-                            IsPrimary = isPrimary,
+                            Flags = flags,
                             StartNode = src,
                             EndNode = dest,
                             Path = path,
@@ -260,7 +294,7 @@ namespace MissionPlanner.Utilities
                     );
 
                     // Every segment generated after this will be non-primary
-                    isPrimary = false;
+                    flags |= SegmentFlags.Alternate;
 
                     if (endType == SplineEndpointType.Stop)
                     {
@@ -300,7 +334,7 @@ namespace MissionPlanner.Utilities
             return new Segment()
             {
                 Kind = SegmentKind.LoiterArc,
-                IsPrimary = true,
+                Flags = SegmentFlags.None,
                 StartNode = loiterInfo.Node,
                 EndNode = null,
                 Path = path,
@@ -308,15 +342,15 @@ namespace MissionPlanner.Utilities
             };
         }
 
-        static LoiterInfo EnsureLoiterInfo(ref Dictionary<int, LoiterInfo> loiterInfoDict, int nodeIndex, MissionNode node, double defaultLoiterRadius)
+        static LoiterInfo EnsureLoiterInfo(ref Dictionary<int, LoiterInfo> loiterInfoDict, MissionNode node, double defaultLoiterRadius)
         {
-            if (!loiterInfoDict.ContainsKey(nodeIndex))
+            if (!loiterInfoDict.ContainsKey(node.MissionIndex))
             {
                 var radius = LoiterRadius(node.Command, defaultLoiterRadius);
                 bool isClockwise = radius >= 0;
                 radius = Math.Abs(radius);
                 loiterInfoDict.Add(
-                    nodeIndex,
+                    node.MissionIndex,
                     new LoiterInfo()
                     {
                         Node = node,
@@ -326,7 +360,7 @@ namespace MissionPlanner.Utilities
                     }
                 );
             }
-            return loiterInfoDict[nodeIndex];
+            return loiterInfoDict[node.MissionIndex];
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace MissionPlanner.Utilities.Mission
@@ -11,6 +12,20 @@ namespace MissionPlanner.Utilities.Mission
                    cmd.id == (ushort)MAVLink.MAV_CMD.LOITER_TIME ||
                    cmd.id == (ushort)MAVLink.MAV_CMD.LOITER_TURNS ||
                    cmd.id == (ushort)MAVLink.MAV_CMD.LOITER_TO_ALT;
+        }
+
+        public static bool IsTakeoff(Locationwp cmd)
+        {
+            return cmd.id == (ushort)MAVLink.MAV_CMD.TAKEOFF ||
+                   cmd.id == (ushort)MAVLink.MAV_CMD.TAKEOFF_LOCAL ||
+                   cmd.id == (ushort)MAVLink.MAV_CMD.VTOL_TAKEOFF;
+        }
+
+        public static bool IsLand(Locationwp cmd)
+        {
+            return cmd.id == (ushort)MAVLink.MAV_CMD.LAND ||
+                   cmd.id == (ushort)MAVLink.MAV_CMD.VTOL_LAND ||
+                   cmd.id == (ushort)MAVLink.MAV_CMD.LAND_LOCAL;
         }
 
         public static double LoiterRadius(Locationwp cmd, double defaultRadius)
@@ -48,14 +63,17 @@ namespace MissionPlanner.Utilities.Mission
         public static bool HasLocation(Locationwp cmd)
         {
             var command = cmd.id;
-            bool has_lat_lon = HasLatLon(cmd);
+            if (!HasLatLon(cmd))
+            {
+                return false;
+            }
             var mavCmdType = typeof(MAVLink.MAV_CMD);
             if (!Enum.IsDefined(mavCmdType, command))
-                return has_lat_lon; // unknown, assume positional if lat/lon present
+                return true; // unknown, assume positional if lat/lon present
             var name = ((MAVLink.MAV_CMD)command).ToString();
             var memberInfo = mavCmdType.GetMember(name).FirstOrDefault();
             if (memberInfo == null)
-                return has_lat_lon; // should not be possible
+                return true; // should not be possible
 
             return memberInfo
                 .GetCustomAttributes(false)
@@ -74,9 +92,6 @@ namespace MissionPlanner.Utilities.Mission
         {
             switch (cmd.id)
             {
-            case (ushort)MAVLink.MAV_CMD.LAND:
-            case (ushort)MAVLink.MAV_CMD.VTOL_LAND:
-            case (ushort)MAVLink.MAV_CMD.LAND_LOCAL:
             case (ushort)MAVLink.MAV_CMD.DO_RALLY_LAND:
             case (ushort)MAVLink.MAV_CMD.RETURN_TO_LAUNCH:
             case (ushort)MAVLink.MAV_CMD.DO_FLIGHTTERMINATION:
@@ -110,6 +125,13 @@ namespace MissionPlanner.Utilities.Mission
 
             // These commands terminate the flight, so even though some do not have a location, they get a node
             if (IsTerminal(cmd))
+            {
+                return true;
+            }
+
+            // Takeoffs don't have a lat/lon set, but they are still nodes
+            // (their location will be home or the immediately preceding land)
+            if (IsTakeoff(cmd))
             {
                 return true;
             }
@@ -185,6 +207,10 @@ namespace MissionPlanner.Utilities.Mission
 
         public static bool IsSplineStoppedCopter(Locationwp cmd)
         {
+            if (IsTakeoff(cmd) || IsLand(cmd))
+            {
+                return true;
+            }
             switch (cmd.id)
             {
             case (ushort)MAVLink.MAV_CMD.WAYPOINT:
@@ -192,13 +218,48 @@ namespace MissionPlanner.Utilities.Mission
             case (ushort)MAVLink.MAV_CMD.LOITER_TIME:
                 return cmd.p1 > 0;
             case (ushort)MAVLink.MAV_CMD.LOITER_TURNS:
-            case (ushort)MAVLink.MAV_CMD.TAKEOFF:
-            case (ushort)MAVLink.MAV_CMD.TAKEOFF_LOCAL:
             case (ushort)MAVLink.MAV_CMD.PAYLOAD_PLACE:
                 return true;
             default:
                 return false;
             }
+        }
+
+        public static PointLatLngAlt GetTakeoffLocation(MissionNode node, PointLatLngAlt home)
+        {
+            if (!IsTakeoff(node.Command))
+            {
+                throw new ArgumentException("Command is not a takeoff");
+            }
+            var prev_node = node.IncomingEdges?.FirstOrDefault()?.FromNode;
+            if (prev_node == null)
+            {
+                // Nothing leads to here, so just use home
+                return home;
+            }
+            if (!IsLand(prev_node.Command))
+            {
+                // Placing a takeoff right after a non-land command is undefined behavior (usually skipped).
+                // Null is better than home in this case.
+                return null;
+            }
+            // Last node was a land. Takeoff from there
+            if (HasLatLon(prev_node.Command))
+            {
+                return new PointLatLngAlt(prev_node.Command);
+            }
+            // If the land has no location, backtrack until we find one
+            var visited = new HashSet<int>();
+            while (prev_node != null && !visited.Contains(prev_node.MissionIndex) && !HasLatLon(prev_node.Command))
+            {
+                visited.Add(prev_node.MissionIndex);
+                prev_node = prev_node.IncomingEdges?.FirstOrDefault()?.FromNode;
+            }
+            if (prev_node == null || !HasLatLon(prev_node.Command))
+            {
+                return home;
+            }
+            return new PointLatLngAlt(prev_node.Command);
         }
 
         public static bool NeedsLoiterCapture(MissionNode dest, VehicleClass vehicleClass)
