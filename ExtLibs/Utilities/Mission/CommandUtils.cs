@@ -28,6 +28,11 @@ namespace MissionPlanner.Utilities.Mission
                    cmd.id == (ushort)MAVLink.MAV_CMD.LAND_LOCAL;
         }
 
+        public static bool IsReturnHome(Locationwp cmd)
+        {
+            return cmd.id == (ushort)MAVLink.MAV_CMD.RETURN_TO_LAUNCH;
+        }
+
         public static double LoiterRadius(Locationwp cmd, double defaultRadius)
         {
             switch (cmd.id)
@@ -260,24 +265,6 @@ namespace MissionPlanner.Utilities.Mission
                 return home;
             }
             return new PointLatLngAlt(prev_node.Command);
-        }
-
-        public static bool NeedsLoiterCapture(MissionNode dest, VehicleClass vehicleClass)
-        {
-            if (vehicleClass != VehicleClass.Plane)
-            {
-                return false;
-            }
-            return IsLoiter(dest.Command);
-        }
-
-        public static bool NeedsLoiterExit(MissionNode src, VehicleClass vehicleClass)
-        {
-            if (vehicleClass != VehicleClass.Plane)
-            {
-                return false;
-            }
-            return IsLoiter(src.Command) && !IsTerminal(src.Command);
         }
     }
 }
