@@ -22,15 +22,25 @@ namespace MissionPlanner.Utilities
             public SegmentKind Kind;              // Straight, Spline, LoiterArc, ArcTurn, etc.
             public bool IsPrimary;                // Primary or jump/alternate
             public MissionNode StartNode;
-            public MissionNode EndNode;           // Equal to StartNode for synthetic segments (like loiter arcs)
+            public MissionNode EndNode;           // null for synthetic segments (like loiter arcs)
             public List<PointLatLngAlt> Path;     // Always nonempty
             public PointLatLngAlt Midpoint;
+        }
+
+        sealed class LoiterInfo
+        {
+            public MissionNode Node;
+            public PointLatLngAlt Center;
+            public PointLatLngAlt EntryPoint;
+            public PointLatLngAlt ExitPoint;
+            public double Radius;
+            public bool IsClockwise;
         }
 
         static public List<Segment> BuildSegments(MissionGraph graph, VehicleClass vehicleClass, double loiterRadius)
         {
             var segments = new List<Segment>();
-            PointLatLngAlt loiterCapturePoint = null;
+            var loiterInfoDict = new Dictionary<int, LoiterInfo>();
             foreach (var edge in graph.Edges)
             {
                 var a = graph.Nodes[edge.FromNode];
@@ -42,62 +52,40 @@ namespace MissionPlanner.Utilities
                 }
 
                 PointLatLngAlt overrideSrcPos = null;
+                PointLatLngAlt overrideDestPos = null;
                 if (NeedsLoiterExit(a, vehicleClass))
                 {
-                    var center = new PointLatLngAlt(a.Command);
-                    var radius = LoiterRadius(a.Command, loiterRadius);
-                    bool isClockwise = radius >= 0;
-                    radius = Math.Abs(radius);
+                    var loiterInfo = EnsureLoiterInfo(ref loiterInfoDict, edge.FromNode, a, loiterRadius);
                     bool crosstrackTangent = LoiterXTrackTangent(a.Command);
 
                     var dest = new PointLatLngAlt(b.Command);
-                    var distance = center.GetDistance2(dest);
-                    var bearing = (distance > 1) ? center.GetBearing(dest) : 0.0;
+                    var distance = loiterInfo.Center.GetDistance2(dest);
+                    var bearing = (distance > 1) ? loiterInfo.Center.GetBearing(dest) : 0.0;
 
                     if (crosstrackTangent)
                     {
                         double bearingChange;
-                        if (distance < radius)
+                        if (distance < loiterInfo.Radius)
                         {
                             bearingChange = 0;
                         }
                         else
                         {
-                            bearingChange = Math.Acos(radius / distance) * (180.0 / Math.PI);
+                            bearingChange = Math.Acos(loiterInfo.Radius / distance) * (180.0 / Math.PI);
                         }
-                        if (isClockwise)
+                        if (loiterInfo.IsClockwise)
                         {
                             bearingChange = -bearingChange;
                         }
                         bearing += bearingChange;
                     }
-                    overrideSrcPos = center.newpos(bearing, radius);
-
-                    if (loiterCapturePoint != null)
-                    {
-                        segments.Add(
-                            new Segment
-                            {
-                                Kind = SegmentKind.LoiterArc,
-                                IsPrimary = true,
-                                StartNode = a,
-                                Path = GenerateLoiterArcPath(
-                                    center,
-                                    loiterCapturePoint,
-                                    overrideSrcPos,
-                                    radius,
-                                    isClockwise
-                                )
-                            }
-                        );
-                    }
-
-                    loiterCapturePoint = null;
+                    loiterInfo.ExitPoint = loiterInfo.Center.newpos(bearing, loiterInfo.Radius);
+                    overrideSrcPos = loiterInfo.ExitPoint;
                 }
                 double captureDistance = 0;
                 if (NeedsLoiterCapture(b, vehicleClass))
                 {
-                    captureDistance = Math.Abs(LoiterRadius(b.Command, loiterRadius));
+                    captureDistance = EnsureLoiterInfo(ref loiterInfoDict, edge.ToNode, b, loiterRadius).Radius;
                 }
 
                 SegmentKind kind = GetSegmentKind(a, b, vehicleClass);
@@ -107,26 +95,31 @@ namespace MissionPlanner.Utilities
                     case SegmentKind.Straight:
                     case SegmentKind.Unknown:
                     default:
-                        segments.Add(GenerateStraightSegment(graph, edge, overrideSrcPos, captureDistance));
+                        segments.Add(GenerateStraightSegment(graph, edge, overrideSrcPos, captureDistance, out overrideDestPos));
                         break;
                     case SegmentKind.Spline:
                         segments.AddRange(GenerateSplineSegments(graph, edge, overrideSrcPos));
                         break;
                     case SegmentKind.ArcTurn:
                         // TODO: generate arc turn segment
-                        segments.Add(GenerateStraightSegment(graph, edge, overrideSrcPos, captureDistance));
+                        segments.Add(GenerateStraightSegment(graph, edge, overrideSrcPos, captureDistance, out overrideDestPos));
                         break;
                 }
 
-                if (captureDistance > 0)
+                if (!edge.IsJump && overrideDestPos != null && loiterInfoDict.ContainsKey(edge.ToNode))
                 {
-                    loiterCapturePoint = segments.Last().Path.Last();
-                }
-                else
-                {
-                    loiterCapturePoint = null;
+                    loiterInfoDict[edge.ToNode].EntryPoint = overrideDestPos;
                 }
             }
+
+            foreach (var loiterInfo in loiterInfoDict.Values)
+            {
+                if (loiterInfo.EntryPoint != null && loiterInfo.ExitPoint != null)
+                {
+                    segments.Add(GenerateLoiterArcSegment(loiterInfo));
+                }
+            }
+
             return segments;
         }
 
@@ -154,22 +147,27 @@ namespace MissionPlanner.Utilities
             }
         }
 
-        static Segment GenerateStraightSegment(MissionGraph graph, MissionEdge edge, PointLatLngAlt overrideSrcPos, double captureDistance)
+        static Segment GenerateStraightSegment(MissionGraph graph, MissionEdge edge, PointLatLngAlt overrideSrcPos, double captureDistance, out PointLatLngAlt overrideDestPos)
         {
             var src = graph.Nodes[edge.FromNode];
             var dest = graph.Nodes[edge.ToNode];
             var srcPos = overrideSrcPos ?? new PointLatLngAlt(src.Command);
-            var destPos = new PointLatLngAlt(dest.Command);
             var distance = srcPos.GetDistance2(new PointLatLngAlt(dest.Command));
             var bearing = (distance > 1e-6) ? srcPos.GetBearing(new PointLatLngAlt(dest.Command)) : 0;
+            var destPos = new PointLatLngAlt(dest.Command);
             if (captureDistance > 0)
             {
                 // Shorten the segment to end at capture distance from dest
                 // (this also works if src is inside the capture distance; it turns around and extends out)
-                destPos = srcPos.newpos(bearing, distance - captureDistance);
-                distance = srcPos.GetDistance2(destPos);
+                overrideDestPos = srcPos.newpos(bearing, distance - captureDistance);
+                distance = srcPos.GetDistance2(overrideDestPos);
+                destPos = overrideDestPos;
             }
-            var segment = new Segment
+            else
+            {
+                overrideDestPos = null;
+            }
+            return new Segment
             {
                 Kind = SegmentKind.Straight,
                 IsPrimary = !edge.IsJump,
@@ -182,7 +180,6 @@ namespace MissionPlanner.Utilities
                 },
                 Midpoint = srcPos.newpos(bearing, distance / 2.0),
             };
-            return segment;
         }
 
         static List<Segment> GenerateSplineSegments(MissionGraph graph, MissionEdge edge, PointLatLngAlt overrideSrcPos)
@@ -280,15 +277,15 @@ namespace MissionPlanner.Utilities
             return segments;
         }
 
-        static List<PointLatLngAlt> GenerateLoiterArcPath(PointLatLngAlt center, PointLatLngAlt entryPoint, PointLatLngAlt exitPoint, double radius, bool isClockwise, int samples = 20)
+        static Segment GenerateLoiterArcSegment(LoiterInfo loiterInfo, int samples = 20)
         {
-            var bearing1 = center.GetBearing(entryPoint);
-            var bearing2 = center.GetBearing(exitPoint);
-            while (isClockwise && bearing2 <= (bearing1 - 15))
+            var bearing1 = loiterInfo.Center.GetBearing(loiterInfo.EntryPoint);
+            var bearing2 = loiterInfo.Center.GetBearing(loiterInfo.ExitPoint);
+            while (loiterInfo.IsClockwise && bearing2 <= (bearing1 + 15))
             {
                 bearing2 += 360.0;
             }
-            while (!isClockwise && bearing2 >= (bearing1 - 15))
+            while (!loiterInfo.IsClockwise && bearing2 >= (bearing1 - 15))
             {
                 bearing2 -= 360.0;
             }
@@ -296,10 +293,40 @@ namespace MissionPlanner.Utilities
             for (int i = 0; i <= samples; i++)
             {
                 double bearing = bearing1 + (bearing2 - bearing1) * (i / (double)samples);
-                var point = center.newpos(bearing, radius);
+                var point = loiterInfo.Center.newpos(bearing, loiterInfo.Radius);
                 path.Add(point);
             }
-            return path;
+
+            return new Segment()
+            {
+                Kind = SegmentKind.LoiterArc,
+                IsPrimary = true,
+                StartNode = loiterInfo.Node,
+                EndNode = null,
+                Path = path,
+                Midpoint = loiterInfo.Center.newpos((bearing1 + bearing2) / 2.0, loiterInfo.Radius),
+            };
+        }
+
+        static LoiterInfo EnsureLoiterInfo(ref Dictionary<int, LoiterInfo> loiterInfoDict, int nodeIndex, MissionNode node, double defaultLoiterRadius)
+        {
+            if (!loiterInfoDict.ContainsKey(nodeIndex))
+            {
+                var radius = LoiterRadius(node.Command, defaultLoiterRadius);
+                bool isClockwise = radius >= 0;
+                radius = Math.Abs(radius);
+                loiterInfoDict.Add(
+                    nodeIndex,
+                    new LoiterInfo()
+                    {
+                        Node = node,
+                        Center = new PointLatLngAlt(node.Command),
+                        Radius = radius,
+                        IsClockwise = isClockwise,
+                    }
+                );
+            }
+            return loiterInfoDict[nodeIndex];
         }
     }
 }

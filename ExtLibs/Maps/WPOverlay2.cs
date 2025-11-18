@@ -114,19 +114,27 @@ namespace MissionPlanner.Maps
                     // These markers are handled FlightPlanner to insert waypoints
                     if (showPlusMarkers && segment.IsPrimary && segment.Midpoint != null)
                     {
-                        var plusMarker = new GMapMarkerPlus(segment.Midpoint)
+                        var midLine = MakeMidlineObject(segment);
+                        if (midLine.HasValue)
                         {
-                            Tag = MakeMidlineObject(segment),
-                        };
-                        overlay.Markers.Add(plusMarker);
+                            var plusMarker = new GMapMarkerPlus(segment.Midpoint)
+                            {
+                                Tag = midLine.Value,
+                            };
+                            overlay.Markers.Add(plusMarker);
+                        }
                     }
                 }
             }
 
-            static midline MakeMidlineObject(MissionSegmentizer.Segment segment)
+            static midline? MakeMidlineObject(MissionSegmentizer.Segment segment)
             {
                 var startNode = segment.StartNode;
                 var endNode = segment.EndNode;
+                if (startNode == null || endNode == null)
+                {
+                    return null;
+                }
                 return new midline
                 {
                     now = new PointLatLngAlt(
