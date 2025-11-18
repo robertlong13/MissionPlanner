@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace MissionPlanner.Utilities.Mission
 {
-    public class CommandUtils
+    public static class CommandUtils
     {
         public static bool IsLoiter(Locationwp cmd)
         {
