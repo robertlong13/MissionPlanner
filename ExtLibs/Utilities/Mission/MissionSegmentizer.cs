@@ -172,11 +172,11 @@ namespace MissionPlanner.Utilities
             var dest = edge.ToNode;
             var srcPos = overrideSrcPos ?? new PointLatLngAlt(src.Command);
             var destPos = overrideDestPos ?? new PointLatLngAlt(dest.Command);
-            var distance = srcPos.GetDistance2(new PointLatLngAlt(dest.Command));
+            var distance = srcPos.GetDistance2(destPos);
             var midpoint = srcPos;
             if (distance > 1e-6)
             {
-                var bearing = srcPos.GetBearing(new PointLatLngAlt(dest.Command));
+                var bearing = srcPos.GetBearing(destPos);
                 midpoint = srcPos.newpos(bearing, distance / 2.0);
             }
             return new Segment
