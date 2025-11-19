@@ -206,7 +206,7 @@ namespace MissionPlanner.Utilities
             {
                 IncomingEdges = new List<MissionEdge> { null };
             }
-            var OutgoingEdges = src.OutgoingEdges;
+            var OutgoingEdges = dest.OutgoingEdges;
             if (OutgoingEdges.Count == 0)
             {
                 OutgoingEdges = new List<MissionEdge> { null };
@@ -216,37 +216,32 @@ namespace MissionPlanner.Utilities
             foreach (var inEdge in IncomingEdges)
             {
                 var prev = inEdge?.FromNode;
-                var startType = SplineEndpointType.Stop;
-                // This isn't perfect. If the previous command has no lat/lon, it takes the current
-                // position of the vehicle whenever this command is loaded. That is hard to handle
-                // (particularly with jumps) and is rare enough to be impractical to implement.
+                PointLatLngAlt prevPos = null;
                 if (prev != null && HasLatLon(prev.Command))
                 {
-                    if (IsSplineWP(src.Command))
-                    {
-                        startType = SplineEndpointType.Spline;
-                    }
-                    else if (!IsSplineStoppedCopter(src.Command))
-                    {
-                        startType = SplineEndpointType.Straight;
-                    }
+                    prevPos = new PointLatLngAlt(prev.Command);
+                }
+                if (prev != null && IsTakeoff(prev.Command))
+                {
+                    prevPos = GetTakeoffLocation(prev, graph.Home);
+                }
+                if (prevPos?.Lat == 0 && prevPos?.Lng == 0)
+                {
+                    prevPos = null;
+                }
+                var startType = SplineEndpointType.Stop;
+                if (!IsSplineStoppedCopter(src.Command) && prevPos != null)
+                {
+                    startType = IsSplineWP(src.Command) ? SplineEndpointType.Spline : SplineEndpointType.Straight;
                 }
                 foreach (var outEdge in OutgoingEdges)
                 {
                     var next = outEdge?.ToNode;
                     var endType = SplineEndpointType.Stop;
-                    if (next != null && !dest.IsTerminal && HasLatLon(next.Command))
+                    if (!IsSplineStoppedCopter(dest.Command) && next != null && HasLatLon(next.Command))
                     {
-                        if (IsSplineWP(next.Command))
-                        {
-                            endType = SplineEndpointType.Spline;
-                        }
-                        else if (!IsSplineStoppedCopter(dest.Command))
-                        {
-                            endType = SplineEndpointType.Straight;
-                        }
+                        endType = IsSplineWP(next.Command) ? SplineEndpointType.Spline : SplineEndpointType.Straight;
                     }
-                    var prevPos = prev != null ? new PointLatLngAlt(prev.Command) : null;
                     var nextPos = next != null ? new PointLatLngAlt(next.Command) : null;
                     var splineGenerator = new Spline3(
                         prevPos,
