@@ -179,6 +179,10 @@ namespace MissionPlanner.Utilities
                 var bearing = srcPos.GetBearing(destPos);
                 midpoint = srcPos.newpos(bearing, distance / 2.0);
             }
+            if (distance > 1e6)
+            {
+                Console.WriteLine("Uh oh");
+            }
             return new Segment
             {
                 Kind = SegmentKind.Straight,
@@ -243,6 +247,9 @@ namespace MissionPlanner.Utilities
                         endType = IsSplineWP(next.Command) ? SplineEndpointType.Spline : SplineEndpointType.Straight;
                     }
                     var nextPos = next != null ? new PointLatLngAlt(next.Command) : null;
+                    Console.WriteLine($"Generating spline from {src.MissionIndex + 1}: Type={startType} to {dest.MissionIndex + 1}: Type={endType}");
+                    Console.WriteLine($"  Prev: {(prev != null ? (prev.MissionIndex + 1).ToString() : "null")}");
+                    Console.WriteLine($"  Next: {(next != null ? (next.MissionIndex + 1).ToString() : "null")}");
                     var splineGenerator = new Spline3(
                         prevPos,
                         srcPos,
