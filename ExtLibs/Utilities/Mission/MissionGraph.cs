@@ -45,13 +45,46 @@ namespace MissionPlanner.Utilities.Mission
         public IReadOnlyList<MissionEdge> Edges { get; }
         public readonly PointLatLngAlt Home;
 
+        private readonly IReadOnlyList<MissionNode> firstAtOrAfter;
+        private readonly IReadOnlyList<MissionNode> lastAtOrBefore;
+
         public MissionGraph(List<MissionNode> nodes,
                             List<MissionEdge> edges,
-                            PointLatLngAlt home)
+                            PointLatLngAlt home,
+                            List<MissionNode> firstAtOrAfter,
+                            List<MissionNode> lastAtOrBefore)
         {
             Nodes = nodes;
             Edges = edges;
             Home = home;
+            this.firstAtOrAfter = firstAtOrAfter;
+            this.lastAtOrBefore = lastAtOrBefore;
+        }
+
+        public MissionNode FirstNodeAtOrAfter(int missionIndex)
+        {
+            if (missionIndex >= firstAtOrAfter.Count)
+            {
+                return null;
+            }
+            if (missionIndex < 0)
+            {
+                missionIndex = 0;
+            }
+            return firstAtOrAfter[missionIndex];
+        }
+
+        public MissionNode LastNodeAtOrBefore(int missionIndex)
+        {
+            if (missionIndex < 0)
+            {
+                return null;
+            }
+            if (missionIndex >= lastAtOrBefore.Count)
+            {
+                missionIndex = lastAtOrBefore.Count - 1;
+            }
+            return lastAtOrBefore[missionIndex];
         }
     }
 
@@ -62,8 +95,8 @@ namespace MissionPlanner.Utilities.Mission
             var nodes = new List<MissionNode>();
             var edges = new List<MissionEdge>();
 
-            // Map from mission index (0-based) to node
-            var missionToNode = new MissionNode[missionitems.Count];
+            // Map from mission index (0-based) to node indices
+            var missionToNode = new Dictionary<int, MissionNode>();
 
             var jumpTags = new Dictionary<int, int>(); // key=tag, value=mission index
             var landNodes = new List<MissionNode>();
@@ -113,6 +146,28 @@ namespace MissionPlanner.Utilities.Mission
                 node2.IncomingEdges.Add(edge);
             }
 
+            var firstAtOrAfter = new List<MissionNode>(new MissionNode[missionitems.Count]);
+            MissionNode next = null;
+            for (int i = missionitems.Count - 1; i >= 0; i--)
+            {
+                if (missionToNode.TryGetValue(i, out var node))
+                {
+                    next = node;
+                }
+                firstAtOrAfter[i] = next;
+            }
+
+            var lastAtOrBefore = new List<MissionNode>(new MissionNode[missionitems.Count]);
+            MissionNode last = null;
+            for (int i = 0; i < missionitems.Count; i++)
+            {
+                if (missionToNode.TryGetValue(i, out var node))
+                {
+                    last = node;
+                }
+                lastAtOrBefore[i] = last;
+            }
+
             // Jump edges
             for (int i = 0; i < missionitems.Count; i++)
             {
@@ -140,13 +195,13 @@ namespace MissionPlanner.Utilities.Mission
                     continue; // invalid target
                 }
 
-                var srcNode = FindLastNodeBeforeOrAt(i, missionToNode);
+                var srcNode = lastAtOrBefore[i];
                 if (srcNode == null)
                 {
                     continue; // source is not a node
                 }
 
-                var destNode = FindFirstNodeAtOrAfter(jumpTargetMissionIndex, missionToNode);
+                var destNode = firstAtOrAfter[jumpTargetMissionIndex];
                 if (destNode == null)
                 {
                     continue; // target is not a node
@@ -178,55 +233,7 @@ namespace MissionPlanner.Utilities.Mission
                 }
             }
 
-            return new MissionGraph(nodes, edges, home);
-        }
-
-        static MissionNode FindLastNodeBeforeOrAt(int missionIndex, MissionNode[] missionToNode)
-        {
-            if (missionToNode == null || missionToNode.Length == 0 || missionIndex < 0)
-            {
-                return null;
-            }
-
-            if (missionIndex >= missionToNode.Length)
-            {
-                missionIndex = missionToNode.Length - 1;
-            }
-
-            for (int i = missionIndex; i >= 0; i--)
-            {
-                var node = missionToNode[i];
-                if (node != null)
-                {
-                    return node;
-                }
-            }
-
-            return null;
-        }
-
-        static MissionNode FindFirstNodeAtOrAfter(int missionIndex, MissionNode[] missionToNode)
-        {
-            if (missionToNode == null || missionToNode.Length == 0 || missionIndex >= missionToNode.Length)
-            {
-                return null;
-            }
-
-            if (missionIndex < 0)
-            {
-                missionIndex = 0;
-            }
-
-            for (int i = missionIndex; i < missionToNode.Length; i++)
-            {
-                var node = missionToNode[i];
-                if (node != null)
-                {
-                    return node;
-                }
-            }
-
-            return null;
+            return new MissionGraph(nodes, edges, home, firstAtOrAfter, lastAtOrBefore);
         }
     }
 }
