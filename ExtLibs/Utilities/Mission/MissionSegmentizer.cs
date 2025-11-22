@@ -44,6 +44,7 @@ namespace MissionPlanner.Utilities
             public PointLatLngAlt Center;
             public double? EntryBearing;
             public double? ExitBearing;
+            public double? AltExitBearing;
             public double Radius;
             public bool IsClockwise;
         }
@@ -134,13 +135,69 @@ namespace MissionPlanner.Utilities
 
             foreach (var loiterInfo in loiterInfoDict.Values)
             {
-                if (loiterInfo.EntryBearing.HasValue && loiterInfo.ExitBearing.HasValue)
+                if (loiterInfo.EntryBearing.HasValue)
                 {
-                    segments.Add(GenerateLoiterArcSegment(loiterInfo));
+                    if (loiterInfo.ExitBearing.HasValue)
+                    {
+                        segments.Add(GenerateLoiterArcSegment(loiterInfo));
+                    }
+                    if (loiterInfo.AltExitBearing.HasValue)
+                    {
+                        //segments.Add(GenerateLoiterArcSegment(loiterInfo, isAlt: true));
+                    }
                 }
             }
 
             return segments;
+        }
+
+        static void UpdateLoiterInfoExits(ref LoiterInfo loiterInfo, double? exitBearing, bool isJump)
+        {
+            if (!isJump)
+            {
+                loiterInfo.ExitBearing = exitBearing;
+                return;
+            }
+            if (!loiterInfo.EntryBearing.HasValue || !exitBearing.HasValue)
+            {
+                return;
+            }
+            // Track the furthest alternate exit bearing from the entry bearing
+            double maxAngleDiff = 0.0;
+            if (loiterInfo.ExitBearing.HasValue)
+            {
+                maxAngleDiff = Math.Max(
+                    maxAngleDiff,
+                    GetAngleDiff(loiterInfo.EntryBearing.Value, loiterInfo.ExitBearing.Value, loiterInfo.IsClockwise, false)
+                );
+            }
+            if (loiterInfo.AltExitBearing.HasValue)
+            {
+                maxAngleDiff = Math.Max(
+                    maxAngleDiff,
+                    GetAngleDiff(loiterInfo.EntryBearing.Value, loiterInfo.AltExitBearing.Value, loiterInfo.IsClockwise, true)
+                );
+            }
+            double angleDiff = GetAngleDiff(loiterInfo.EntryBearing.Value, exitBearing.Value, loiterInfo.IsClockwise, true);
+            if (angleDiff > maxAngleDiff)
+            {
+                loiterInfo.AltExitBearing = exitBearing;
+            }
+        }
+
+        static double GetAngleDiff(double entryBearing, double exitBearing, bool isClockwise, bool isAlt)
+        {
+            double sign = isClockwise ? 1.0 : -1.0;
+            while (sign * exitBearing < sign * entryBearing)
+            {
+                exitBearing += sign * 360.0;
+            }
+            var angleDiff = Math.Abs(exitBearing - entryBearing);
+            if (!isAlt && angleDiff < 15)
+            {
+                angleDiff += 360;
+            }
+            return angleDiff;
         }
 
         static bool TryGetSegmentKind(MissionNode src, MissionNode dest, VehicleClass vehicleClass, out SegmentKind kind)
@@ -311,22 +368,17 @@ namespace MissionPlanner.Utilities
             return segments;
         }
 
-        static Segment GenerateLoiterArcSegment(LoiterInfo loiterInfo, int samples = 20)
+        static Segment GenerateLoiterArcSegment(LoiterInfo loiterInfo, bool isAlt = false, int samplesPerTurn = 40)
         {
-            var bearing1 = loiterInfo.EntryBearing.Value;
-            var bearing2 = loiterInfo.ExitBearing.Value;
-            while (loiterInfo.IsClockwise && bearing2 <= (bearing1 + 15))
-            {
-                bearing2 += 360.0;
-            }
-            while (!loiterInfo.IsClockwise && bearing2 >= (bearing1 - 15))
-            {
-                bearing2 -= 360.0;
-            }
+            var bearing1 = (isAlt && loiterInfo.ExitBearing.HasValue) ? loiterInfo.ExitBearing.Value : loiterInfo.EntryBearing.Value;
+            var bearing2 = isAlt ? loiterInfo.AltExitBearing.Value : loiterInfo.ExitBearing.Value;
+            var angle_diff = GetAngleDiff(bearing1, bearing2, loiterInfo.IsClockwise, isAlt);
+            int samples = (int)(samplesPerTurn * angle_diff / 360.0) + 2;
+            if (!loiterInfo.IsClockwise) angle_diff *= -1;
             var path = new List<PointLatLngAlt>();
             for (int i = 0; i <= samples; i++)
             {
-                double bearing = bearing1 + (bearing2 - bearing1) * (i / (double)samples);
+                double bearing = bearing1 + angle_diff * (i / (double)samples);
                 var point = loiterInfo.Center.newpos(bearing, loiterInfo.Radius);
                 path.Add(point);
             }
@@ -334,7 +386,7 @@ namespace MissionPlanner.Utilities
             return new Segment()
             {
                 Kind = SegmentKind.LoiterArc,
-                Flags = SegmentFlags.None,
+                Flags = isAlt ? SegmentFlags.Alternate : SegmentFlags.None,
                 StartNode = loiterInfo.Node,
                 EndNode = null,
                 Path = path,
