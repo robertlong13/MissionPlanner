@@ -169,7 +169,7 @@ namespace MissionPlanner.Utilities.Mission
             switch (cmd.id)
             {
             case (ushort)MAVLink.MAV_CMD.DO_JUMP:
-                jumpTarget = (int)cmd.p1;
+                jumpTarget = (int)cmd.p1 - 1;
                 return true;
             case (ushort)MAVLink.MAV_CMD.DO_JUMP_TAG:
                 return jumpTags.TryGetValue((int)cmd.p1, out jumpTarget);

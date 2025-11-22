@@ -67,8 +67,7 @@ namespace MissionPlanner.Utilities
                 if (NeedsLoiterExit(a, vehicleClass))
                 {
                     var loiterInfo = EnsureLoiterInfo(ref loiterInfoDict, a, loiterRadius);
-                    loiterInfoDict.TryGetValue(b.MissionIndex, out var destLoiterInfo);
-                    var exitBearing = GetLoiterExitBearing(a, b, loiterInfo, destLoiterInfo);
+                    var exitBearing = GetLoiterExitBearing(a, b, loiterInfo);
                     if (!edge.IsJump)
                     {
                         loiterInfo.ExitBearing = exitBearing;
@@ -81,8 +80,7 @@ namespace MissionPlanner.Utilities
                 if (NeedsLoiterCapture(b, vehicleClass))
                 {
                     var loiterInfo = EnsureLoiterInfo(ref loiterInfoDict, b, loiterRadius);
-                    loiterInfoDict.TryGetValue(a.MissionIndex, out var srcLoiterInfo);
-                    var entryBearing = GetLoiterEntryBearing(a, loiterInfo, srcLoiterInfo);
+                    var entryBearing = GetLoiterEntryBearing(a, loiterInfo, overrideSrcPos);
                     if (!edge.IsJump)
                     {
                         loiterInfo.EntryBearing = entryBearing;
@@ -383,7 +381,7 @@ namespace MissionPlanner.Utilities
             return IsLoiter(src.Command) && !IsTerminal(src.Command);
         }
 
-        static double? GetLoiterExitBearing(MissionNode srcNode, MissionNode destNode, LoiterInfo loiterInfo, LoiterInfo destLoiterInfo)
+        static double? GetLoiterExitBearing(MissionNode srcNode, MissionNode destNode, LoiterInfo loiterInfo)
         {
             bool crosstrackTangent = LoiterXTrackTangent(srcNode.Command);
 
@@ -419,12 +417,12 @@ namespace MissionPlanner.Utilities
             return bearing;
         }
 
-        static double? GetLoiterEntryBearing(MissionNode srcNode, LoiterInfo loiterInfo, LoiterInfo srcLoiterInfo)
+        static double? GetLoiterEntryBearing(MissionNode srcNode, LoiterInfo loiterInfo, PointLatLngAlt overrideSrcPos)
         {
             var srcPos = new PointLatLngAlt(srcNode.Command);
-            if (srcLoiterInfo?.ExitBearing != null)
+            if (overrideSrcPos != null)
             {
-                srcPos = srcLoiterInfo.Center.newpos(srcLoiterInfo.ExitBearing.Value, srcLoiterInfo.Radius);
+                srcPos = overrideSrcPos;
             }
             var distance = loiterInfo.Center.GetDistance2(srcPos);
             var bearing = (distance > 1e-6) ? loiterInfo.Center.GetBearing(srcPos) : 0.0;
