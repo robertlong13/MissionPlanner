@@ -54,6 +54,7 @@ using MissionPlanner.ArduPilot.Mavlink;
 using System.Drawing.Imaging;
 using SharpKml.Engine;
 using MissionPlanner.Controls.Waypoints;
+using MissionPlanner.Utilities.Mission;
 
 namespace MissionPlanner.GCSViews
 {
@@ -7646,7 +7647,10 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
                             else if ((MAVLink.MAV_MISSION_TYPE) cmb_missiontype.SelectedValue ==
                                      MAVLink.MAV_MISSION_TYPE.MISSION)
                             {
-
+                                while (pnt2 > 1 && CommandUtils.IsBookmark(GetCommandList()[pnt2 - 2]))
+                                {
+                                    pnt2 -= 1;
+                                }
                                 InsertCommand(pnt2 - 1, MAVLink.MAV_CMD.WAYPOINT, 0, 0, 0, 0,
                                     CurrentMidLine.Position.Lng,
                                     CurrentMidLine.Position.Lat, float.Parse(TXT_DefaultAlt.Text));
