@@ -34,14 +34,15 @@ namespace MissionPlanner.Utilities
             public MissionNode EndNode;         // null for things like loiter arcs
             public List<PointLatLngAlt> Path;
             public PointLatLngAlt Midpoint;
+            public double Distance;
         }
 
         sealed class LoiterInfo
         {
             public MissionNode Node;
             public PointLatLngAlt Center;
-            public PointLatLngAlt EntryPoint;
-            public PointLatLngAlt ExitPoint;
+            public double? EntryBearing;
+            public double? ExitBearing;
             public double Radius;
             public bool IsClockwise;
         }
@@ -65,19 +66,29 @@ namespace MissionPlanner.Utilities
                 if (NeedsLoiterExit(a, vehicleClass))
                 {
                     var loiterInfo = EnsureLoiterInfo(ref loiterInfoDict, a, loiterRadius);
-                    overrideSrcPos = GetLoiterExit(a, b, loiterInfo);
+                    loiterInfoDict.TryGetValue(b.MissionIndex, out var destLoiterInfo);
+                    var exitBearing = GetLoiterExitBearing(a, b, loiterInfo, destLoiterInfo);
                     if (!edge.IsJump)
                     {
-                        loiterInfo.ExitPoint = overrideSrcPos;
+                        loiterInfo.ExitBearing = exitBearing;
+                    }
+                    if (exitBearing.HasValue)
+                    {
+                        overrideSrcPos = loiterInfo.Center.newpos(exitBearing.Value, loiterInfo.Radius);
                     }
                 }
                 if (NeedsLoiterCapture(b, vehicleClass))
                 {
                     var loiterInfo = EnsureLoiterInfo(ref loiterInfoDict, b, loiterRadius);
-                    overrideDestPos = GetLoiterEntry(a, loiterInfo);
+                    loiterInfoDict.TryGetValue(a.MissionIndex, out var srcLoiterInfo);
+                    var entryBearing = GetLoiterEntryBearing(a, loiterInfo, srcLoiterInfo);
                     if (!edge.IsJump)
                     {
-                        loiterInfo.EntryPoint = overrideDestPos;
+                        loiterInfo.EntryBearing = entryBearing;
+                    }
+                    if (entryBearing.HasValue)
+                    {
+                        overrideDestPos = loiterInfo.Center.newpos(entryBearing.Value, loiterInfo.Radius);
                     }
                 }
 
@@ -100,8 +111,8 @@ namespace MissionPlanner.Utilities
                     overrideDestPos = new PointLatLngAlt(graph.Home);
                     flags |= SegmentFlags.ToHome;
                 }
-                if ((!HasLatLon(a.Command) && overrideSrcPos == null) ||
-                    (!HasLatLon(b.Command) && overrideDestPos == null))
+                if ((!HasLocation(a.Command) && overrideSrcPos == null) ||
+                    (!HasLocation(b.Command) && overrideDestPos == null))
                 {
                     continue;
                 }
@@ -120,16 +131,11 @@ namespace MissionPlanner.Utilities
                         segments.Add(GenerateStraightSegment(graph, edge, flags, overrideSrcPos, overrideDestPos));
                         break;
                 }
-
-                if (!edge.IsJump && overrideDestPos != null && loiterInfoDict.ContainsKey(edge.ToNode.MissionIndex))
-                {
-                    loiterInfoDict[edge.ToNode.MissionIndex].EntryPoint = overrideDestPos;
-                }
             }
 
             foreach (var loiterInfo in loiterInfoDict.Values)
             {
-                if (loiterInfo.EntryPoint != null && loiterInfo.ExitPoint != null)
+                if (loiterInfo.EntryBearing.HasValue && loiterInfo.ExitBearing.HasValue)
                 {
                     segments.Add(GenerateLoiterArcSegment(loiterInfo));
                 }
@@ -195,6 +201,7 @@ namespace MissionPlanner.Utilities
                     destPos
                 },
                 Midpoint = midpoint,
+                Distance = distance,
             };
         }
 
@@ -221,7 +228,7 @@ namespace MissionPlanner.Utilities
             {
                 var prev = inEdge?.FromNode;
                 PointLatLngAlt prevPos = null;
-                if (prev != null && HasLatLon(prev.Command))
+                if (prev != null && HasLocation(prev.Command))
                 {
                     prevPos = new PointLatLngAlt(prev.Command);
                 }
@@ -236,15 +243,29 @@ namespace MissionPlanner.Utilities
                 var startType = SplineEndpointType.Stop;
                 if (!IsSplineStoppedCopter(src.Command) && prevPos != null)
                 {
-                    startType = IsSplineWP(src.Command) ? SplineEndpointType.Spline : SplineEndpointType.Straight;
+                    if (src.Command.id == (ushort)MAVLink.MAV_CMD.SPLINE_WAYPOINT)
+                    {
+                        startType = SplineEndpointType.Spline;
+                    }
+                    else
+                    {
+                        startType = SplineEndpointType.Straight;
+                    }
                 }
                 foreach (var outEdge in OutgoingEdges)
                 {
                     var next = outEdge?.ToNode;
                     var endType = SplineEndpointType.Stop;
-                    if (!IsSplineStoppedCopter(dest.Command) && next != null && HasLatLon(next.Command))
+                    if (!IsSplineStoppedCopter(dest.Command) && next != null && HasLocation(next.Command))
                     {
-                        endType = IsSplineWP(next.Command) ? SplineEndpointType.Spline : SplineEndpointType.Straight;
+                        if (next.Command.id == (ushort)MAVLink.MAV_CMD.SPLINE_WAYPOINT)
+                        {
+                            endType = SplineEndpointType.Spline;
+                        }
+                        else
+                        {
+                            endType = SplineEndpointType.Straight;
+                        }
                     }
                     var nextPos = next != null ? new PointLatLngAlt(next.Command) : null;
                     Console.WriteLine($"Generating spline from {src.MissionIndex + 1}: Type={startType} to {dest.MissionIndex + 1}: Type={endType}");
@@ -292,8 +313,8 @@ namespace MissionPlanner.Utilities
 
         static Segment GenerateLoiterArcSegment(LoiterInfo loiterInfo, int samples = 20)
         {
-            var bearing1 = loiterInfo.Center.GetBearing(loiterInfo.EntryPoint);
-            var bearing2 = loiterInfo.Center.GetBearing(loiterInfo.ExitPoint);
+            var bearing1 = loiterInfo.EntryBearing.Value;
+            var bearing2 = loiterInfo.ExitBearing.Value;
             while (loiterInfo.IsClockwise && bearing2 <= (bearing1 + 15))
             {
                 bearing2 += 360.0;
@@ -360,11 +381,12 @@ namespace MissionPlanner.Utilities
             return IsLoiter(src.Command) && !IsTerminal(src.Command);
         }
 
-        static PointLatLngAlt GetLoiterExit(MissionNode srcNode, MissionNode destNode, LoiterInfo loiterInfo)
+        static double? GetLoiterExitBearing(MissionNode srcNode, MissionNode destNode, LoiterInfo loiterInfo, LoiterInfo destLoiterInfo)
         {
             bool crosstrackTangent = LoiterXTrackTangent(srcNode.Command);
 
             var destPoint = new PointLatLngAlt(destNode.Command);
+           
             var distance = loiterInfo.Center.GetDistance2(destPoint);
 
             // If the next point is exactly at the loiter center, just assume it's North
@@ -376,7 +398,7 @@ namespace MissionPlanner.Utilities
             {
                 // When the destination is inside the loiter circle, we can't exit tangentially,
                 // The alternative calculation is best explained in this PR: https://github.com/ArduPilot/ardupilot/pull/26102
-                bearingChange = 2 * Math.Asin((loiterInfo.Radius - distance) / loiterInfo.Radius) * (180.0 / Math.PI);
+                bearingChange = 2 * Math.Asin((loiterInfo.Radius - distance) / loiterInfo.Radius / 2) * (180.0 / Math.PI);
             }
             else if (crosstrackTangent)
             {
@@ -392,21 +414,19 @@ namespace MissionPlanner.Utilities
                 bearingChange = -bearingChange;
             }
             bearing += bearingChange;
-            return loiterInfo.Center.newpos(bearing, loiterInfo.Radius);
+            return bearing;
         }
 
-        static PointLatLngAlt GetLoiterEntry(MissionNode srcNode, LoiterInfo loiterInfo)
+        static double? GetLoiterEntryBearing(MissionNode srcNode, LoiterInfo loiterInfo, LoiterInfo srcLoiterInfo)
         {
             var srcPos = new PointLatLngAlt(srcNode.Command);
-            var distance = loiterInfo.Center.GetDistance2(srcPos);
-            if (distance < 1e-6)
+            if (srcLoiterInfo?.ExitBearing != null)
             {
-                return new PointLatLngAlt(loiterInfo.Center);
+                srcPos = srcLoiterInfo.Center.newpos(srcLoiterInfo.ExitBearing.Value, srcLoiterInfo.Radius);
             }
-            var bearing = srcPos.GetBearing(loiterInfo.Center);
-            // Shorten the segment to end at capture distance from dest
-            // (this also works if src is inside circle, as the distance will be negative along the bearing)
-            return srcPos.newpos(bearing, distance - loiterInfo.Radius);
+            var distance = loiterInfo.Center.GetDistance2(srcPos);
+            var bearing = (distance > 1e-6) ? loiterInfo.Center.GetBearing(srcPos) : 0.0;
+            return bearing;
         }
     }
 }

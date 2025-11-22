@@ -39,10 +39,25 @@ namespace MissionPlanner.Utilities.Mission
         }
     }
 
+    public sealed class MissionBookmark
+    {
+        public int MissionIndex { get; }
+        public Locationwp Command { get; }
+        public MissionNode Target { get; }
+
+        public MissionBookmark(int missionIndex, Locationwp command, MissionNode target)
+        {
+            MissionIndex = missionIndex;
+            Command = command;
+            Target = target;
+        }
+    }
+
     public sealed class MissionGraph
     {
         public IReadOnlyList<MissionNode> Nodes { get; }
         public IReadOnlyList<MissionEdge> Edges { get; }
+        public IReadOnlyList<MissionBookmark> Bookmarks { get; }
         public readonly PointLatLngAlt Home;
 
         private readonly IReadOnlyList<MissionNode> firstAtOrAfter;
@@ -50,12 +65,14 @@ namespace MissionPlanner.Utilities.Mission
 
         public MissionGraph(List<MissionNode> nodes,
                             List<MissionEdge> edges,
+                            List<MissionBookmark> bookmarks,
                             PointLatLngAlt home,
                             List<MissionNode> firstAtOrAfter,
                             List<MissionNode> lastAtOrBefore)
         {
             Nodes = nodes;
             Edges = edges;
+            Bookmarks = bookmarks;
             Home = home;
             this.firstAtOrAfter = firstAtOrAfter;
             this.lastAtOrBefore = lastAtOrBefore;
@@ -94,6 +111,7 @@ namespace MissionPlanner.Utilities.Mission
         {
             var nodes = new List<MissionNode>();
             var edges = new List<MissionEdge>();
+            var bookmarks = new List<MissionBookmark>();
 
             // Map from mission index (0-based) to node indices
             var missionToNode = new Dictionary<int, MissionNode>();
@@ -117,9 +135,9 @@ namespace MissionPlanner.Utilities.Mission
                         landNodes.Add(node);
                     }
                 }
-                if (IsJumpTag(cmd))
+                if (cmd.id == (ushort)MAVLink.MAV_CMD.JUMP_TAG)
                 {
-                    jumpTags[GetJumpTag(cmd)] = i;
+                    jumpTags[(int)cmd.p1] = i;
                 }
                 if (IsJumpCommand(cmd) && GetJumpCount(cmd) < 0 && nodes.Count > 0)
                 {
@@ -155,6 +173,10 @@ namespace MissionPlanner.Utilities.Mission
                     next = node;
                 }
                 firstAtOrAfter[i] = next;
+                if (IsBookmark(missionitems[i]))
+                {
+                    bookmarks.Add(new MissionBookmark(i, missionitems[i], next));
+                }
             }
 
             var lastAtOrBefore = new List<MissionNode>(new MissionNode[missionitems.Count]);
@@ -172,20 +194,7 @@ namespace MissionPlanner.Utilities.Mission
             for (int i = 0; i < missionitems.Count; i++)
             {
                 var item = missionitems[i];
-                int jumpTargetMissionIndex;
-                if (IsDoJump(item))
-                {
-                    jumpTargetMissionIndex = GetJumpTarget(item) - 1; // p1 is 1-based seq
-                }
-                else if (IsDoJumpTag(item))
-                {
-                    var tag = GetJumpTarget(item);
-                    if (!jumpTags.TryGetValue(tag, out jumpTargetMissionIndex))
-                    {
-                        continue; // invalid tag
-                    }
-                }
-                else
+                if (!IsJumpCommand(item) || GetJumpCount(item) == 0 || !TryGetJumpTarget(item, jumpTags, out int jumpTargetMissionIndex))
                 {
                     continue; // not a jump
                 }
@@ -209,7 +218,7 @@ namespace MissionPlanner.Utilities.Mission
 
                 if (IsLand(srcNode.Command) && !IsTakeoff(destNode.Command))
                 {
-                    continue;
+                    continue; // Landing without a subsequent takeoff, is considered terminal; do not count this as a valid edge.
                 }
 
                 int jumpRepeat = GetJumpCount(item);
@@ -233,7 +242,7 @@ namespace MissionPlanner.Utilities.Mission
                 }
             }
 
-            return new MissionGraph(nodes, edges, home, firstAtOrAfter, lastAtOrBefore);
+            return new MissionGraph(nodes, edges, bookmarks, home, firstAtOrAfter, lastAtOrBefore);
         }
     }
 }

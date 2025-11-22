@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using GMap.NET.WindowsForms.Markers;
 
 namespace MissionPlanner.Maps
 {
@@ -49,7 +50,7 @@ namespace MissionPlanner.Maps
 
             // 4) Render markers and segments to overlay
             MissionRenderer.RenderMarkers(overlay, graph, wpradius, loiterradius, altunitmultiplier);
-            MissionRenderer.RenderSegments(overlay, segments, ShowPlusMarkers);
+            MissionRenderer.RenderSegments(overlay, segments, loiterradius, ShowPlusMarkers);
         }
 
         public sealed class MissionRenderer
@@ -77,7 +78,7 @@ namespace MissionPlanner.Maps
 
                 foreach (var node in graph.Nodes)
                 {
-                    if (!HasLatLon(node.Command))
+                    if (!HasLocation(node.Command))
                     {
                         continue;
                     }
@@ -100,11 +101,56 @@ namespace MissionPlanner.Maps
                     overlay.Markers.Add(marker);
                     overlay.Markers.Add(mBorders);
                 }
+
+                foreach (var bookmark in graph.Bookmarks)
+                {
+                    PointLatLng point = GetBookmarkLocation(bookmark);
+                    if (point.IsEmpty)
+                    {
+                        continue;
+                    }
+                    string label = GetBookmarkLabel(bookmark);
+                    var marker = new GMapMarkerWP(point, label, type: GMarkerGoogleType.orange)
+                    {
+                        ToolTipMode = MarkerTooltipMode.OnMouseOver,
+                        ToolTipText = "",
+                        // "Tag" lets FlightPlanner identify which command to update during drag
+                        Tag = HasLocation(bookmark.Command) ? PointTag(bookmark.MissionIndex) : PointTag(bookmark.Target.MissionIndex)
+                    };
+                    overlay.Markers.Add(marker);
+                    if (HasLocation(bookmark.Command))
+                    {
+                        var mBorders = new GMapMarkerRect(point)
+                        {
+                            InnerMarker = marker,
+                            Tag = marker.Tag,
+                            wprad = 0, // no radius for bookmark markers
+                        };
+                        overlay.Markers.Add(mBorders);
+                    }
+                    // Render a thin segment to the target marker
+                    if (bookmark.Target != null && HasLocation(bookmark.Command) && HasLocation(bookmark.Target.Command))
+                    {
+                        var route = new GMapRoute(new List<PointLatLng>
+                        {
+                            new PointLatLng(bookmark.Command.lat, bookmark.Command.lng),
+                            new PointLatLng(bookmark.Target.Command.lat, bookmark.Target.Command.lng),
+                        }, "bookmark-segment")
+                        {
+                            Stroke = new Pen(Color.Orange, 2)
+                            {
+                                DashStyle = DashStyle.Dash,
+                            },
+                        };
+                        overlay.Routes.Add(route);
+                    }
+                }
             }
 
             public static void RenderSegments(
                 GMapOverlay overlay,
                 List<MissionSegmentizer.Segment> segments,
+                double loiterradius,
                 bool showPlusMarkers)
             {
                 foreach (var segment in segments)
@@ -127,13 +173,19 @@ namespace MissionPlanner.Maps
                     };
                     overlay.Routes.Add(route);
 
-                    // These markers are handled FlightPlanner to insert waypoints
+                    // These markers are handled by FlightPlanner.cs to insert waypoints
                     if (showPlusMarkers && 
                         !isAlternate &&
                         segment.StartNode != null &&
                         segment.EndNode != null &&
                         segment.Midpoint != null)
                     {
+                        // Skip plus marker for short segments to/from loiters
+                        if ((IsLoiter(segment.StartNode.Command) && 1000 * route.Distance < Math.Abs(LoiterRadius(segment.StartNode.Command, loiterradius) / 4)) ||
+                            (IsLoiter(segment.EndNode.Command) && 1000 * route.Distance < Math.Abs(LoiterRadius(segment.EndNode.Command, loiterradius) / 4)))
+                        {
+                            continue;
+                        }
                         var midLine = MakeMidlineObject(segment);
                         var plusMarker = new GMapMarkerPlus(segment.Midpoint)
                         {
@@ -148,6 +200,7 @@ namespace MissionPlanner.Maps
             {
                 var startNode = segment.StartNode;
                 var endNode = segment.EndNode;
+                int endIndex = endNode.MissionIndex;
                 return new midline
                 {
                     now = new PointLatLngAlt(
@@ -168,6 +221,36 @@ namespace MissionPlanner.Maps
             static string PointTag(int index)
             {
                 return (index < 0) ? "H" : (index + 1).ToString();
+            }
+        }
+
+        static PointLatLng GetBookmarkLocation(MissionBookmark bookmark)
+        {
+            if (HasLocation(bookmark.Command))
+            {
+                return new PointLatLng(bookmark.Command.lat, bookmark.Command.lng);
+            }
+            else if (HasLocation(bookmark.Target.Command))
+            {
+                return new PointLatLng(bookmark.Target.Command.lat, bookmark.Target.Command.lng);
+            }
+            return PointLatLng.Empty;
+        }
+
+        static string GetBookmarkLabel(MissionBookmark bookmark)
+        {
+            switch (bookmark.Command.id)
+            {
+            case (ushort)MAVLink.MAV_CMD.JUMP_TAG:
+                return "T" + ((int)bookmark.Command.p1).ToString();
+            case (ushort)MAVLink.MAV_CMD.DO_LAND_START:
+                return "LS";
+            case (ushort)MAVLink.MAV_CMD.DO_RETURN_PATH_START:
+                return "RP";
+            case (ushort)MAVLink.MAV_CMD.DO_GO_AROUND:
+                return "GA";
+            default:
+                return "";
             }
         }
 

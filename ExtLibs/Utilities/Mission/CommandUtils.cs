@@ -72,6 +72,12 @@ namespace MissionPlanner.Utilities.Mission
             {
                 return false;
             }
+            if (command == (ushort)MAVLink.MAV_CMD.DO_GO_AROUND)
+            {
+                // ArduPilot violates the spec and treats this as a positional bookmark
+                // (like DO_LAND_START and DO_RETURN_PATH_START)
+                return true;
+            }
             var mavCmdType = typeof(MAVLink.MAV_CMD);
             if (!Enum.IsDefined(mavCmdType, command))
                 return true; // unknown, assume positional if lat/lon present
@@ -86,7 +92,7 @@ namespace MissionPlanner.Utilities.Mission
                 .Any();
         }
 
-        public static bool HasLatLon(Locationwp cmd)
+        static bool HasLatLon(Locationwp cmd)
         {
             return !(cmd.lat == 0 && cmd.lng == 0) &&
                    !double.IsNaN(cmd.lat) &&
@@ -150,57 +156,37 @@ namespace MissionPlanner.Utilities.Mission
             return false;
         }
 
-        public static bool IsDoJump(Locationwp cmd)
+        public static bool IsBookmark(Locationwp cmd)
         {
-            return cmd.id == (ushort)MAVLink.MAV_CMD.DO_JUMP;
+            return cmd.id == (ushort)MAVLink.MAV_CMD.JUMP_TAG ||
+                cmd.id == (ushort)MAVLink.MAV_CMD.DO_LAND_START ||
+                cmd.id == (ushort)MAVLink.MAV_CMD.DO_RETURN_PATH_START ||
+                cmd.id == (ushort)MAVLink.MAV_CMD.DO_GO_AROUND;
         }
 
-        public static bool IsSplineWP(Locationwp cmd)
+        public static bool TryGetJumpTarget(Locationwp cmd, Dictionary<int, int> jumpTags, out int jumpTarget)
         {
-            return cmd.id == (ushort)MAVLink.MAV_CMD.SPLINE_WAYPOINT;
-        }
-
-        public static int GetJumpTarget(Locationwp cmd)
-        {
-            if (IsJumpCommand(cmd))
+            switch (cmd.id)
             {
-                return (int)cmd.p1;
-            }
-            else
-            {
+            case (ushort)MAVLink.MAV_CMD.DO_JUMP:
+                jumpTarget = (int)cmd.p1;
+                return true;
+            case (ushort)MAVLink.MAV_CMD.DO_JUMP_TAG:
+                return jumpTags.TryGetValue((int)cmd.p1, out jumpTarget);
+            default:
                 throw new ArgumentException("Command is not a jump");
-            }
-        }
-
-        public static bool IsDoJumpTag(Locationwp cmd)
-        {
-            return cmd.id == (ushort)MAVLink.MAV_CMD.DO_JUMP_TAG;
-        }
-        public static bool IsJumpTag(Locationwp cmd)
-        {
-            return cmd.id == (ushort)MAVLink.MAV_CMD.JUMP_TAG;
-        }
-
-        public static int GetJumpTag(Locationwp cmd)
-        {
-            if (IsJumpTag(cmd))
-            {
-                return (int)cmd.p1;
-            }
-            else
-            {
-                throw new ArgumentException("Command is not a jump tag");
             }
         }
 
         public static bool IsJumpCommand(Locationwp cmd)
         {
-            return IsDoJump(cmd) || IsDoJumpTag(cmd);
+            return cmd.id == (ushort)MAVLink.MAV_CMD.DO_JUMP ||
+                   cmd.id == (ushort)MAVLink.MAV_CMD.DO_JUMP_TAG;
         }
 
         public static int GetJumpCount(Locationwp cmd)
         {
-            if (IsDoJump(cmd))
+            if (IsJumpCommand(cmd))
             {
                 return (int)cmd.p2;
             }
@@ -249,18 +235,18 @@ namespace MissionPlanner.Utilities.Mission
                 return null;
             }
             // Last node was a land. Takeoff from there
-            if (HasLatLon(prev_node.Command))
+            if (HasLocation(prev_node.Command))
             {
                 return new PointLatLngAlt(prev_node.Command);
             }
             // If the land has no location, backtrack until we find one
             var visited = new HashSet<int>();
-            while (prev_node != null && !visited.Contains(prev_node.MissionIndex) && !HasLatLon(prev_node.Command))
+            while (prev_node != null && !visited.Contains(prev_node.MissionIndex) && !HasLocation(prev_node.Command))
             {
                 visited.Add(prev_node.MissionIndex);
                 prev_node = prev_node.IncomingEdges?.FirstOrDefault()?.FromNode;
             }
-            if (prev_node == null || !HasLatLon(prev_node.Command))
+            if (prev_node == null || !HasLocation(prev_node.Command))
             {
                 return home;
             }
