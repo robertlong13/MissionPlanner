@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using MissionPlanner.Utilities.Mission;
 using static MissionPlanner.Utilities.Mission.CommandUtils;
 
@@ -188,6 +189,7 @@ namespace MissionPlanner.Utilities
             if (distance > 1e6)
             {
                 Console.WriteLine("Uh oh");
+                Debugger.Break();
             }
             return new Segment
             {
