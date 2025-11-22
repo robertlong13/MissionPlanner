@@ -57,11 +57,11 @@ namespace MissionPlanner.Utilities.Mission
         {
             if (IsLoiter(cmd))
             {
-                return LoiterRadius(cmd, defaultLoiterRadius);
+                return Math.Abs(LoiterRadius(cmd, defaultLoiterRadius));
             }
             else
             {
-                return defaultWPRadius;
+                return Math.Abs(defaultWPRadius);
             }
         }
 
