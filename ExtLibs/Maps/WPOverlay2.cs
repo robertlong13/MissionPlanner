@@ -50,7 +50,7 @@ namespace MissionPlanner.Maps
 
             // 4) Render markers and segments to overlay
             MissionRenderer.RenderMarkers(overlay, graph, wpradius, loiterradius, altunitmultiplier);
-            MissionRenderer.RenderSegments(overlay, segments, loiterradius, ShowPlusMarkers);
+            MissionRenderer.RenderSegments(overlay, segments, wpradius, loiterradius, ShowPlusMarkers);
         }
 
         public sealed class MissionRenderer
@@ -150,6 +150,7 @@ namespace MissionPlanner.Maps
             public static void RenderSegments(
                 GMapOverlay overlay,
                 List<MissionSegmentizer.Segment> segments,
+                double wpradius,
                 double loiterradius,
                 bool showPlusMarkers)
             {
@@ -180,9 +181,11 @@ namespace MissionPlanner.Maps
                         segment.EndNode != null &&
                         segment.Midpoint != null)
                     {
-                        // Skip plus marker for short segments to/from loiters
-                        if ((IsLoiter(segment.StartNode.Command) && 1000 * route.Distance < Math.Abs(LoiterRadius(segment.StartNode.Command, loiterradius) / 4)) ||
-                            (IsLoiter(segment.EndNode.Command) && 1000 * route.Distance < Math.Abs(LoiterRadius(segment.EndNode.Command, loiterradius) / 4)))
+                        // Skip the insert marker if the segment is too short
+                        var markerRadius = Math.Max(
+                            MarkerRadius(segment.StartNode.Command, loiterradius, wpradius),
+                            MarkerRadius(segment.EndNode.Command, loiterradius, wpradius));
+                        if (1000 * route.Distance < markerRadius)
                         {
                             continue;
                         }
