@@ -93,7 +93,7 @@ namespace MissionPlanner.Maps
                         overlay,
                         bookmark.Command.id,
                         GetBookmarkLocation(bookmark),
-                        0, // no radius for bookmark markers
+                        HasLocation(bookmark.Command) ? (double?)0 : null,
                         HasLocation(bookmark.Command) ? PointTag(bookmark.MissionIndex) : PointTag(bookmark.Target.MissionIndex),
                         label: GetBookmarkLabel(bookmark)
                     );
@@ -120,7 +120,7 @@ namespace MissionPlanner.Maps
                 for (int i = 0; i < missionitems.Count; i++)
                 {
                     var cmd = missionitems[i];
-                    if (IsNode(cmd) || !HasLocation(cmd))
+                    if (IsNode(cmd) || IsBookmark(cmd.id) || !HasLocation(cmd))
                     {
                         continue;
                     }
@@ -151,27 +151,12 @@ namespace MissionPlanner.Maps
             {
                 foreach (var segment in segments)
                 {
-                    var points = new List<PointLatLng>();
-                    foreach (var pt in segment.Path)
-                    {
-                        points.Add(new PointLatLng(pt.Lat, pt.Lng));
-                    }
-                    // TODO: vary color/style based on segment kind
-                    bool isAlternate = segment.Flags.HasFlag(SegmentFlags.Alternate);
-                    bool isTakeoff = segment.Flags.HasFlag(SegmentFlags.FromTakeoff);
-                    var route = new GMapRoute(points, "segment")
-                    {
-                        Stroke = new Pen(isTakeoff ? Color.Blue : Color.Yellow, isAlternate ? 2 : 4)
-                        {
-                            DashStyle = isAlternate ? DashStyle.Dash : DashStyle.Solid,
-                        },
-                        ArrowMode = GMapRoute.ArrowDrawMode.SinglePerRoute,
-                    };
-                    overlay.Routes.Add(route);
+
+                    var route = AddRoute(overlay, segment, "segment");
 
                     // These markers are handled by FlightPlanner.cs to insert waypoints
                     if (showPlusMarkers && 
-                        !isAlternate &&
+                        !segment.Flags.HasFlag(SegmentFlags.Alternate) &&
                         segment.StartNode != null &&
                         segment.EndNode != null &&
                         segment.Midpoint != null)
@@ -194,7 +179,27 @@ namespace MissionPlanner.Maps
                 }
             }
 
-            public static void AddMarker(GMapOverlay overlay, ushort cmd, PointLatLng point, double radius, string tag, string label = null, string tooltip = null)
+            private static GMapRoute AddRoute(GMapOverlay overlay, MissionSegmentizer.Segment segment, string name)
+            {
+                var points = new List<PointLatLng>();
+                foreach (var pt in segment.Path)
+                {
+                    points.Add(new PointLatLng(pt.Lat, pt.Lng));
+                }
+                var segmentStyle = MissionStyle.GetSegmentStyle(segment);
+                var route = new GMapRoute(points, name)
+                {
+                    Stroke = new Pen(segmentStyle.StrokeColor, segmentStyle.StrokeWidth)
+                    {
+                        DashStyle = (DashStyle)segmentStyle.DashStyle,
+                    },
+                    ArrowMode = segmentStyle.ShowArrow ? GMapRoute.ArrowDrawMode.SinglePerRoute : GMapRoute.ArrowDrawMode.None,
+                };
+                overlay.Routes.Add(route);
+                return route;
+            }
+
+            public static void AddMarker(GMapOverlay overlay, ushort cmd, PointLatLng point, double? radius, string tag, string label = null, string tooltip = null)
             {
                 if (point.IsEmpty || (point.Lat == 0 && point.Lng == 0))
                 {
@@ -207,15 +212,18 @@ namespace MissionPlanner.Maps
                     ToolTipText = tooltip,
                     Tag = tag
                 };
-                var mBorders = new GMapMarkerRect(point)
-                {
-                    InnerMarker = marker,
-                    Tag = tag,
-                    wprad = radius,
-                    Color = markerStyle.CircleColor
-                };
                 overlay.Markers.Add(marker);
-                overlay.Markers.Add(mBorders);
+                if (radius.HasValue)
+                {
+                    var mBorders = new GMapMarkerRect(point)
+                    {
+                        InnerMarker = marker,
+                        Tag = tag,
+                        wprad = radius.Value,
+                        Color = markerStyle.CircleColor
+                    };
+                    overlay.Markers.Add(mBorders);
+                }
             }
             
             static midline MakeMidlineObject(MissionSegmentizer.Segment segment)
