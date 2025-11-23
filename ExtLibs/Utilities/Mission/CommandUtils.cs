@@ -28,11 +28,6 @@ namespace MissionPlanner.Utilities.Mission
                    cmd.id == (ushort)MAVLink.MAV_CMD.LAND_LOCAL;
         }
 
-        public static bool IsReturnHome(Locationwp cmd)
-        {
-            return cmd.id == (ushort)MAVLink.MAV_CMD.RETURN_TO_LAUNCH;
-        }
-
         public static double LoiterRadius(Locationwp cmd, double defaultRadius)
         {
             switch (cmd.id)
