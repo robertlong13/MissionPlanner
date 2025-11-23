@@ -16,16 +16,16 @@ namespace MissionPlanner.Utilities
         FromTakeoff = 1 << 2,
     }
 
+    public enum SegmentKind
+    {
+        Straight,
+        Spline,
+        LoiterArc,
+        ArcTurn,
+    }
+
     public class MissionSegmentizer
     {
-        public enum SegmentKind
-        {
-            Straight,
-            Spline,
-            LoiterArc,
-            ArcTurn,
-        }
-
         public sealed class Segment
         {
             public SegmentKind Kind;
@@ -105,7 +105,7 @@ namespace MissionPlanner.Utilities
                 {
                     flags |= SegmentFlags.Alternate;
                 }
-                if (IsTakeoff(a.Command))
+                if (IsTakeoff(a.Command.id))
                 {
                     overrideSrcPos = GetTakeoffLocation(a, graph.Home);
                     flags |= SegmentFlags.FromTakeoff;
@@ -143,7 +143,7 @@ namespace MissionPlanner.Utilities
 
         private static bool AreColocatedLoiters(MissionNode a, MissionNode b)
         {
-            if (!IsLoiter(a.Command) || !IsLoiter(b.Command))
+            if (!IsLoiter(a.Command.id) || !IsLoiter(b.Command.id))
             {
                 return false;
             }
@@ -258,7 +258,7 @@ namespace MissionPlanner.Utilities
                 {
                     prevPos = new PointLatLngAlt(prev.Command);
                 }
-                if (prev != null && IsTakeoff(prev.Command))
+                if (prev != null && IsTakeoff(prev.Command.id))
                 {
                     prevPos = GetTakeoffLocation(prev, graph.Home);
                 }
@@ -403,7 +403,7 @@ namespace MissionPlanner.Utilities
             {
                 return false;
             }
-            return IsLoiter(dest.Command);
+            return IsLoiter(dest.Command.id);
         }
 
         static bool NeedsLoiterExit(MissionNode src, VehicleClass vehicleClass)
@@ -412,12 +412,12 @@ namespace MissionPlanner.Utilities
             {
                 return false;
             }
-            return IsLoiter(src.Command) && !IsTerminal(src.Command);
+            return IsLoiter(src.Command.id) && !IsTerminal(src.Command.id);
         }
 
         static double? GetLoiterExitBearing(MissionNode srcNode, MissionNode destNode, LoiterInfo loiterInfo)
         {
-            bool crosstrackTangent = LoiterXTrackTangent(srcNode.Command);
+            bool crosstrackTangent = IsLoiterXTrackTangent(srcNode.Command);
 
             var destPoint = new PointLatLngAlt(destNode.Command);
            

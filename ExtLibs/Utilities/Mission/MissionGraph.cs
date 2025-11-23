@@ -126,11 +126,11 @@ namespace MissionPlanner.Utilities.Mission
                 {
                     var node = new MissionNode(i, cmd)
                     {
-                        IsTerminal = IsTerminal(cmd)
+                        IsTerminal = IsTerminal(cmd.id)
                     };
                     nodes.Add(node);
                     missionToNode[i] = node;
-                    if (IsLand(cmd))
+                    if (IsLand(cmd.id))
                     {
                         landNodes.Add(node);
                     }
@@ -139,7 +139,7 @@ namespace MissionPlanner.Utilities.Mission
                 {
                     jumpTags[(int)cmd.p1] = i;
                 }
-                if (IsJumpCommand(cmd) && GetJumpCount(cmd) < 0 && nodes.Count > 0)
+                if (IsJumpCommand(cmd.id) && GetJumpCount(cmd) < 0 && nodes.Count > 0)
                 {
                     nodes[nodes.Count - 1].IsTerminal = true;
                 }
@@ -154,7 +154,7 @@ namespace MissionPlanner.Utilities.Mission
                 {
                     continue;
                 }
-                if (IsLand(node1.Command) && !IsTakeoff(node2.Command))
+                if (IsLand(node1.Command.id) && !IsTakeoff(node2.Command.id))
                 {
                     continue;
                 }
@@ -173,7 +173,7 @@ namespace MissionPlanner.Utilities.Mission
                     next = node;
                 }
                 firstAtOrAfter[i] = next;
-                if (IsBookmark(missionitems[i]))
+                if (IsBookmark(missionitems[i].id))
                 {
                     bookmarks.Add(new MissionBookmark(i, missionitems[i], next));
                 }
@@ -194,7 +194,7 @@ namespace MissionPlanner.Utilities.Mission
             for (int i = 0; i < missionitems.Count; i++)
             {
                 var item = missionitems[i];
-                if (!IsJumpCommand(item) || GetJumpCount(item) == 0 || !TryGetJumpTarget(item, jumpTags, out int jumpTargetMissionIndex))
+                if (!IsJumpCommand(item.id) || GetJumpCount(item) == 0 || !TryGetJumpTarget(item, jumpTags, out int jumpTargetMissionIndex))
                 {
                     continue; // not a jump
                 }
@@ -216,7 +216,7 @@ namespace MissionPlanner.Utilities.Mission
                     continue; // target is not a node
                 }
 
-                if (IsLand(srcNode.Command) && !IsTakeoff(destNode.Command))
+                if (IsLand(srcNode.Command.id) && !IsTakeoff(destNode.Command.id))
                 {
                     continue; // Landing without a subsequent takeoff, is considered terminal; do not count this as a valid edge.
                 }

@@ -65,70 +65,39 @@ namespace MissionPlanner.Maps
             {
                 if(graph.Home != PointLatLngAlt.Zero)
                 {
-                    var point = new PointLatLng(graph.Home.Lat, graph.Home.Lng);
-                    var tag = PointTag(-1);
-                    var alt = graph.Home.Alt * altunitmultiplier;
-                    var marker = new GMapMarkerWP(point, tag)
-                    {
-                        ToolTipMode = MarkerTooltipMode.OnMouseOver,
-                        ToolTipText = "Alt: " + alt.ToString("0"),
-                        Tag = tag
-                    };
-                    overlay.Markers.Add(marker);
+                    AddMarker(
+                        overlay,
+                        0,
+                        new PointLatLng(graph.Home.Lat, graph.Home.Lng),
+                        0, // No radius on home point
+                        PointTag(-1),
+                        tooltip: $"Alt: {graph.Home.Alt * altunitmultiplier:0}"
+                    );
                 }
 
                 foreach (var node in graph.Nodes)
                 {
-                    if (!HasLocation(node.Command))
-                    {
-                        continue;
-                    }
-                    var point = new PointLatLng(node.Command.lat, node.Command.lng);
-                    var tag = PointTag(node.MissionIndex);
-                    var alt = node.Command.alt * altunitmultiplier;
-                    // TODO: vary marker style based on command type
-                    var marker = new GMapMarkerWP(point, tag)
-                    {
-                        ToolTipMode = MarkerTooltipMode.OnMouseOver,
-                        ToolTipText = "Alt: " + alt.ToString("0"),
-                        Tag = tag
-                    };
-                    GMapMarkerRect mBorders = new GMapMarkerRect(point)
-                    {
-                        InnerMarker = marker,
-                        Tag = tag,
-                        wprad = MarkerRadius(node.Command, loiterradius, wpradius),
-                    };
-                    overlay.Markers.Add(marker);
-                    overlay.Markers.Add(mBorders);
+                    AddMarker(
+                        overlay,
+                        node.Command.id,
+                        new PointLatLng(node.Command.lat, node.Command.lng),
+                        MarkerRadius(node.Command, loiterradius, wpradius),
+                        PointTag(node.MissionIndex),
+                        tooltip: $"Alt: {graph.Home.Alt * altunitmultiplier:0}"
+                    );
                 }
 
                 foreach (var bookmark in graph.Bookmarks)
                 {
-                    PointLatLng point = GetBookmarkLocation(bookmark);
-                    if (point.IsEmpty)
-                    {
-                        continue;
-                    }
-                    string label = GetBookmarkLabel(bookmark);
-                    var marker = new GMapMarkerWP(point, label, type: GMarkerGoogleType.orange)
-                    {
-                        ToolTipMode = MarkerTooltipMode.OnMouseOver,
-                        ToolTipText = "",
-                        // "Tag" lets FlightPlanner identify which command to update during drag
-                        Tag = HasLocation(bookmark.Command) ? PointTag(bookmark.MissionIndex) : PointTag(bookmark.Target.MissionIndex)
-                    };
-                    overlay.Markers.Add(marker);
-                    if (HasLocation(bookmark.Command))
-                    {
-                        var mBorders = new GMapMarkerRect(point)
-                        {
-                            InnerMarker = marker,
-                            Tag = marker.Tag,
-                            wprad = 0, // no radius for bookmark markers
-                        };
-                        overlay.Markers.Add(mBorders);
-                    }
+                    AddMarker(
+                        overlay,
+                        bookmark.Command.id,
+                        GetBookmarkLocation(bookmark),
+                        0, // no radius for bookmark markers
+                        HasLocation(bookmark.Command) ? PointTag(bookmark.MissionIndex) : PointTag(bookmark.Target.MissionIndex),
+                        label: GetBookmarkLabel(bookmark)
+                    );
+
                     // Render a thin segment to the target marker
                     if (bookmark.Target != null && HasLocation(bookmark.Command) && HasLocation(bookmark.Target.Command))
                     {
@@ -151,40 +120,24 @@ namespace MissionPlanner.Maps
                 for (int i = 0; i < missionitems.Count; i++)
                 {
                     var cmd = missionitems[i];
-                    if (IsNode(cmd))
+                    if (IsNode(cmd) || !HasLocation(cmd))
                     {
                         continue;
                     }
-                    if (!HasLocation(cmd))
-                    {
-                        continue;
-                    }
-                    string altText;
+                    string altText = $"UNKNOWN: {cmd.id}";
                     var point = new PointLatLng(cmd.lat, cmd.lng);
-                    switch(cmd.id)
+                    if (IsRegionOfInterest(cmd.id))
                     {
-                    case (ushort)MAVLink.MAV_CMD.DO_SET_ROI:
-                    case (ushort)MAVLink.MAV_CMD.DO_SET_ROI_LOCATION:
                         altText = $"ROI: {i + 1}";
-                        break;
-                    default:
-                        altText = $"UNKNOWN: {cmd.id}";
-                        break;
                     }
-                    var marker = new GMapMarkerWP(point, (i + 1).ToString(), type: GMarkerGoogleType.red)
-                    {
-                        ToolTipMode = MarkerTooltipMode.OnMouseOver,
-                        ToolTipText = altText,
-                        Tag = PointTag(i),
-                    };
-                    var mBorders = new GMapMarkerRect(point)
-                    {
-                        InnerMarker = marker,
-                        Tag = marker.Tag,
-                        wprad = 0, // no radius for misc markers
-                    };
-                    overlay.Markers.Add(marker);
-                    overlay.Markers.Add(mBorders);
+                    AddMarker(
+                        overlay,
+                        cmd.id,
+                        point,
+                        0, // no radius for misc markers
+                        PointTag(i),
+                        tooltip: altText
+                    );
                 }
 
             }
@@ -241,6 +194,30 @@ namespace MissionPlanner.Maps
                 }
             }
 
+            public static void AddMarker(GMapOverlay overlay, ushort cmd, PointLatLng point, double radius, string tag, string label = null, string tooltip = null)
+            {
+                if (point.IsEmpty || (point.Lat == 0 && point.Lng == 0))
+                {
+                    return;
+                }
+                var markerStyle = MissionStyle.GetMarkerStyle(cmd);
+                var marker = new GMapMarkerWP(point, label ?? tag, markerStyle.MarkerType)
+                {
+                    ToolTipMode = MarkerTooltipMode.OnMouseOver,
+                    ToolTipText = tooltip,
+                    Tag = tag
+                };
+                var mBorders = new GMapMarkerRect(point)
+                {
+                    InnerMarker = marker,
+                    Tag = tag,
+                    wprad = radius,
+                    Color = markerStyle.CircleColor
+                };
+                overlay.Markers.Add(marker);
+                overlay.Markers.Add(mBorders);
+            }
+            
             static midline MakeMidlineObject(MissionSegmentizer.Segment segment)
             {
                 var startNode = segment.StartNode;
