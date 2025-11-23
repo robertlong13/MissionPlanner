@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using MissionPlanner.Utilities.Mission;
 using static MissionPlanner.Utilities.Mission.CommandUtils;
 
@@ -11,10 +12,8 @@ namespace MissionPlanner.Utilities
     {
         None = 0,
         Alternate = 1 << 0, // All jumps and non-jump (spline) segments whose shape depends on a jump segment
-        Jump = 1 << 1,
-        UnknownCommand = 1 << 2,
-        ToHome = 1 << 3,
-        FromTakeoff = 1 << 4,
+        UnknownCommand = 1 << 1,
+        FromTakeoff = 1 << 2,
     }
 
     public class MissionSegmentizer
@@ -104,17 +103,12 @@ namespace MissionPlanner.Utilities
                 }
                 if (edge.IsJump)
                 {
-                    flags |= SegmentFlags.Jump | SegmentFlags.Alternate;
+                    flags |= SegmentFlags.Alternate;
                 }
                 if (IsTakeoff(a.Command))
                 {
                     overrideSrcPos = GetTakeoffLocation(a, graph.Home);
                     flags |= SegmentFlags.FromTakeoff;
-                }
-                if (IsReturnHome(b.Command))
-                {
-                    overrideDestPos = new PointLatLngAlt(graph.Home);
-                    flags |= SegmentFlags.ToHome;
                 }
                 if ((!HasLocation(a.Command) && overrideSrcPos == null) ||
                     (!HasLocation(b.Command) && overrideDestPos == null))

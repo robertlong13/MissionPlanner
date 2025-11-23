@@ -49,7 +49,7 @@ namespace MissionPlanner.Maps
             var segments = MissionSegmentizer.BuildSegments(graph, VehicleClass, loiterradius);
 
             // 4) Render markers and segments to overlay
-            MissionRenderer.RenderMarkers(overlay, graph, wpradius, loiterradius, altunitmultiplier);
+            MissionRenderer.RenderMarkers(overlay, graph, missionitems, wpradius, loiterradius, altunitmultiplier);
             MissionRenderer.RenderSegments(overlay, segments, wpradius, loiterradius, ShowPlusMarkers);
         }
 
@@ -58,6 +58,7 @@ namespace MissionPlanner.Maps
             public static void RenderMarkers(
                 GMapOverlay overlay,
                 MissionGraph graph,
+                List<Locationwp> missionitems,
                 double wpradius,
                 double loiterradius,
                 double altunitmultiplier)
@@ -145,6 +146,47 @@ namespace MissionPlanner.Maps
                         overlay.Routes.Add(route);
                     }
                 }
+
+                // Find other miscellaneous markers
+                for (int i = 0; i < missionitems.Count; i++)
+                {
+                    var cmd = missionitems[i];
+                    if (IsNode(cmd))
+                    {
+                        continue;
+                    }
+                    if (!HasLocation(cmd))
+                    {
+                        continue;
+                    }
+                    string altText;
+                    var point = new PointLatLng(cmd.lat, cmd.lng);
+                    switch(cmd.id)
+                    {
+                    case (ushort)MAVLink.MAV_CMD.DO_SET_ROI:
+                    case (ushort)MAVLink.MAV_CMD.DO_SET_ROI_LOCATION:
+                        altText = $"ROI: {i + 1}";
+                        break;
+                    default:
+                        altText = $"UNKNOWN: {cmd.id}";
+                        break;
+                    }
+                    var marker = new GMapMarkerWP(point, (i + 1).ToString(), type: GMarkerGoogleType.red)
+                    {
+                        ToolTipMode = MarkerTooltipMode.OnMouseOver,
+                        ToolTipText = altText,
+                        Tag = PointTag(i),
+                    };
+                    var mBorders = new GMapMarkerRect(point)
+                    {
+                        InnerMarker = marker,
+                        Tag = marker.Tag,
+                        wprad = 0, // no radius for misc markers
+                    };
+                    overlay.Markers.Add(marker);
+                    overlay.Markers.Add(mBorders);
+                }
+
             }
 
             public static void RenderSegments(
