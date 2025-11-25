@@ -135,42 +135,38 @@ namespace MissionPlanner.Utilities.Mission
         }
     }
 
-    public static class MissionStyle
+    public class MissionStyle
     {
-        static readonly SegmentStyleRuleConfig[] DefaultSegmentRuleConfigs =
+        readonly SegmentStyleRuleConfig[] DefaultSegmentRuleConfigs =
         {
-            // Base default: any straight primary leg
+            // Base default
             new SegmentStyleRuleConfig
             {
                 KindFilter   = null,
-                StrokeColor  = Color.Yellow,
-                StrokeWidth  = 4f,
+                StrokeColor  = Color.FromArgb(180, 255, 255, 0),
+                StrokeWidth  = 3f,
                 DashStyle    = DashStyle.Solid,
                 ShowArrow    = true,
             },
 
-            // Splines
-            new SegmentStyleRuleConfig
-            {
-                KindFilter  = SegmentKind.Spline,
-                StrokeColor = Color.LimeGreen
-            },
+            //new SegmentStyleRuleConfig
+            //{
+            //    KindFilter  = SegmentKind.Spline,
+            //    StrokeColor = Color.LimeGreen
+            //},
 
-            // Loiter arcs
-            new SegmentStyleRuleConfig
-            {
-                KindFilter  = SegmentKind.LoiterArc,
-                StrokeColor = Color.LightCoral
-            },
+            //new SegmentStyleRuleConfig
+            //{
+            //    KindFilter  = SegmentKind.LoiterArc,
+            //    StrokeColor = Color.LightCoral
+            //},
 
-            // Arc turns: purple-ish
-            new SegmentStyleRuleConfig
-            {
-                KindFilter  = SegmentKind.ArcTurn,
-                StrokeColor = Color.MediumVioletRed,
-            },
+            //new SegmentStyleRuleConfig
+            //{
+            //    KindFilter  = SegmentKind.ArcTurn,
+            //    StrokeColor = Color.MediumVioletRed,
+            //},
 
-            // Alternate / jump legs: thinner, dashed
             new SegmentStyleRuleConfig
             {
                 RequiredFlags = SegmentFlags.Alternate,
@@ -178,11 +174,12 @@ namespace MissionPlanner.Utilities.Mission
                 DashStyle     = DashStyle.Dash
             },
 
-            // Takeoff-origin legs: blue
             new SegmentStyleRuleConfig
             {
                 RequiredFlags = SegmentFlags.FromTakeoff,
-                StrokeColor   = Color.Blue
+                //StrokeColor   = Color.Blue
+                StrokeWidth   = 2f,
+                DashStyle     = DashStyle.Dash
             },
 
             new SegmentStyleRuleConfig
@@ -192,31 +189,28 @@ namespace MissionPlanner.Utilities.Mission
             },
         };
 
-        static readonly MarkerStyleRuleConfig[] DefaultMarkerRuleConfigs =
+        readonly MarkerStyleRuleConfig[] DefaultMarkerRuleConfigs =
         {
             // Base default
             new MarkerStyleRuleConfig
             {
                 MarkerType = GMarkerGoogleType.green,
-                CircleColor = Color.White
+                CircleColor = Color.FromArgb(64, 255, 255, 255)
             },
 
-            // Loiter commands: transparent circle
             new MarkerStyleRuleConfig
             {
                 AllLoiters = true,
                 CircleColor = Color.Transparent
             },
 
-            // Land commands: light green
             new MarkerStyleRuleConfig
             {
                 AllLandings = true,
-                MarkerType = GMarkerGoogleType.red,
+                //MarkerType = GMarkerGoogleType.red,
                 CircleColor = Color.Transparent
             },
 
-            // Bookmark commands: orange
             new MarkerStyleRuleConfig
             {
                 AllBookmarks = true,
@@ -224,7 +218,6 @@ namespace MissionPlanner.Utilities.Mission
                 CircleColor = Color.Transparent
             },
 
-            // ROI commands: purple
             new MarkerStyleRuleConfig
             {
                 AllRegionsOfInterest = true,
@@ -234,10 +227,10 @@ namespace MissionPlanner.Utilities.Mission
         };
 
         // Runtime rule arrays built from configs
-        static readonly SegmentStyleRule[] SegmentRules;
-        static readonly MarkerStyleRule[] MarkerRules;
+        readonly SegmentStyleRule[] SegmentRules;
+        readonly MarkerStyleRule[] MarkerRules;
 
-        static MissionStyle()
+        public MissionStyle()
         {
             SegmentRules = new SegmentStyleRule[DefaultSegmentRuleConfigs.Length];
             for (int i = 0; i < DefaultSegmentRuleConfigs.Length; i++)
@@ -248,7 +241,7 @@ namespace MissionPlanner.Utilities.Mission
                 MarkerRules[i] = new MarkerStyleRule(DefaultMarkerRuleConfigs[i]);
         }
 
-        public static SegmentStyle GetSegmentStyle(MissionSegmentizer.Segment segment)
+        public SegmentStyle GetSegmentStyle(MissionSegmentizer.Segment segment)
         {
             if (segment == null)
                 throw new ArgumentNullException(nameof(segment));
@@ -276,7 +269,7 @@ namespace MissionPlanner.Utilities.Mission
             return style;
         }
 
-        public static MarkerStyle GetMarkerStyle(ushort cmd)
+        public MarkerStyle GetMarkerStyle(ushort cmd)
         {
             var style = new MarkerStyle
             {

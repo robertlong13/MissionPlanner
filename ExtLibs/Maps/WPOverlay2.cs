@@ -24,6 +24,8 @@ namespace MissionPlanner.Maps
         public VehicleClass VehicleClass = VehicleClass.Copter;
         public bool ShowPlusMarkers = true;
 
+        static MissionStyle missionStyle = new MissionStyle();
+
         public void CreateOverlay(
             PointLatLngAlt home,
             List<Locationwp> missionitems,
@@ -32,6 +34,7 @@ namespace MissionPlanner.Maps
             double altunitmultiplier)
         {
             overlay.Clear();
+            missionStyle = new MissionStyle();
             
             // Only planes should have a default loiter radius
             if (VehicleClass != VehicleClass.Plane)
@@ -49,191 +52,188 @@ namespace MissionPlanner.Maps
             var segments = MissionSegmentizer.BuildSegments(graph, VehicleClass, loiterradius);
 
             // 4) Render markers and segments to overlay
-            MissionRenderer.RenderMarkers(overlay, graph, missionitems, wpradius, loiterradius, altunitmultiplier);
-            MissionRenderer.RenderSegments(overlay, segments, wpradius, loiterradius, ShowPlusMarkers);
+            RenderMarkers(overlay, graph, missionitems, wpradius, loiterradius, altunitmultiplier);
+            RenderSegments(overlay, segments, wpradius, loiterradius, ShowPlusMarkers);
         }
 
-        public sealed class MissionRenderer
+        public static void RenderMarkers(
+            GMapOverlay overlay,
+            MissionGraph graph,
+            List<Locationwp> missionitems,
+            double wpradius,
+            double loiterradius,
+            double altunitmultiplier)
         {
-            public static void RenderMarkers(
-                GMapOverlay overlay,
-                MissionGraph graph,
-                List<Locationwp> missionitems,
-                double wpradius,
-                double loiterradius,
-                double altunitmultiplier)
+            if(graph.Home != PointLatLngAlt.Zero)
             {
-                if(graph.Home != PointLatLngAlt.Zero)
-                {
-                    AddMarker(
-                        overlay,
-                        0,
-                        new PointLatLng(graph.Home.Lat, graph.Home.Lng),
-                        0, // No radius on home point
-                        PointTag(-1),
-                        tooltip: $"Alt: {graph.Home.Alt * altunitmultiplier:0}"
-                    );
-                }
+                AddMarker(
+                    overlay,
+                    0,
+                    new PointLatLng(graph.Home.Lat, graph.Home.Lng),
+                    0, // No radius on home point
+                    PointTag(-1),
+                    tooltip: $"Alt: {graph.Home.Alt * altunitmultiplier:0}"
+                );
+            }
 
-                foreach (var node in graph.Nodes)
-                {
-                    AddMarker(
-                        overlay,
-                        node.Command.id,
-                        new PointLatLng(node.Command.lat, node.Command.lng),
-                        MarkerRadius(node.Command, loiterradius, wpradius),
-                        PointTag(node.MissionIndex),
-                        tooltip: $"Alt: {graph.Home.Alt * altunitmultiplier:0}"
-                    );
-                }
+            foreach (var node in graph.Nodes)
+            {
+                AddMarker(
+                    overlay,
+                    node.Command.id,
+                    new PointLatLng(node.Command.lat, node.Command.lng),
+                    MarkerRadius(node.Command, loiterradius, wpradius),
+                    PointTag(node.MissionIndex),
+                    tooltip: $"Alt: {graph.Home.Alt * altunitmultiplier:0}"
+                );
+            }
 
-                foreach (var bookmark in graph.Bookmarks)
-                {
-                    AddMarker(
-                        overlay,
-                        bookmark.Command.id,
-                        GetBookmarkLocation(bookmark),
-                        HasLocation(bookmark.Command) ? (double?)0 : null,
-                        HasLocation(bookmark.Command) ? PointTag(bookmark.MissionIndex) : PointTag(bookmark.Target.MissionIndex),
-                        label: GetBookmarkLabel(bookmark)
-                    );
-                }
+            foreach (var bookmark in graph.Bookmarks)
+            {
+                AddMarker(
+                    overlay,
+                    bookmark.Command.id,
+                    GetBookmarkLocation(bookmark),
+                    HasLocation(bookmark.Command) ? (double?)0 : null,
+                    HasLocation(bookmark.Command) ? PointTag(bookmark.MissionIndex) : PointTag(bookmark.Target.MissionIndex),
+                    label: GetBookmarkLabel(bookmark)
+                );
+            }
 
-                // Find other miscellaneous markers
-                for (int i = 0; i < missionitems.Count; i++)
+            // Find other miscellaneous markers
+            for (int i = 0; i < missionitems.Count; i++)
+            {
+                var cmd = missionitems[i];
+                if (IsNode(cmd) || IsBookmark(cmd.id) || !HasLocation(cmd))
                 {
-                    var cmd = missionitems[i];
-                    if (IsNode(cmd) || IsBookmark(cmd.id) || !HasLocation(cmd))
+                    continue;
+                }
+                string altText = $"UNKNOWN: {cmd.id}";
+                var point = new PointLatLng(cmd.lat, cmd.lng);
+                if (IsRegionOfInterest(cmd.id))
+                {
+                    altText = $"ROI: {i + 1}";
+                }
+                AddMarker(
+                    overlay,
+                    cmd.id,
+                    point,
+                    0, // no radius for misc markers
+                    PointTag(i),
+                    tooltip: altText
+                );
+            }
+
+        }
+
+        public static void RenderSegments(
+            GMapOverlay overlay,
+            List<MissionSegmentizer.Segment> segments,
+            double wpradius,
+            double loiterradius,
+            bool showPlusMarkers)
+        {
+            foreach (var segment in segments)
+            {
+
+                var route = AddRoute(overlay, segment, "segment");
+
+                // These markers are handled by FlightPlanner.cs to insert waypoints
+                if (showPlusMarkers && 
+                    !segment.Flags.HasFlag(SegmentFlags.Alternate) &&
+                    segment.StartNode != null &&
+                    segment.EndNode != null &&
+                    segment.Midpoint != null)
+                {
+                    // Skip the insert marker if the segment is too short
+                    var markerRadius = Math.Max(
+                        MarkerRadius(segment.StartNode.Command, loiterradius, wpradius),
+                        MarkerRadius(segment.EndNode.Command, loiterradius, wpradius));
+                    if (1000 * route.Distance < markerRadius)
                     {
                         continue;
                     }
-                    string altText = $"UNKNOWN: {cmd.id}";
-                    var point = new PointLatLng(cmd.lat, cmd.lng);
-                    if (IsRegionOfInterest(cmd.id))
+                    var midLine = MakeMidlineObject(segment);
+                    var plusMarker = new GMapMarkerPlus(segment.Midpoint)
                     {
-                        altText = $"ROI: {i + 1}";
-                    }
-                    AddMarker(
-                        overlay,
-                        cmd.id,
-                        point,
-                        0, // no radius for misc markers
-                        PointTag(i),
-                        tooltip: altText
-                    );
-                }
-
-            }
-
-            public static void RenderSegments(
-                GMapOverlay overlay,
-                List<MissionSegmentizer.Segment> segments,
-                double wpradius,
-                double loiterradius,
-                bool showPlusMarkers)
-            {
-                foreach (var segment in segments)
-                {
-
-                    var route = AddRoute(overlay, segment, "segment");
-
-                    // These markers are handled by FlightPlanner.cs to insert waypoints
-                    if (showPlusMarkers && 
-                        !segment.Flags.HasFlag(SegmentFlags.Alternate) &&
-                        segment.StartNode != null &&
-                        segment.EndNode != null &&
-                        segment.Midpoint != null)
-                    {
-                        // Skip the insert marker if the segment is too short
-                        var markerRadius = Math.Max(
-                            MarkerRadius(segment.StartNode.Command, loiterradius, wpradius),
-                            MarkerRadius(segment.EndNode.Command, loiterradius, wpradius));
-                        if (1000 * route.Distance < markerRadius)
-                        {
-                            continue;
-                        }
-                        var midLine = MakeMidlineObject(segment);
-                        var plusMarker = new GMapMarkerPlus(segment.Midpoint)
-                        {
-                            Tag = midLine,
-                        };
-                        overlay.Markers.Add(plusMarker);
-                    }
-                }
-            }
-
-            private static GMapRoute AddRoute(GMapOverlay overlay, MissionSegmentizer.Segment segment, string name)
-            {
-                var points = new List<PointLatLng>();
-                foreach (var pt in segment.Path)
-                {
-                    points.Add(new PointLatLng(pt.Lat, pt.Lng));
-                }
-                var segmentStyle = MissionStyle.GetSegmentStyle(segment);
-                var route = new GMapRoute(points, name)
-                {
-                    Stroke = new Pen(segmentStyle.StrokeColor, segmentStyle.StrokeWidth)
-                    {
-                        DashStyle = (DashStyle)segmentStyle.DashStyle,
-                    },
-                    ArrowMode = segmentStyle.ShowArrow ? GMapRoute.ArrowDrawMode.SinglePerRoute : GMapRoute.ArrowDrawMode.None,
-                };
-                overlay.Routes.Add(route);
-                return route;
-            }
-
-            public static void AddMarker(GMapOverlay overlay, ushort cmd, PointLatLng point, double? radius, string tag, string label = null, string tooltip = null)
-            {
-                if (point.IsEmpty || (point.Lat == 0 && point.Lng == 0))
-                {
-                    return;
-                }
-                var markerStyle = MissionStyle.GetMarkerStyle(cmd);
-                var marker = new GMapMarkerWP(point, label ?? tag, markerStyle.MarkerType)
-                {
-                    ToolTipMode = MarkerTooltipMode.OnMouseOver,
-                    ToolTipText = tooltip,
-                    Tag = tag
-                };
-                overlay.Markers.Add(marker);
-                if (radius.HasValue)
-                {
-                    var mBorders = new GMapMarkerRect(point)
-                    {
-                        InnerMarker = marker,
-                        Tag = tag,
-                        wprad = radius.Value,
-                        Color = markerStyle.CircleColor
+                        Tag = midLine,
                     };
-                    overlay.Markers.Add(mBorders);
+                    overlay.Markers.Add(plusMarker);
                 }
             }
-            
-            static midline MakeMidlineObject(MissionSegmentizer.Segment segment)
-            {
-                var startNode = segment.StartNode;
-                var endNode = segment.EndNode;
-                return new midline
-                {
-                    now = new PointLatLngAlt(
-                        startNode.Command.lat,
-                        startNode.Command.lng,
-                        startNode.Command.alt,
-                        PointTag(startNode.MissionIndex)
-                    ),
-                    next = new PointLatLngAlt(
-                        endNode.Command.lat,
-                        endNode.Command.lng,
-                        endNode.Command.alt,
-                        PointTag(endNode.MissionIndex)
-                    )
-                };
-            }
+        }
 
-            static string PointTag(int index)
+        private static GMapRoute AddRoute(GMapOverlay overlay, MissionSegmentizer.Segment segment, string name)
+        {
+            var points = new List<PointLatLng>();
+            foreach (var pt in segment.Path)
             {
-                return (index < 0) ? "H" : (index + 1).ToString();
+                points.Add(new PointLatLng(pt.Lat, pt.Lng));
             }
+            var segmentStyle = missionStyle.GetSegmentStyle(segment);
+            var route = new GMapRoute(points, name)
+            {
+                Stroke = new Pen(segmentStyle.StrokeColor, segmentStyle.StrokeWidth)
+                {
+                    DashStyle = (DashStyle)segmentStyle.DashStyle,
+                },
+                ArrowMode = segmentStyle.ShowArrow ? GMapRoute.ArrowDrawMode.SinglePerRoute : GMapRoute.ArrowDrawMode.None,
+            };
+            overlay.Routes.Add(route);
+            return route;
+        }
+
+        public static void AddMarker(GMapOverlay overlay, ushort cmd, PointLatLng point, double? radius, string tag, string label = null, string tooltip = null)
+        {
+            if (point.IsEmpty || (point.Lat == 0 && point.Lng == 0))
+            {
+                return;
+            }
+            var markerStyle = missionStyle.GetMarkerStyle(cmd);
+            var marker = new GMapMarkerWP(point, label ?? tag, markerStyle.MarkerType)
+            {
+                ToolTipMode = MarkerTooltipMode.OnMouseOver,
+                ToolTipText = tooltip,
+                Tag = tag
+            };
+            overlay.Markers.Add(marker);
+            if (radius.HasValue)
+            {
+                var mBorders = new GMapMarkerRect(point)
+                {
+                    InnerMarker = marker,
+                    Tag = tag,
+                    wprad = radius.Value,
+                    Color = markerStyle.CircleColor
+                };
+                overlay.Markers.Add(mBorders);
+            }
+        }
+            
+        static midline MakeMidlineObject(MissionSegmentizer.Segment segment)
+        {
+            var startNode = segment.StartNode;
+            var endNode = segment.EndNode;
+            return new midline
+            {
+                now = new PointLatLngAlt(
+                    startNode.Command.lat,
+                    startNode.Command.lng,
+                    startNode.Command.alt,
+                    PointTag(startNode.MissionIndex)
+                ),
+                next = new PointLatLngAlt(
+                    endNode.Command.lat,
+                    endNode.Command.lng,
+                    endNode.Command.alt,
+                    PointTag(endNode.MissionIndex)
+                )
+            };
+        }
+
+        static string PointTag(int index)
+        {
+            return (index < 0) ? "H" : (index + 1).ToString();
         }
 
         static PointLatLng GetBookmarkLocation(MissionBookmark bookmark)
