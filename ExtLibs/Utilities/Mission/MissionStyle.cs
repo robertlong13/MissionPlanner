@@ -35,12 +35,12 @@ namespace MissionPlanner.Utilities.Mission
     public sealed class MarkerStyleRuleConfig
     {
         public ushort[] RawCommandIds { get; set; }
-        public bool? AllLoiters { get; set; }
-        public bool? AllTakeoffs { get; set; }
-        public bool? AllLandings { get; set; }
-        public bool? AllBookmarks { get; set; }
-        public bool? AllFencePoints { get; set; }
-        public bool? AllRegionsOfInterest { get; set; }
+        public bool AllLoiters { get; set; }
+        public bool AllTakeoffs { get; set; }
+        public bool AllLandings { get; set; }
+        public bool AllBookmarks { get; set; }
+        public bool AllFencePoints { get; set; }
+        public bool AllRegionsOfInterest { get; set; }
 
         public GMarkerGoogleType? MarkerType { get; set; }
         public Color? CircleColor { get; set; }
@@ -96,36 +96,36 @@ namespace MissionPlanner.Utilities.Mission
 
         public bool Applies(ushort cmd)
         {
-            bool? applies = null;
+            bool applies = true;
             if (_config.RawCommandIds != null && _config.RawCommandIds.Length > 0)
             {
                 applies &= Array.Exists(_config.RawCommandIds, id => id == cmd);
             }
-            if (_config.AllLoiters.HasValue)
+            if (_config.AllLoiters)
             {
                 applies &= IsLoiter(cmd);
             }
-            if (_config.AllTakeoffs.HasValue)
+            if (_config.AllTakeoffs)
             {
                 applies &= IsTakeoff(cmd);
             }
-            if (_config.AllLandings.HasValue)
+            if (_config.AllLandings)
             {
                 applies &= IsLand(cmd);
             }
-            if (_config.AllBookmarks.HasValue)
+            if (_config.AllBookmarks)
             {
                 applies &= IsBookmark(cmd);
             }
-            if (_config.AllFencePoints.HasValue)
+            if (_config.AllFencePoints)
             {
                 applies &= IsFencePoint(cmd);
             }
-            if (_config.AllRegionsOfInterest.HasValue)
+            if (_config.AllRegionsOfInterest)
             {
                 applies &= IsRegionOfInterest(cmd);
             }
-            return applies ?? true;
+            return applies;
         }
 
         public void Apply(MarkerStyle style)
