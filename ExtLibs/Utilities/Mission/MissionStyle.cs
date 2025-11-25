@@ -184,6 +184,12 @@ namespace MissionPlanner.Utilities.Mission
                 RequiredFlags = SegmentFlags.FromTakeoff,
                 StrokeColor   = Color.Blue
             },
+
+            new SegmentStyleRuleConfig
+            {
+                RequiredFlags = SegmentFlags.FromBookmark,
+                StrokeColor   = Color.Orange
+            },
         };
 
         static readonly MarkerStyleRuleConfig[] DefaultMarkerRuleConfigs =

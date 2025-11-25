@@ -97,23 +97,6 @@ namespace MissionPlanner.Maps
                         HasLocation(bookmark.Command) ? PointTag(bookmark.MissionIndex) : PointTag(bookmark.Target.MissionIndex),
                         label: GetBookmarkLabel(bookmark)
                     );
-
-                    // Render a thin segment to the target marker
-                    if (bookmark.Target != null && HasLocation(bookmark.Command) && HasLocation(bookmark.Target.Command))
-                    {
-                        var route = new GMapRoute(new List<PointLatLng>
-                        {
-                            new PointLatLng(bookmark.Command.lat, bookmark.Command.lng),
-                            new PointLatLng(bookmark.Target.Command.lat, bookmark.Target.Command.lng),
-                        }, "bookmark-segment")
-                        {
-                            Stroke = new Pen(Color.Orange, 2)
-                            {
-                                DashStyle = DashStyle.Dash,
-                            },
-                        };
-                        overlay.Routes.Add(route);
-                    }
                 }
 
                 // Find other miscellaneous markers

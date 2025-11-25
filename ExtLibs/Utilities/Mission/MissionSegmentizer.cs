@@ -14,6 +14,7 @@ namespace MissionPlanner.Utilities
         Alternate = 1 << 0, // All jumps and non-jump (spline) segments whose shape depends on a jump segment
         UnknownCommand = 1 << 1,
         FromTakeoff = 1 << 2,
+        FromBookmark = 1 << 3,
     }
 
     public enum SegmentKind
@@ -136,6 +137,32 @@ namespace MissionPlanner.Utilities
             {
                 segments.Add(GenerateLoiterArcSegment(loiterInfo));
                 segments.Add(GenerateLoiterArcSegment(loiterInfo, isAlt: true));
+            }
+
+            // Add a segment from each bookmark (with a location) to its target node
+            foreach (var bookmark in graph.Bookmarks)
+            {
+                if (!HasLocation(bookmark.Command))
+                {
+                    continue;
+                }
+                var targetNode = bookmark.Target;
+                if (targetNode == null || !HasLocation(targetNode.Command))
+                {
+                    continue;
+                }
+                var segment = new Segment
+                {
+                    Kind = SegmentKind.Straight,
+                    Flags = SegmentFlags.FromBookmark | SegmentFlags.Alternate,
+                    EndNode = targetNode,
+                    Path = new List<PointLatLngAlt>
+                    {
+                        new PointLatLngAlt(bookmark.Command),
+                        new PointLatLngAlt(targetNode.Command)
+                    },
+                };
+                segments.Add(segment);
             }
 
             return segments;
