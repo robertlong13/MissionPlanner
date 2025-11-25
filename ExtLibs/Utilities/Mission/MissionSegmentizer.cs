@@ -15,6 +15,9 @@ namespace MissionPlanner.Utilities
         UnknownCommand = 1 << 1,
         FromTakeoff = 1 << 2,
         FromBookmark = 1 << 3,
+        ReturnPath = 1 << 4,
+        LandSequence = 1 << 5,
+        GoAround = 1 << 6,
     }
 
     public enum SegmentKind
@@ -46,11 +49,70 @@ namespace MissionPlanner.Utilities
             public double? ExitBearing;
             public double Radius;
             public bool IsClockwise;
+            public SegmentFlags Flags = SegmentFlags.None;
         }
 
         static public List<Segment> BuildSegments(MissionGraph graph, VehicleClass vehicleClass, double loiterRadius)
         {
             var segments = new List<Segment>();
+            var landingEdges = new HashSet<MissionEdge>();
+            var returnPathEdges = new HashSet<MissionEdge>();
+            var goAroundEdges = new HashSet<MissionEdge>();
+
+            // Construct bookmark segments and also traverse and record landing sequence edges
+            foreach (var bookmark in graph.Bookmarks)
+            {
+                // Find sequence edges for landing sequence bookmarks
+                HashSet<MissionEdge> outputEdges;
+                switch (bookmark.Command.id)
+                {
+                    case (ushort)MAVLink.MAV_CMD.DO_LAND_START:
+                        outputEdges = landingEdges;
+                        break;
+                    case (ushort)MAVLink.MAV_CMD.DO_RETURN_PATH_START:
+                        outputEdges = returnPathEdges;
+                        break;
+                    case (ushort)MAVLink.MAV_CMD.DO_GO_AROUND:
+                        outputEdges = goAroundEdges;
+                        break;
+                    default:
+                        outputEdges = null;
+                        break;
+                }
+                if (outputEdges != null)
+                {
+                    TraverseForwardEdges(
+                        bookmark.Target,
+                        stopAtNode: (MissionNode node) => IsLand(node.Command.id),
+                        stopAtEdge: null,
+                        outputEdges: outputEdges
+                    );
+                }
+
+                // Generate bookmark pointer segments
+                if (!HasLocation(bookmark.Command))
+                {
+                    continue;
+                }
+                var targetNode = bookmark.Target;
+                if (targetNode == null || !HasLocation(targetNode.Command))
+                {
+                    continue;
+                }
+                var segment = new Segment
+                {
+                    Kind = SegmentKind.Straight,
+                    Flags = SegmentFlags.FromBookmark | SegmentFlags.Alternate,
+                    EndNode = targetNode,
+                    Path = new List<PointLatLngAlt>
+                    {
+                        new PointLatLngAlt(bookmark.Command),
+                        new PointLatLngAlt(targetNode.Command)
+                    },
+                };
+                segments.Add(segment);
+            }
+
             var loiterInfoDict = new Dictionary<int, LoiterInfo>();
             foreach (var edge in graph.Edges)
             {
@@ -64,9 +126,10 @@ namespace MissionPlanner.Utilities
 
                 PointLatLngAlt overrideSrcPos = null;
                 PointLatLngAlt overrideDestPos = null;
+                LoiterInfo loiterInfo = null;
                 if (NeedsLoiterExit(a, vehicleClass))
                 {
-                    var loiterInfo = EnsureLoiterInfo(ref loiterInfoDict, a, loiterRadius);
+                    loiterInfo = EnsureLoiterInfo(ref loiterInfoDict, a, loiterRadius);
                     if (AreColocatedLoiters(a, b))
                     {
                         // Co-located loiters, share the same loiter info
@@ -85,7 +148,7 @@ namespace MissionPlanner.Utilities
                 }
                 if (NeedsLoiterCapture(b, vehicleClass))
                 {
-                    var loiterInfo = EnsureLoiterInfo(ref loiterInfoDict, b, loiterRadius);
+                    loiterInfo = EnsureLoiterInfo(ref loiterInfoDict, b, loiterRadius);
                     var entryBearing = GetLoiterEntryBearing(a, loiterInfo, overrideSrcPos);
                     if (!edge.IsJump)
                     {
@@ -111,10 +174,30 @@ namespace MissionPlanner.Utilities
                     overrideSrcPos = GetTakeoffLocation(a, graph.Home);
                     flags |= SegmentFlags.FromTakeoff;
                 }
+
+                // Mark one (only one) of the landing/return/go-around flags
+                if (landingEdges.Contains(edge))
+                {
+                    flags |= SegmentFlags.LandSequence;
+                }
+                else if (returnPathEdges.Contains(edge))
+                {
+                    flags |= SegmentFlags.ReturnPath;
+                }
+                else if (goAroundEdges.Contains(edge))
+                {
+                    flags |= SegmentFlags.GoAround;
+                }
+
                 if ((!HasLocation(a.Command) && overrideSrcPos == null) ||
                     (!HasLocation(b.Command) && overrideDestPos == null))
                 {
                     continue;
+                }
+
+                if (loiterInfo != null)
+                {
+                    loiterInfo.Flags |= flags;
                 }
 
                 switch (kind)
@@ -133,36 +216,15 @@ namespace MissionPlanner.Utilities
                 }
             }
 
+            var uniqueInfos = new HashSet<LoiterInfo>();
             foreach (var loiterInfo in loiterInfoDict.Values)
+            {
+                uniqueInfos.Add(loiterInfo);
+            }
+            foreach (var loiterInfo in uniqueInfos)
             {
                 segments.Add(GenerateLoiterArcSegment(loiterInfo));
                 segments.Add(GenerateLoiterArcSegment(loiterInfo, isAlt: true));
-            }
-
-            // Add a segment from each bookmark (with a location) to its target node
-            foreach (var bookmark in graph.Bookmarks)
-            {
-                if (!HasLocation(bookmark.Command))
-                {
-                    continue;
-                }
-                var targetNode = bookmark.Target;
-                if (targetNode == null || !HasLocation(targetNode.Command))
-                {
-                    continue;
-                }
-                var segment = new Segment
-                {
-                    Kind = SegmentKind.Straight,
-                    Flags = SegmentFlags.FromBookmark | SegmentFlags.Alternate,
-                    EndNode = targetNode,
-                    Path = new List<PointLatLngAlt>
-                    {
-                        new PointLatLngAlt(bookmark.Command),
-                        new PointLatLngAlt(targetNode.Command)
-                    },
-                };
-                segments.Add(segment);
             }
 
             return segments;
@@ -385,9 +447,8 @@ namespace MissionPlanner.Utilities
                 path.Add(point);
             }
 
-            var flags = isAlt ? SegmentFlags.Alternate : SegmentFlags.None;
-
-            if (!loiterInfo.EntryBearing.HasValue || !loiterInfo.ExitBearing.HasValue)
+            var flags = loiterInfo.Flags;
+            if (isAlt || !loiterInfo.EntryBearing.HasValue || !loiterInfo.ExitBearing.HasValue)
             {
                 flags |= SegmentFlags.Alternate;
             }
@@ -488,6 +549,42 @@ namespace MissionPlanner.Utilities
             var distance = loiterInfo.Center.GetDistance2(srcPos);
             var bearing = (distance > 1e-6) ? loiterInfo.Center.GetBearing(srcPos) : 0.0;
             return bearing;
+        }
+
+        static void TraverseForwardEdges(
+            MissionNode startNode,
+            Func<MissionNode, bool> stopAtNode,  // stop when this node is reached (still include the edge into it)
+            Func<MissionEdge, bool> stopAtEdge,  // stop before this edge (do not include it)
+            HashSet<MissionEdge> outputEdges)
+        {
+            var queue = new Queue<MissionNode>();
+            var visitedNodes = new HashSet<MissionNode>();
+
+            queue.Enqueue(startNode);
+            visitedNodes.Add(startNode);
+
+            while (queue.Count > 0)
+            {
+                var node = queue.Dequeue();
+
+                foreach (var edge in node.OutgoingEdges)
+                {
+                    // Stop before stepping onto a stopAtEdge
+                    if (stopAtEdge != null && stopAtEdge(edge))
+                        continue;
+
+                    outputEdges.Add(edge);
+
+                    var nextNode = edge.ToNode;
+                    if (stopAtNode != null && stopAtNode(nextNode))
+                        continue;
+
+                    if (!visitedNodes.Add(nextNode))
+                        continue;
+
+                    queue.Enqueue(nextNode);
+                }
+            }
         }
     }
 }

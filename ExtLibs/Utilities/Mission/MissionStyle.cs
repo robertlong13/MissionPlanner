@@ -187,6 +187,12 @@ namespace MissionPlanner.Utilities.Mission
                 RequiredFlags = SegmentFlags.FromBookmark,
                 StrokeColor   = Color.Orange
             },
+
+            new SegmentStyleRuleConfig
+            {
+                RequiredFlags = SegmentFlags.LandSequence,
+                StrokeColor = Color.FromArgb(128, 180, 255, 0),
+            },
         };
 
         readonly MarkerStyleRuleConfig[] DefaultMarkerRuleConfigs =
