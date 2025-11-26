@@ -1,17 +1,20 @@
 ﻿using GMap.NET.WindowsForms.Markers;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
+using System.Xml.Serialization;
 using static MissionPlanner.Utilities.Mission.CommandUtils;
 
 namespace MissionPlanner.Utilities.Mission
 {
     public sealed class SegmentStyle
     {
-        public Color StrokeColor { get; set; }
-        public float StrokeWidth { get; set; }
-        public DashStyle DashStyle { get; set; }
-        public bool ShowArrow { get; set; }
+        public Color StrokeColor { get; set; } = Color.Yellow;
+        public float StrokeWidth { get; set; } = 3f;
+        public DashStyle DashStyle { get; set; } = DashStyle.Solid;
+        public bool ShowArrow { get; set; } = true;
     }
 
     public sealed class SegmentStyleRuleConfig
@@ -28,8 +31,8 @@ namespace MissionPlanner.Utilities.Mission
 
     public sealed class MarkerStyle
     {
-        public GMarkerGoogleType MarkerType { get; set; }
-        public Color CircleColor { get; set; }
+        public GMarkerGoogleType MarkerType { get; set; } = GMarkerGoogleType.green;
+        public Color CircleColor { get; set; } = Color.White;
     }
 
     public sealed class MarkerStyleRuleConfig
@@ -135,135 +138,114 @@ namespace MissionPlanner.Utilities.Mission
         }
     }
 
+    [XmlRoot("MissionStyle")]
+    public class MissionStyleConfig
+    {
+        public List<SegmentStyleRuleConfig> SegmentRules { get; set; } = new List<SegmentStyleRuleConfig>();
+        public List<MarkerStyleRuleConfig> MarkerRules { get; set; } = new List<MarkerStyleRuleConfig>();
+    }
+
     public class MissionStyle
     {
-        readonly SegmentStyleRuleConfig[] DefaultSegmentRuleConfigs =
+        static readonly MissionStyleConfig DefaultConfig = new MissionStyleConfig()
         {
-            // Base default
-            new SegmentStyleRuleConfig
+            SegmentRules = new List<SegmentStyleRuleConfig>()
             {
-                KindFilter   = null,
-                StrokeColor  = Color.FromArgb(180, 255, 255, 0),
-                StrokeWidth  = 3f,
-                DashStyle    = DashStyle.Solid,
-                ShowArrow    = true,
+                // Base default
+                new SegmentStyleRuleConfig
+                {
+                    KindFilter   = null,
+                    StrokeColor  = Color.FromArgb(180, 255, 255, 0),
+                    StrokeWidth  = 3f,
+                    DashStyle    = DashStyle.Solid,
+                    ShowArrow    = true,
+                },
+                new SegmentStyleRuleConfig
+                {
+                    RequiredFlags = SegmentFlags.Alternate,
+                    StrokeWidth   = 2f,
+                    DashStyle     = DashStyle.Dash
+                },
+                new SegmentStyleRuleConfig
+                {
+                    RequiredFlags = SegmentFlags.FromTakeoff,
+                    StrokeWidth   = 2f,
+                    DashStyle     = DashStyle.Dash
+                },
+                new SegmentStyleRuleConfig
+                {
+                    RequiredFlags = SegmentFlags.FromBookmark,
+                    StrokeColor   = Color.Orange
+                },
+                new SegmentStyleRuleConfig
+                {
+                    RequiredFlags = SegmentFlags.LandSequence,
+                    StrokeColor = Color.FromArgb(128, 180, 255, 0),
+                },
             },
-
-            //new SegmentStyleRuleConfig
-            //{
-            //    KindFilter  = SegmentKind.Spline,
-            //    StrokeColor = Color.LimeGreen
-            //},
-
-            //new SegmentStyleRuleConfig
-            //{
-            //    KindFilter  = SegmentKind.LoiterArc,
-            //    StrokeColor = Color.LightCoral
-            //},
-
-            //new SegmentStyleRuleConfig
-            //{
-            //    KindFilter  = SegmentKind.ArcTurn,
-            //    StrokeColor = Color.MediumVioletRed,
-            //},
-
-            new SegmentStyleRuleConfig
+            MarkerRules = new List<MarkerStyleRuleConfig>()
             {
-                RequiredFlags = SegmentFlags.Alternate,
-                StrokeWidth   = 2f,
-                DashStyle     = DashStyle.Dash
-            },
-
-            new SegmentStyleRuleConfig
-            {
-                RequiredFlags = SegmentFlags.FromTakeoff,
-                //StrokeColor   = Color.Blue
-                StrokeWidth   = 2f,
-                DashStyle     = DashStyle.Dash
-            },
-
-            new SegmentStyleRuleConfig
-            {
-                RequiredFlags = SegmentFlags.FromBookmark,
-                StrokeColor   = Color.Orange
-            },
-
-            new SegmentStyleRuleConfig
-            {
-                RequiredFlags = SegmentFlags.LandSequence,
-                StrokeColor = Color.FromArgb(128, 180, 255, 0),
-            },
+                new MarkerStyleRuleConfig
+                {
+                    MarkerType = GMarkerGoogleType.green,
+                    CircleColor = Color.FromArgb(64, 255, 255, 255)
+                },
+                new MarkerStyleRuleConfig
+                {
+                    AllLoiters = true,
+                    CircleColor = Color.Transparent
+                },
+                new MarkerStyleRuleConfig
+                {
+                    AllLandings = true,
+                    CircleColor = Color.Transparent
+                },
+                new MarkerStyleRuleConfig
+                {
+                    AllBookmarks = true,
+                    MarkerType = GMarkerGoogleType.orange,
+                    CircleColor = Color.Transparent
+                },
+                new MarkerStyleRuleConfig
+                {
+                    AllRegionsOfInterest = true,
+                    MarkerType = GMarkerGoogleType.purple,
+                    CircleColor = Color.Transparent
+                },
+            }
         };
 
-        readonly MarkerStyleRuleConfig[] DefaultMarkerRuleConfigs =
-        {
-            // Base default
-            new MarkerStyleRuleConfig
-            {
-                MarkerType = GMarkerGoogleType.green,
-                CircleColor = Color.FromArgb(64, 255, 255, 255)
-            },
-
-            new MarkerStyleRuleConfig
-            {
-                AllLoiters = true,
-                CircleColor = Color.Transparent
-            },
-
-            new MarkerStyleRuleConfig
-            {
-                AllLandings = true,
-                //MarkerType = GMarkerGoogleType.red,
-                CircleColor = Color.Transparent
-            },
-
-            new MarkerStyleRuleConfig
-            {
-                AllBookmarks = true,
-                MarkerType = GMarkerGoogleType.orange,
-                CircleColor = Color.Transparent
-            },
-
-            new MarkerStyleRuleConfig
-            {
-                AllRegionsOfInterest = true,
-                MarkerType = GMarkerGoogleType.purple,
-                CircleColor = Color.Transparent
-            },
-        };
+        MissionStyleConfig config;
 
         // Runtime rule arrays built from configs
-        readonly SegmentStyleRule[] SegmentRules;
-        readonly MarkerStyleRule[] MarkerRules;
+        List<SegmentStyleRule> SegmentRules = new List<SegmentStyleRule>();
+        List<MarkerStyleRule> MarkerRules = new List<MarkerStyleRule>();
 
-        public MissionStyle()
+        public MissionStyle(MissionStyleConfig config = null)
         {
-            SegmentRules = new SegmentStyleRule[DefaultSegmentRuleConfigs.Length];
-            for (int i = 0; i < DefaultSegmentRuleConfigs.Length; i++)
-                SegmentRules[i] = new SegmentStyleRule(DefaultSegmentRuleConfigs[i]);
+            this.config = config ?? DefaultConfig;
+            RefreshConfig();
+        }
 
-            MarkerRules = new MarkerStyleRule[DefaultMarkerRuleConfigs.Length];
-            for (int i = 0; i < DefaultMarkerRuleConfigs.Length; i++)
-                MarkerRules[i] = new MarkerStyleRule(DefaultMarkerRuleConfigs[i]);
+        private void RefreshConfig()
+        {
+            foreach (var segmentStyleRuleConfig in config.SegmentRules)
+            {
+                SegmentRules.Add(new SegmentStyleRule(segmentStyleRuleConfig));
+            }
+            foreach (var markerStyleRuleConfig in config.MarkerRules)
+            {
+                MarkerRules.Add(new MarkerStyleRule(markerStyleRuleConfig));
+            }
         }
 
         public SegmentStyle GetSegmentStyle(MissionSegmentizer.Segment segment)
         {
             if (segment == null)
                 throw new ArgumentNullException(nameof(segment));
-
-            // Start from neutral defaults; rules layer on top
-            var style = new SegmentStyle
-            {
-                StrokeColor = Color.Yellow,
-                StrokeWidth = 3f,
-                DashStyle = DashStyle.Solid,
-                ShowArrow = true
-            };
-
+            var style = new SegmentStyle();
             var kind = segment.Kind;
             var flags = segment.Flags;
-
             foreach (var rule in SegmentRules)
             {
                 if (rule.Applies(kind, flags))
@@ -271,18 +253,12 @@ namespace MissionPlanner.Utilities.Mission
                     rule.Apply(style);
                 }
             }
-
             return style;
         }
 
         public MarkerStyle GetMarkerStyle(ushort cmd)
         {
-            var style = new MarkerStyle
-            {
-                MarkerType = GMarkerGoogleType.green,
-                CircleColor = Color.White
-            };
-
+            var style = new MarkerStyle();
             foreach (var rule in MarkerRules)
             {
                 if (rule.Applies(cmd))
@@ -290,8 +266,39 @@ namespace MissionPlanner.Utilities.Mission
                     rule.Apply(style);
                 }
             }
-
             return style;
+        }
+
+        public static MissionStyle LoadFromConfig(string styleFilePath)
+        {
+            if (string.IsNullOrEmpty(styleFilePath) || !File.Exists(styleFilePath))
+                return new MissionStyle();
+
+            try
+            {
+                var serializer = new XmlSerializer(typeof(MissionStyleConfig));
+                using (var stream = File.OpenRead(styleFilePath))
+                {
+                    var cfg = (MissionStyleConfig)serializer.Deserialize(stream);
+                    return new MissionStyle(cfg);
+                }
+            }
+            catch
+            {
+                return new MissionStyle();
+            }
+        }
+
+        public void SaveToConfig(string styleFilePath)
+        {
+            if (string.IsNullOrEmpty(styleFilePath))
+                throw new ArgumentNullException(nameof(styleFilePath));
+
+            var serializer = new XmlSerializer(typeof(MissionStyleConfig));
+            using (var stream = File.Create(styleFilePath))
+            {
+                serializer.Serialize(stream, config);
+            }
         }
     }
 }

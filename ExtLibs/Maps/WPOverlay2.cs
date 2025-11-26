@@ -24,7 +24,7 @@ namespace MissionPlanner.Maps
         public VehicleClass VehicleClass = VehicleClass.Copter;
         public bool ShowPlusMarkers = true;
 
-        static MissionStyle missionStyle = new MissionStyle();
+        public static MissionStyle missionStyle = MissionStyle.LoadFromConfig(Settings.Instance["MissionStyleXML", ""]);
 
         public void CreateOverlay(
             PointLatLngAlt home,
@@ -34,7 +34,6 @@ namespace MissionPlanner.Maps
             double altunitmultiplier)
         {
             overlay.Clear();
-            missionStyle = new MissionStyle();
             
             // Only planes should have a default loiter radius
             if (VehicleClass != VehicleClass.Plane)
@@ -56,7 +55,7 @@ namespace MissionPlanner.Maps
             RenderSegments(overlay, segments, wpradius, loiterradius, ShowPlusMarkers);
         }
 
-        public static void RenderMarkers(
+        public void RenderMarkers(
             GMapOverlay overlay,
             MissionGraph graph,
             List<Locationwp> missionitems,
@@ -150,7 +149,7 @@ namespace MissionPlanner.Maps
             return tooltip;
         }
 
-        public static void RenderSegments(
+        public void RenderSegments(
             GMapOverlay overlay,
             List<MissionSegmentizer.Segment> segments,
             double wpradius,
@@ -187,7 +186,7 @@ namespace MissionPlanner.Maps
             }
         }
 
-        private static GMapRoute AddRoute(GMapOverlay overlay, MissionSegmentizer.Segment segment, string name)
+        private GMapRoute AddRoute(GMapOverlay overlay, MissionSegmentizer.Segment segment, string name)
         {
             var points = new List<PointLatLng>();
             foreach (var pt in segment.Path)
@@ -207,7 +206,7 @@ namespace MissionPlanner.Maps
             return route;
         }
 
-        public static void AddMarker(GMapOverlay overlay, ushort cmd, PointLatLng point, double? radius, string tag, string label = null, string tooltip = null)
+        public void AddMarker(GMapOverlay overlay, ushort cmd, PointLatLng point, double? radius, string tag, string label = null, string tooltip = null)
         {
             if (point.IsEmpty || (point.Lat == 0 && point.Lng == 0))
             {
