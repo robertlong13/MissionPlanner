@@ -72,7 +72,7 @@ namespace MissionPlanner.Maps
                     new PointLatLng(graph.Home.Lat, graph.Home.Lng),
                     0, // No radius on home point
                     PointTag(-1),
-                    tooltip: $"Alt: {graph.Home.Alt * altunitmultiplier:0}"
+                    tooltip: AltitudeTooltip(graph.Home.Alt, altunitmultiplier)
                 );
             }
 
@@ -84,7 +84,7 @@ namespace MissionPlanner.Maps
                     new PointLatLng(node.Command.lat, node.Command.lng),
                     MarkerRadius(node.Command, loiterradius, wpradius),
                     PointTag(node.MissionIndex),
-                    tooltip: $"Alt: {graph.Home.Alt * altunitmultiplier:0}"
+                    tooltip: AltitudeTooltip(node.Command.alt, altunitmultiplier, node.Command.frame)
                 );
             }
 
@@ -124,6 +124,30 @@ namespace MissionPlanner.Maps
                 );
             }
 
+        }
+
+        static string AltitudeTooltip(double alt, double altunitmultiplier, byte frame = 0)
+        {
+            var tooltip = $"Alt: {alt * altunitmultiplier:0}";
+            switch (frame)
+            {
+                case (byte)MAVLink.MAV_FRAME.GLOBAL:
+                case (byte)MAVLink.MAV_FRAME.GLOBAL_INT:
+                    tooltip += " (MSL)";
+                    break;
+                case (byte)MAVLink.MAV_FRAME.GLOBAL_TERRAIN_ALT:
+                case (byte)MAVLink.MAV_FRAME.GLOBAL_TERRAIN_ALT_INT:
+                    tooltip += " (MSL)";
+                    break;
+                case (byte)MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT:
+                case (byte)MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT_INT:
+                    tooltip += " (Rel)";
+                    break;
+                default:
+                    tooltip += " (UNKNOWN)";
+                    break;
+            }
+            return tooltip;
         }
 
         public static void RenderSegments(
