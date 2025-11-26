@@ -54,6 +54,7 @@ using MissionPlanner.ArduPilot.Mavlink;
 using System.Drawing.Imaging;
 using SharpKml.Engine;
 using MissionPlanner.Controls.Waypoints;
+using MissionPlanner.Utilities.Mission;
 
 namespace MissionPlanner.GCSViews
 {
@@ -127,6 +128,7 @@ namespace MissionPlanner.GCSViews
         private PointLatLng MouseDownStart;
         private PointLatLngAlt mouseposdisplay = new PointLatLngAlt(0, 0);
         private WPOverlay wpOverlay;
+        private WPOverlay2 wpOverlay2;
         private bool polygongridmode;
         private MissionPlanner.Controls.Icon.Polygon polyicon = new MissionPlanner.Controls.Icon.Polygon();
         private MissionPlanner.Controls.Icon.Zoom zoomicon = new MissionPlanner.Controls.Icon.Zoom();
@@ -1374,12 +1376,6 @@ namespace MissionPlanner.GCSViews
             }
         }
 
-        public class midline
-        {
-            public PointLatLngAlt now { get; set; }
-            public PointLatLngAlt next { get; set; }
-        }
-
         /// <summary>
         /// used to write a KML, update the Map view polygon, and update the row headers
         /// </summary>
@@ -1419,6 +1415,12 @@ namespace MissionPlanner.GCSViews
                 {
                     wpOverlay = new WPOverlay();
                     wpOverlay.overlay.Id = "WPOverlay";
+                    wpOverlay2 = new WPOverlay2()
+                    {
+                        VehicleClass = MainV2.comPort.MAV.cs.vehicleClass,
+                        ShowPlusMarkers = true,
+                    };
+                    wpOverlay2.overlay.Id = "WPOverlay";
 
                     try
                     {
@@ -1426,6 +1428,10 @@ namespace MissionPlanner.GCSViews
                         if (TXT_loiterrad.Text == "") TXT_loiterrad.Text = "30";
 
                         wpOverlay.CreateOverlay(home,
+                            commandlist,
+                            double.Parse(TXT_WPRad.Text) / CurrentState.multiplierdist,
+                            double.Parse(TXT_loiterrad.Text) / CurrentState.multiplierdist, CurrentState.multiplieralt);
+                        wpOverlay2.CreateOverlay(home,
                             commandlist,
                             double.Parse(TXT_WPRad.Text) / CurrentState.multiplierdist,
                             double.Parse(TXT_loiterrad.Text) / CurrentState.multiplierdist, CurrentState.multiplieralt);
@@ -1444,9 +1450,9 @@ namespace MissionPlanner.GCSViews
                         MainMap.Overlays.Remove(b);
                     }
 
-                    MainMap.Overlays.Insert(1, wpOverlay.overlay);
+                    MainMap.Overlays.Insert(1, wpOverlay2.overlay);
 
-                    wpOverlay.overlay.ForceUpdate();
+                    wpOverlay2.overlay.ForceUpdate();
 
                     lbl_distance.Text = rm.GetString("lbl_distance.Text") + ": " +
                                         FormatDistance((
@@ -1455,11 +1461,11 @@ namespace MissionPlanner.GCSViews
                                                 .Aggregate(0.0, (d, p1, p2) => d + p1.GetDistance(p2))
                                         ) / 1000.0, false);
 
-                    setgradanddistandaz(wpOverlay.pointlist, home);
+                    setgradanddistandaz(wpOverlay2.pointlist, home);
 
-                    if (wpOverlay.pointlist.Count <= 1)
+                    if (wpOverlay2.pointlist.Count <= 1)
                     {
-                        RectLatLng? rect = MainMap.GetRectOfAllMarkers(wpOverlay.overlay.Id);
+                        RectLatLng? rect = MainMap.GetRectOfAllMarkers(wpOverlay2.overlay.Id);
                         if (rect.HasValue)
                         {
                             MainMap.Position = rect.Value.LocationMiddle;
@@ -1468,26 +1474,26 @@ namespace MissionPlanner.GCSViews
                         MainMap_OnMapZoomChanged();
                     }
 
-                    pointlist = wpOverlay.pointlist;
+                    pointlist = wpOverlay2.pointlist;
 
-                    {
-                        foreach (var pointLatLngAlt in pointlist.PrevNowNext())
-                        {
-                            var prev = pointLatLngAlt.Item1;
-                            var now = pointLatLngAlt.Item2;
-                            var next = pointLatLngAlt.Item3;
+                    //{
+                    //    foreach (var pointLatLngAlt in pointlist.PrevNowNext())
+                    //    {
+                    //        var prev = pointLatLngAlt.Item1;
+                    //        var now = pointLatLngAlt.Item2;
+                    //        var next = pointLatLngAlt.Item3;
 
-                            if (now == null || next == null)
-                                continue;
+                    //        if (now == null || next == null)
+                    //            continue;
 
-                            var mid = new PointLatLngAlt((now.Lat + next.Lat) / 2, (now.Lng + next.Lng) / 2,
-                                (now.Alt + next.Alt) / 2);
+                    //        var mid = new PointLatLngAlt((now.Lat + next.Lat) / 2, (now.Lng + next.Lng) / 2,
+                    //            (now.Alt + next.Alt) / 2);
 
-                            var pnt = new GMapMarkerPlus(mid);
-                            pnt.Tag = new midline() {now = now, next = next};
-                            wpOverlay.overlay.Markers.Add(pnt);
-                        }
-                    }
+                    //        var pnt = new GMapMarkerPlus(mid);
+                    //        pnt.Tag = new midline() {now = now, next = next};
+                    //        wpOverlay2.overlay.Markers.Add(pnt);
+                    //    }
+                    //}
 
                     // draw fence
                     {
@@ -2547,7 +2553,7 @@ namespace MissionPlanner.GCSViews
                     DataGridViewCell tcell = Commands.Rows[selectedrow].Cells[i];
                     if (tcell.GetType() == typeof(DataGridViewTextBoxCell))
                     {
-                        if (tcell.Value.ToString() == "?")
+                        if (tcell?.Value?.ToString() == "?")
                             tcell.Value = "0";
                     }
                 }
@@ -7339,7 +7345,14 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
         private void groupmarkeradd(GMapMarker marker)
         {
             System.Diagnostics.Debug.WriteLine("add marker " + marker.Tag.ToString());
-            groupmarkers.Add(int.Parse(marker.Tag.ToString()));
+            if (int.TryParse(marker.Tag.ToString(), out int temp))
+            {
+                groupmarkers.Add(temp);
+            }
+            else
+            {
+                return;
+            }
             if (marker is GMapMarkerWP)
             {
                 ((GMapMarkerWP) marker).selected = true;
@@ -7603,12 +7616,12 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
                 {
                     updateUndoBuffer(true);
                     int pnt2 = 0;
-                    var midline = CurrentMidLine.Tag as midline;
+                    var midline = CurrentMidLine.Tag as midline?;
                     // var pnt1 = int.Parse(midline.now.Tag);
 
-                    if (polygongridmode && midline.now != null)
+                    if (polygongridmode && midline?.now != null)
                     {
-                        var idx = drawnpolygon.Points.IndexOf(midline.now);
+                        var idx = drawnpolygon.Points.IndexOf(midline?.now);
                         drawnpolygon.Points.Insert(idx + 1,
                             new PointLatLng(CurrentMidLine.Position.Lat, CurrentMidLine.Position.Lng));
 
@@ -7616,7 +7629,7 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
                     }
                     else
                     {
-                        if (int.TryParse(midline.next.Tag, out pnt2))
+                        if (int.TryParse(midline?.next.Tag, out pnt2))
                         {
                             if ((MAVLink.MAV_MISSION_TYPE) cmb_missiontype.SelectedValue ==
                                 MAVLink.MAV_MISSION_TYPE.FENCE)
@@ -7634,7 +7647,10 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
                             else if ((MAVLink.MAV_MISSION_TYPE) cmb_missiontype.SelectedValue ==
                                      MAVLink.MAV_MISSION_TYPE.MISSION)
                             {
-
+                                while (pnt2 > 1 && CommandUtils.IsBookmark(GetCommandList()[pnt2 - 2].id))
+                                {
+                                    pnt2 -= 1;
+                                }
                                 InsertCommand(pnt2 - 1, MAVLink.MAV_CMD.WAYPOINT, 0, 0, 0, 0,
                                     CurrentMidLine.Position.Lng,
                                     CurrentMidLine.Position.Lat, float.Parse(TXT_DefaultAlt.Text));
