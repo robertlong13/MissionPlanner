@@ -7,7 +7,6 @@ namespace MissionPlanner.Utilities.Mission
     {
         public int MissionIndex { get; }
         public Locationwp Command { get; }
-        public bool IsTerminal { get; internal set; } = false;
         public List<MissionEdge> IncomingEdges { get; } = new List<MissionEdge>();
         public List<MissionEdge> OutgoingEdges { get; } = new List<MissionEdge>();
 
@@ -115,25 +114,21 @@ namespace MissionPlanner.Utilities.Mission
 
             // Map from mission index (0-based) to node indices
             var missionToNode = new Dictionary<int, MissionNode>();
-
             var jumpTags = new Dictionary<int, int>(); // key=tag, value=mission index
-            var landNodes = new List<MissionNode>();
-
+            // Track nodes that cannot sequentially move to the next node (terminal nodes, or nodes preceding infinite jumps)
+            var nodesWithoutSequentialFallthrough = new HashSet<MissionNode>();
             for (int i = 0; i < missionitems.Count; i++)
             {
                 var cmd = missionitems[i];
                 if (IsNode(cmd))
                 {
-                    var node = new MissionNode(i, cmd)
-                    {
-                        IsTerminal = IsTerminal(cmd.id)
-                    };
+                    var node = new MissionNode(i, cmd);
                     nodes.Add(node);
-                    missionToNode[i] = node;
-                    if (IsLand(cmd.id))
+                    if (IsTerminal(cmd.id))
                     {
-                        landNodes.Add(node);
+                        nodesWithoutSequentialFallthrough.Add(node);
                     }
+                    missionToNode[i] = node;
                 }
                 if (cmd.id == (ushort)MAVLink.MAV_CMD.JUMP_TAG)
                 {
@@ -141,7 +136,7 @@ namespace MissionPlanner.Utilities.Mission
                 }
                 if (IsJumpCommand(cmd.id) && GetJumpCount(cmd) < 0 && nodes.Count > 0)
                 {
-                    nodes[nodes.Count - 1].IsTerminal = true;
+                    nodesWithoutSequentialFallthrough.Add(nodes[nodes.Count - 1]);
                 }
             }
 
@@ -150,7 +145,7 @@ namespace MissionPlanner.Utilities.Mission
             {
                 var node1 = nodes[i];
                 var node2 = nodes[i + 1];
-                if (node1.IsTerminal)
+                if (nodesWithoutSequentialFallthrough.Contains(node1))
                 {
                     continue;
                 }
@@ -164,6 +159,7 @@ namespace MissionPlanner.Utilities.Mission
                 node2.IncomingEdges.Add(edge);
             }
 
+            // Build the firstAtOrAfter and lastAtOrBefore lists, and bookmarks
             var firstAtOrAfter = new List<MissionNode>(new MissionNode[missionitems.Count]);
             MissionNode next = null;
             for (int i = missionitems.Count - 1; i >= 0; i--)
@@ -231,15 +227,6 @@ namespace MissionPlanner.Utilities.Mission
                 edges.Add(edge);
                 srcNode.OutgoingEdges.Add(edge);
                 destNode.IncomingEdges.Add(edge);
-            }
-
-            // Mark all land nodes without a takeoff (no outgoing edges) as terminal
-            foreach (var landNode in landNodes)
-            {
-                if (landNode.OutgoingEdges.Count == 0)
-                {
-                    landNode.IsTerminal = true;
-                }
             }
 
             return new MissionGraph(nodes, edges, bookmarks, home, firstAtOrAfter, lastAtOrBefore);
