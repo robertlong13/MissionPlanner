@@ -95,6 +95,16 @@
             }
         }
 
+        public enum ArrowDrawMode
+        {
+            None,
+            PerSegment,
+            SinglePerRoute
+        }
+        public ArrowDrawMode ArrowMode { get; set; } = ArrowDrawMode.None;
+        public float ArrowLength = 15;
+        public double MinSegmentPixels = 20;
+
 #if !PocketPC
         /// <summary>
         /// Indicates whether the specified point is contained within this System.Drawing.Drawing2D.GraphicsPath
@@ -154,13 +164,11 @@
 #if !PocketPC
             if (IsVisible && graphicsPath != null)
             {
-                bool customarrows = false;
-
                 Pen Stroke = (Pen)this.Stroke.Clone();
 
                 if (Stroke.DashStyle == DashStyle.Custom)
                 {
-                    customarrows = true;
+                    ArrowMode = ArrowDrawMode.PerSegment;
                     Stroke.DashStyle = DashStyle.Solid;
                 }
 
@@ -171,50 +179,108 @@
 
                 g.DrawPath(Stroke, graphicsPath);
 
-                if (customarrows && graphicsPath.PointCount > 0)
+                if (ArrowMode != ArrowDrawMode.None && graphicsPath.PointCount > 1)
                 {
                     double deg2rad = Math.PI / 180.0;
                     double rad2deg = 1 / deg2rad;
 
-                    PointF last = PointF.Empty;
-                    foreach (PointF item in graphicsPath.PathPoints)
+                    if (ArrowMode == ArrowDrawMode.PerSegment)
                     {
-                        if (last == PointF.Empty)
+                        PointF last = PointF.Empty;
+                        foreach (PointF item in graphicsPath.PathPoints)
                         {
+                            if (last == PointF.Empty)
+                            {
+                                last = item;
+                                continue;
+                            }
+
+                            float polx = item.X - last.X;
+                            float poly = item.Y - last.Y;
+
+                            // distance
+                            double r = Math.Sqrt(Math.Pow(polx, 2) + Math.Pow(poly, 2));
+
+                            if (r <= 20)
+                                continue;
+
+                            // angle
+                            double angle = Math.Atan2(poly, polx);
+
+                            if (double.IsNaN(angle))
+                                continue;
+
+                            float midx = polx / 2;
+                            float midy = poly / 2;
+
+                            float midxstart = last.X + midx;
+                            float midystart = last.Y + midy;
+
+                            double leftangle = angle + 210 * deg2rad;
+                            double rightangle = angle - 210 * deg2rad;
+
+                            float length = 15;
+
+                            g.DrawLine(Stroke, midxstart, midystart, midxstart + length * (float)Math.Cos(leftangle), midystart + length * (float)Math.Sin(leftangle));
+                            g.DrawLine(Stroke, midxstart, midystart, midxstart + length * (float)Math.Cos(rightangle), midystart + length * (float)Math.Sin(rightangle));
+
                             last = item;
-                            continue;
+                        }
+                    }
+                    else if (ArrowMode == ArrowDrawMode.SinglePerRoute)
+                    {
+                        var pts = graphicsPath.PathPoints;
+                        double totalLen = 0;
+                        for (int i = 1; i < pts.Length; i++)
+                        {
+                            float dx = pts[i].X - pts[i - 1].X;
+                            float dy = pts[i].Y - pts[i - 1].Y;
+                            totalLen += Math.Sqrt(dx * dx + dy * dy);
                         }
 
-                        float polx = item.X - last.X;
-                        float poly = item.Y - last.Y;
+                        if (totalLen > MinSegmentPixels) // reuse as min route length
+                        {
+                            double target = totalLen * 0.5; // middle of the route
+                            double acc = 0;
 
-                        // distance
-                        double r = Math.Sqrt(Math.Pow(polx, 2) + Math.Pow(poly, 2));
+                            for (int i = 1; i < pts.Length; i++)
+                            {
+                                PointF p0 = pts[i - 1];
+                                PointF p1 = pts[i];
 
-                        if (r <= 20)
-                            continue;
+                                float dx = p1.X - p0.X;
+                                float dy = p1.Y - p0.Y;
+                                double segLen = Math.Sqrt(dx * dx + dy * dy);
 
-                        // angle
-                        double angle = Math.Atan2(poly, polx);
+                                if (segLen <= 0)
+                                    continue;
 
-                        if (double.IsNaN(angle))
-                            continue;
+                                if (acc + segLen >= target)
+                                {
+                                    double t = (target - acc) / segLen;
+                                    float midx = (float)(p0.X + t * dx);
+                                    float midy = (float)(p0.Y + t * dy);
 
-                        float midx = polx / 2;
-                        float midy = poly / 2;
+                                    double angle = Math.Atan2(dy, dx);
+                                    if (!double.IsNaN(angle))
+                                    {
+                                        double leftAngle = angle + 210 * deg2rad;
+                                        double rightAngle = angle - 210 * deg2rad;
+                                        float len = ArrowLength;
 
-                        float midxstart = last.X + midx;
-                        float midystart = last.Y + midy;
+                                        g.DrawLine(Stroke, midx, midy,
+                                            midx + len * (float)Math.Cos(leftAngle),
+                                            midy + len * (float)Math.Sin(leftAngle));
+                                        g.DrawLine(Stroke, midx, midy,
+                                            midx + len * (float)Math.Cos(rightAngle),
+                                            midy + len * (float)Math.Sin(rightAngle));
+                                    }
+                                    break;
+                                }
 
-                        double leftangle = angle + 210 * deg2rad;
-                        double rightangle = angle - 210 * deg2rad;
-
-                        float length = 15;
-
-                        g.DrawLine(Stroke, midxstart, midystart, midxstart + length * (float)Math.Cos(leftangle), midystart + length * (float)Math.Sin(leftangle));
-                        g.DrawLine(Stroke, midxstart, midystart, midxstart + length * (float)Math.Cos(rightangle), midystart + length * (float)Math.Sin(rightangle));
-
-                        last = item;
+                                acc += segLen;
+                            }
+                        }
                     }
                 }
             }
