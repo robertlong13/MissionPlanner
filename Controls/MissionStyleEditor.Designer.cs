@@ -28,463 +28,377 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.MainTable = new System.Windows.Forms.TableLayoutPanel();
-            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
-            this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
-            this.listBox1 = new System.Windows.Forms.ListBox();
-            this.myButton1 = new MissionPlanner.Controls.MyButton();
-            this.myButton2 = new MissionPlanner.Controls.MyButton();
-            this.myButton3 = new MissionPlanner.Controls.MyButton();
-            this.myButton4 = new MissionPlanner.Controls.MyButton();
-            this.myButton5 = new MissionPlanner.Controls.MyButton();
-            this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
-            this.myButton6 = new MissionPlanner.Controls.MyButton();
-            this.myButton7 = new MissionPlanner.Controls.MyButton();
-            this.myButton8 = new MissionPlanner.Controls.MyButton();
-            this.myButton9 = new MissionPlanner.Controls.MyButton();
-            this.myButton10 = new MissionPlanner.Controls.MyButton();
-            this.listBox2 = new System.Windows.Forms.ListBox();
-            this.StylePresetTable = new System.Windows.Forms.TableLayoutPanel();
-            this.label1 = new System.Windows.Forms.Label();
-            this.comboBox1 = new System.Windows.Forms.ComboBox();
-            this.myButton11 = new MissionPlanner.Controls.MyButton();
-            this.myButton12 = new MissionPlanner.Controls.MyButton();
-            this.myButton13 = new MissionPlanner.Controls.MyButton();
-            this.tableLayoutPanel5 = new System.Windows.Forms.TableLayoutPanel();
-            this.myButton14 = new MissionPlanner.Controls.MyButton();
-            this.myButton15 = new MissionPlanner.Controls.MyButton();
-            this.MainTable.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
-            this.splitContainer1.Panel1.SuspendLayout();
-            this.splitContainer1.Panel2.SuspendLayout();
-            this.splitContainer1.SuspendLayout();
-            this.tabControl1.SuspendLayout();
-            this.tabPage1.SuspendLayout();
-            this.tabPage2.SuspendLayout();
-            this.tableLayoutPanel2.SuspendLayout();
-            this.tableLayoutPanel3.SuspendLayout();
-            this.StylePresetTable.SuspendLayout();
-            this.tableLayoutPanel5.SuspendLayout();
+            this.mainPanel = new System.Windows.Forms.TableLayoutPanel();
+            this.stylePresetPanel = new System.Windows.Forms.TableLayoutPanel();
+            this.previewButton = new MissionPlanner.Controls.MyButton();
+            this.saveAsButton = new MissionPlanner.Controls.MyButton();
+            this.styleBox = new System.Windows.Forms.ComboBox();
+            this.saveButton = new MissionPlanner.Controls.MyButton();
+            this.editorSplit = new System.Windows.Forms.SplitContainer();
+            this.ruleEditorPanel = new System.Windows.Forms.TableLayoutPanel();
+            this.ruleTabs = new System.Windows.Forms.TabControl();
+            this.markerRuleTab = new System.Windows.Forms.TabPage();
+            this.segmentRuleTab = new System.Windows.Forms.TabPage();
+            this.ruleAddButton = new MissionPlanner.Controls.MyButton();
+            this.ruleDuplicateButton = new MissionPlanner.Controls.MyButton();
+            this.ruleDeleteButton = new MissionPlanner.Controls.MyButton();
+            this.ruleMoveUpButton = new MissionPlanner.Controls.MyButton();
+            this.ruleMoveDownButton = new MissionPlanner.Controls.MyButton();
+            this.rulePropertyEditor = new System.Windows.Forms.PropertyGrid();
+            this.dialogButtons = new System.Windows.Forms.TableLayoutPanel();
+            this.okButton = new MissionPlanner.Controls.MyButton();
+            this.cancelButton = new MissionPlanner.Controls.MyButton();
+            this.segmentRuleListBox = new System.Windows.Forms.ListBox();
+            this.markerRuleListBox = new System.Windows.Forms.ListBox();
+            this.styleLabel = new System.Windows.Forms.Label();
+            this.mainPanel.SuspendLayout();
+            this.stylePresetPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.editorSplit)).BeginInit();
+            this.editorSplit.Panel1.SuspendLayout();
+            this.editorSplit.Panel2.SuspendLayout();
+            this.editorSplit.SuspendLayout();
+            this.ruleEditorPanel.SuspendLayout();
+            this.ruleTabs.SuspendLayout();
+            this.markerRuleTab.SuspendLayout();
+            this.segmentRuleTab.SuspendLayout();
+            this.dialogButtons.SuspendLayout();
             this.SuspendLayout();
             // 
-            // MainTable
+            // mainPanel
             // 
-            this.MainTable.ColumnCount = 1;
-            this.MainTable.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.MainTable.Controls.Add(this.StylePresetTable, 0, 0);
-            this.MainTable.Controls.Add(this.splitContainer1, 0, 1);
-            this.MainTable.Controls.Add(this.tableLayoutPanel5, 0, 2);
-            this.MainTable.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.MainTable.Location = new System.Drawing.Point(0, 0);
-            this.MainTable.Name = "MainTable";
-            this.MainTable.RowCount = 3;
-            this.MainTable.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.MainTable.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.MainTable.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.MainTable.Size = new System.Drawing.Size(800, 450);
-            this.MainTable.TabIndex = 0;
+            this.mainPanel.ColumnCount = 1;
+            this.mainPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.mainPanel.Controls.Add(this.stylePresetPanel, 0, 0);
+            this.mainPanel.Controls.Add(this.editorSplit, 0, 1);
+            this.mainPanel.Controls.Add(this.dialogButtons, 0, 2);
+            this.mainPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.mainPanel.Location = new System.Drawing.Point(0, 0);
+            this.mainPanel.Name = "mainPanel";
+            this.mainPanel.RowCount = 3;
+            this.mainPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.mainPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.mainPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.mainPanel.Size = new System.Drawing.Size(800, 450);
+            this.mainPanel.TabIndex = 0;
             // 
-            // splitContainer1
+            // stylePresetPanel
             // 
-            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer1.Location = new System.Drawing.Point(3, 38);
-            this.splitContainer1.Name = "splitContainer1";
-            // 
-            // splitContainer1.Panel1
-            // 
-            this.splitContainer1.Panel1.Controls.Add(this.tabControl1);
-            // 
-            // splitContainer1.Panel2
-            // 
-            this.splitContainer1.Panel2.Controls.Add(this.propertyGrid1);
-            this.splitContainer1.Size = new System.Drawing.Size(794, 374);
-            this.splitContainer1.SplitterDistance = 284;
-            this.splitContainer1.TabIndex = 0;
-            // 
-            // tabControl1
-            // 
-            this.tabControl1.Controls.Add(this.tabPage1);
-            this.tabControl1.Controls.Add(this.tabPage2);
-            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControl1.Location = new System.Drawing.Point(0, 0);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(284, 374);
-            this.tabControl1.TabIndex = 0;
-            // 
-            // tabPage1
-            // 
-            this.tabPage1.Controls.Add(this.listBox1);
-            this.tabPage1.Controls.Add(this.tableLayoutPanel2);
-            this.tabPage1.Location = new System.Drawing.Point(4, 22);
-            this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(276, 348);
-            this.tabPage1.TabIndex = 0;
-            this.tabPage1.Text = "tabPage1";
-            this.tabPage1.UseVisualStyleBackColor = true;
-            // 
-            // tabPage2
-            // 
-            this.tabPage2.Controls.Add(this.listBox2);
-            this.tabPage2.Controls.Add(this.tableLayoutPanel3);
-            this.tabPage2.Location = new System.Drawing.Point(4, 22);
-            this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(276, 348);
-            this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "tabPage2";
-            this.tabPage2.UseVisualStyleBackColor = true;
-            // 
-            // propertyGrid1
-            // 
-            this.propertyGrid1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.propertyGrid1.Location = new System.Drawing.Point(0, 0);
-            this.propertyGrid1.Name = "propertyGrid1";
-            this.propertyGrid1.Size = new System.Drawing.Size(506, 374);
-            this.propertyGrid1.TabIndex = 0;
-            // 
-            // tableLayoutPanel2
-            // 
-            this.tableLayoutPanel2.ColumnCount = 5;
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
-            this.tableLayoutPanel2.Controls.Add(this.myButton1, 0, 0);
-            this.tableLayoutPanel2.Controls.Add(this.myButton2, 1, 0);
-            this.tableLayoutPanel2.Controls.Add(this.myButton3, 2, 0);
-            this.tableLayoutPanel2.Controls.Add(this.myButton4, 3, 0);
-            this.tableLayoutPanel2.Controls.Add(this.myButton5, 4, 0);
-            this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.tableLayoutPanel2.Location = new System.Drawing.Point(3, 315);
-            this.tableLayoutPanel2.Name = "tableLayoutPanel2";
-            this.tableLayoutPanel2.RowCount = 1;
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(270, 30);
-            this.tableLayoutPanel2.TabIndex = 0;
-            // 
-            // listBox1
-            // 
-            this.listBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.listBox1.FormattingEnabled = true;
-            this.listBox1.Location = new System.Drawing.Point(3, 3);
-            this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(270, 312);
-            this.listBox1.TabIndex = 1;
-            // 
-            // myButton1
-            // 
-            this.myButton1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.myButton1.Location = new System.Drawing.Point(3, 3);
-            this.myButton1.Name = "myButton1";
-            this.myButton1.Size = new System.Drawing.Size(48, 23);
-            this.myButton1.TabIndex = 0;
-            this.myButton1.Text = "myButton1";
-            this.myButton1.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.myButton1.UseVisualStyleBackColor = true;
-            // 
-            // myButton2
-            // 
-            this.myButton2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.myButton2.Location = new System.Drawing.Point(57, 3);
-            this.myButton2.Name = "myButton2";
-            this.myButton2.Size = new System.Drawing.Size(48, 23);
-            this.myButton2.TabIndex = 1;
-            this.myButton2.Text = "myButton2";
-            this.myButton2.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.myButton2.UseVisualStyleBackColor = true;
-            // 
-            // myButton3
-            // 
-            this.myButton3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.myButton3.Location = new System.Drawing.Point(111, 3);
-            this.myButton3.Name = "myButton3";
-            this.myButton3.Size = new System.Drawing.Size(48, 23);
-            this.myButton3.TabIndex = 2;
-            this.myButton3.Text = "myButton3";
-            this.myButton3.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.myButton3.UseVisualStyleBackColor = true;
-            // 
-            // myButton4
-            // 
-            this.myButton4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.myButton4.Location = new System.Drawing.Point(165, 3);
-            this.myButton4.Name = "myButton4";
-            this.myButton4.Size = new System.Drawing.Size(48, 23);
-            this.myButton4.TabIndex = 3;
-            this.myButton4.Text = "myButton4";
-            this.myButton4.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.myButton4.UseVisualStyleBackColor = true;
-            // 
-            // myButton5
-            // 
-            this.myButton5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.myButton5.Location = new System.Drawing.Point(219, 3);
-            this.myButton5.Name = "myButton5";
-            this.myButton5.Size = new System.Drawing.Size(48, 23);
-            this.myButton5.TabIndex = 4;
-            this.myButton5.Text = "myButton5";
-            this.myButton5.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.myButton5.UseVisualStyleBackColor = true;
-            // 
-            // tableLayoutPanel3
-            // 
-            this.tableLayoutPanel3.ColumnCount = 5;
-            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
-            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
-            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
-            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
-            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
-            this.tableLayoutPanel3.Controls.Add(this.myButton6, 0, 0);
-            this.tableLayoutPanel3.Controls.Add(this.myButton7, 1, 0);
-            this.tableLayoutPanel3.Controls.Add(this.myButton8, 2, 0);
-            this.tableLayoutPanel3.Controls.Add(this.myButton9, 3, 0);
-            this.tableLayoutPanel3.Controls.Add(this.myButton10, 4, 0);
-            this.tableLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.tableLayoutPanel3.Location = new System.Drawing.Point(3, 315);
-            this.tableLayoutPanel3.Name = "tableLayoutPanel3";
-            this.tableLayoutPanel3.RowCount = 1;
-            this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel3.Size = new System.Drawing.Size(270, 30);
-            this.tableLayoutPanel3.TabIndex = 1;
-            // 
-            // myButton6
-            // 
-            this.myButton6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.myButton6.Location = new System.Drawing.Point(3, 3);
-            this.myButton6.Name = "myButton6";
-            this.myButton6.Size = new System.Drawing.Size(48, 23);
-            this.myButton6.TabIndex = 0;
-            this.myButton6.Text = "myButton6";
-            this.myButton6.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.myButton6.UseVisualStyleBackColor = true;
-            // 
-            // myButton7
-            // 
-            this.myButton7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.myButton7.Location = new System.Drawing.Point(57, 3);
-            this.myButton7.Name = "myButton7";
-            this.myButton7.Size = new System.Drawing.Size(48, 23);
-            this.myButton7.TabIndex = 1;
-            this.myButton7.Text = "myButton7";
-            this.myButton7.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.myButton7.UseVisualStyleBackColor = true;
-            // 
-            // myButton8
-            // 
-            this.myButton8.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.myButton8.Location = new System.Drawing.Point(111, 3);
-            this.myButton8.Name = "myButton8";
-            this.myButton8.Size = new System.Drawing.Size(48, 23);
-            this.myButton8.TabIndex = 2;
-            this.myButton8.Text = "myButton8";
-            this.myButton8.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.myButton8.UseVisualStyleBackColor = true;
-            // 
-            // myButton9
-            // 
-            this.myButton9.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.myButton9.Location = new System.Drawing.Point(165, 3);
-            this.myButton9.Name = "myButton9";
-            this.myButton9.Size = new System.Drawing.Size(48, 23);
-            this.myButton9.TabIndex = 3;
-            this.myButton9.Text = "myButton9";
-            this.myButton9.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.myButton9.UseVisualStyleBackColor = true;
-            // 
-            // myButton10
-            // 
-            this.myButton10.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.myButton10.Location = new System.Drawing.Point(219, 3);
-            this.myButton10.Name = "myButton10";
-            this.myButton10.Size = new System.Drawing.Size(48, 23);
-            this.myButton10.TabIndex = 4;
-            this.myButton10.Text = "myButton10";
-            this.myButton10.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.myButton10.UseVisualStyleBackColor = true;
-            // 
-            // listBox2
-            // 
-            this.listBox2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.listBox2.FormattingEnabled = true;
-            this.listBox2.Location = new System.Drawing.Point(3, 3);
-            this.listBox2.Name = "listBox2";
-            this.listBox2.Size = new System.Drawing.Size(270, 312);
-            this.listBox2.TabIndex = 2;
-            // 
-            // StylePresetTable
-            // 
-            this.StylePresetTable.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.stylePresetPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.StylePresetTable.AutoSize = true;
-            this.StylePresetTable.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.StylePresetTable.ColumnCount = 5;
-            this.StylePresetTable.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.StylePresetTable.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.StylePresetTable.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.StylePresetTable.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.StylePresetTable.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.StylePresetTable.Controls.Add(this.myButton13, 4, 0);
-            this.StylePresetTable.Controls.Add(this.label1, 0, 0);
-            this.StylePresetTable.Controls.Add(this.myButton12, 3, 0);
-            this.StylePresetTable.Controls.Add(this.comboBox1, 1, 0);
-            this.StylePresetTable.Controls.Add(this.myButton11, 2, 0);
-            this.StylePresetTable.Location = new System.Drawing.Point(3, 3);
-            this.StylePresetTable.Name = "StylePresetTable";
-            this.StylePresetTable.RowCount = 1;
-            this.StylePresetTable.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.StylePresetTable.Size = new System.Drawing.Size(794, 29);
-            this.StylePresetTable.TabIndex = 1;
+            this.stylePresetPanel.AutoSize = true;
+            this.stylePresetPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.stylePresetPanel.ColumnCount = 5;
+            this.stylePresetPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.stylePresetPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.stylePresetPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.stylePresetPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.stylePresetPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.stylePresetPanel.Controls.Add(this.previewButton, 4, 0);
+            this.stylePresetPanel.Controls.Add(this.styleLabel, 0, 0);
+            this.stylePresetPanel.Controls.Add(this.saveAsButton, 3, 0);
+            this.stylePresetPanel.Controls.Add(this.styleBox, 1, 0);
+            this.stylePresetPanel.Controls.Add(this.saveButton, 2, 0);
+            this.stylePresetPanel.Location = new System.Drawing.Point(3, 3);
+            this.stylePresetPanel.Name = "stylePresetPanel";
+            this.stylePresetPanel.RowCount = 1;
+            this.stylePresetPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.stylePresetPanel.Size = new System.Drawing.Size(794, 29);
+            this.stylePresetPanel.TabIndex = 1;
             // 
-            // label1
+            // previewButton
             // 
-            this.label1.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(3, 8);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(36, 13);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Style: ";
+            this.previewButton.Location = new System.Drawing.Point(726, 3);
+            this.previewButton.Name = "previewButton";
+            this.previewButton.Size = new System.Drawing.Size(65, 23);
+            this.previewButton.TabIndex = 2;
+            this.previewButton.Text = "Preview";
+            this.previewButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
+            this.previewButton.UseVisualStyleBackColor = true;
             // 
-            // comboBox1
+            // saveAsButton
             // 
-            this.comboBox1.FormattingEnabled = true;
-            this.comboBox1.Location = new System.Drawing.Point(45, 3);
-            this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(151, 21);
-            this.comboBox1.TabIndex = 1;
+            this.saveAsButton.Location = new System.Drawing.Point(273, 3);
+            this.saveAsButton.Name = "saveAsButton";
+            this.saveAsButton.Size = new System.Drawing.Size(65, 23);
+            this.saveAsButton.TabIndex = 1;
+            this.saveAsButton.Text = "Save As";
+            this.saveAsButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
+            this.saveAsButton.UseVisualStyleBackColor = true;
             // 
-            // myButton11
+            // styleBox
             // 
-            this.myButton11.Location = new System.Drawing.Point(554, 3);
-            this.myButton11.Name = "myButton11";
-            this.myButton11.Size = new System.Drawing.Size(75, 23);
-            this.myButton11.TabIndex = 0;
-            this.myButton11.Text = "myButton11";
-            this.myButton11.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.myButton11.UseVisualStyleBackColor = true;
+            this.styleBox.FormattingEnabled = true;
+            this.styleBox.Location = new System.Drawing.Point(45, 3);
+            this.styleBox.Name = "styleBox";
+            this.styleBox.Size = new System.Drawing.Size(151, 21);
+            this.styleBox.TabIndex = 1;
             // 
-            // myButton12
+            // saveButton
             // 
-            this.myButton12.Location = new System.Drawing.Point(635, 3);
-            this.myButton12.Name = "myButton12";
-            this.myButton12.Size = new System.Drawing.Size(75, 23);
-            this.myButton12.TabIndex = 1;
-            this.myButton12.Text = "myButton12";
-            this.myButton12.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.myButton12.UseVisualStyleBackColor = true;
+            this.saveButton.Location = new System.Drawing.Point(202, 3);
+            this.saveButton.Name = "saveButton";
+            this.saveButton.Size = new System.Drawing.Size(65, 23);
+            this.saveButton.TabIndex = 0;
+            this.saveButton.Text = "Save";
+            this.saveButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
+            this.saveButton.UseVisualStyleBackColor = true;
             // 
-            // myButton13
+            // editorSplit
             // 
-            this.myButton13.Location = new System.Drawing.Point(716, 3);
-            this.myButton13.Name = "myButton13";
-            this.myButton13.Size = new System.Drawing.Size(75, 23);
-            this.myButton13.TabIndex = 2;
-            this.myButton13.Text = "myButton13";
-            this.myButton13.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.myButton13.UseVisualStyleBackColor = true;
+            this.editorSplit.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.editorSplit.Location = new System.Drawing.Point(3, 38);
+            this.editorSplit.Name = "editorSplit";
             // 
-            // tableLayoutPanel5
+            // editorSplit.Panel1
             // 
-            this.tableLayoutPanel5.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.editorSplit.Panel1.Controls.Add(this.ruleEditorPanel);
+            // 
+            // editorSplit.Panel2
+            // 
+            this.editorSplit.Panel2.Controls.Add(this.rulePropertyEditor);
+            this.editorSplit.Size = new System.Drawing.Size(794, 374);
+            this.editorSplit.SplitterDistance = 258;
+            this.editorSplit.TabIndex = 0;
+            // 
+            // ruleEditorPanel
+            // 
+            this.ruleEditorPanel.ColumnCount = 4;
+            this.ruleEditorPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 49.99999F));
+            this.ruleEditorPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.ruleEditorPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.ruleEditorPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.ruleEditorPanel.Controls.Add(this.ruleTabs, 0, 0);
+            this.ruleEditorPanel.Controls.Add(this.ruleAddButton, 0, 2);
+            this.ruleEditorPanel.Controls.Add(this.ruleDuplicateButton, 1, 2);
+            this.ruleEditorPanel.Controls.Add(this.ruleDeleteButton, 2, 2);
+            this.ruleEditorPanel.Controls.Add(this.ruleMoveUpButton, 3, 0);
+            this.ruleEditorPanel.Controls.Add(this.ruleMoveDownButton, 3, 1);
+            this.ruleEditorPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ruleEditorPanel.Location = new System.Drawing.Point(0, 0);
+            this.ruleEditorPanel.Name = "ruleEditorPanel";
+            this.ruleEditorPanel.RowCount = 3;
+            this.ruleEditorPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
+            this.ruleEditorPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.ruleEditorPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.ruleEditorPanel.Size = new System.Drawing.Size(258, 374);
+            this.ruleEditorPanel.TabIndex = 0;
+            // 
+            // ruleTabs
+            // 
+            this.ruleEditorPanel.SetColumnSpan(this.ruleTabs, 3);
+            this.ruleTabs.Controls.Add(this.markerRuleTab);
+            this.ruleTabs.Controls.Add(this.segmentRuleTab);
+            this.ruleTabs.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ruleTabs.Location = new System.Drawing.Point(3, 3);
+            this.ruleTabs.Name = "ruleTabs";
+            this.ruleEditorPanel.SetRowSpan(this.ruleTabs, 2);
+            this.ruleTabs.SelectedIndex = 0;
+            this.ruleTabs.Size = new System.Drawing.Size(220, 339);
+            this.ruleTabs.TabIndex = 0;
+            // 
+            // markerRuleTab
+            // 
+            this.markerRuleTab.Controls.Add(this.markerRuleListBox);
+            this.markerRuleTab.Location = new System.Drawing.Point(4, 22);
+            this.markerRuleTab.Name = "markerRuleTab";
+            this.markerRuleTab.Padding = new System.Windows.Forms.Padding(3);
+            this.markerRuleTab.Size = new System.Drawing.Size(212, 313);
+            this.markerRuleTab.TabIndex = 0;
+            this.markerRuleTab.Text = "Markers";
+            this.markerRuleTab.UseVisualStyleBackColor = true;
+            // 
+            // segmentRuleTab
+            // 
+            this.segmentRuleTab.Controls.Add(this.segmentRuleListBox);
+            this.segmentRuleTab.Location = new System.Drawing.Point(4, 22);
+            this.segmentRuleTab.Name = "segmentRuleTab";
+            this.segmentRuleTab.Padding = new System.Windows.Forms.Padding(3);
+            this.segmentRuleTab.Size = new System.Drawing.Size(250, 313);
+            this.segmentRuleTab.TabIndex = 1;
+            this.segmentRuleTab.Text = "Segments";
+            this.segmentRuleTab.UseVisualStyleBackColor = true;
+            // 
+            // ruleAddButton
+            // 
+            this.ruleAddButton.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.ruleAddButton.Location = new System.Drawing.Point(9, 348);
+            this.ruleAddButton.Name = "ruleAddButton";
+            this.ruleAddButton.Size = new System.Drawing.Size(65, 23);
+            this.ruleAddButton.TabIndex = 1;
+            this.ruleAddButton.Text = "Add";
+            this.ruleAddButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
+            this.ruleAddButton.UseVisualStyleBackColor = true;
+            // 
+            // ruleDuplicateButton
+            // 
+            this.ruleDuplicateButton.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.ruleDuplicateButton.Location = new System.Drawing.Point(80, 348);
+            this.ruleDuplicateButton.Name = "ruleDuplicateButton";
+            this.ruleDuplicateButton.Size = new System.Drawing.Size(65, 23);
+            this.ruleDuplicateButton.TabIndex = 2;
+            this.ruleDuplicateButton.Text = "Duplicate";
+            this.ruleDuplicateButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
+            this.ruleDuplicateButton.UseVisualStyleBackColor = true;
+            // 
+            // ruleDeleteButton
+            // 
+            this.ruleDeleteButton.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.ruleDeleteButton.Location = new System.Drawing.Point(151, 348);
+            this.ruleDeleteButton.Name = "ruleDeleteButton";
+            this.ruleDeleteButton.Size = new System.Drawing.Size(65, 23);
+            this.ruleDeleteButton.TabIndex = 3;
+            this.ruleDeleteButton.Text = "Delete";
+            this.ruleDeleteButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
+            this.ruleDeleteButton.UseVisualStyleBackColor = true;
+            // 
+            // ruleMoveUpButton
+            // 
+            this.ruleMoveUpButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.ruleMoveUpButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ruleMoveUpButton.Location = new System.Drawing.Point(229, 32);
+            this.ruleMoveUpButton.Name = "ruleMoveUpButton";
+            this.ruleMoveUpButton.Size = new System.Drawing.Size(25, 25);
+            this.ruleMoveUpButton.TabIndex = 4;
+            this.ruleMoveUpButton.Text = "⬆";
+            this.ruleMoveUpButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
+            this.ruleMoveUpButton.UseVisualStyleBackColor = true;
+            // 
+            // ruleMoveDownButton
+            // 
+            this.ruleMoveDownButton.Location = new System.Drawing.Point(229, 63);
+            this.ruleMoveDownButton.Name = "ruleMoveDownButton";
+            this.ruleMoveDownButton.Size = new System.Drawing.Size(25, 25);
+            this.ruleMoveDownButton.TabIndex = 5;
+            this.ruleMoveDownButton.Text = "⬇";
+            this.ruleMoveDownButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
+            this.ruleMoveDownButton.UseVisualStyleBackColor = true;
+            // 
+            // rulePropertyEditor
+            // 
+            this.rulePropertyEditor.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rulePropertyEditor.Location = new System.Drawing.Point(0, 0);
+            this.rulePropertyEditor.Name = "rulePropertyEditor";
+            this.rulePropertyEditor.Size = new System.Drawing.Size(532, 374);
+            this.rulePropertyEditor.TabIndex = 0;
+            // 
+            // dialogButtons
+            // 
+            this.dialogButtons.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.tableLayoutPanel5.AutoSize = true;
-            this.tableLayoutPanel5.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.tableLayoutPanel5.ColumnCount = 3;
-            this.tableLayoutPanel5.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel5.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.tableLayoutPanel5.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.tableLayoutPanel5.Controls.Add(this.myButton14, 1, 0);
-            this.tableLayoutPanel5.Controls.Add(this.myButton15, 2, 0);
-            this.tableLayoutPanel5.Location = new System.Drawing.Point(3, 418);
-            this.tableLayoutPanel5.Name = "tableLayoutPanel5";
-            this.tableLayoutPanel5.RowCount = 1;
-            this.tableLayoutPanel5.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel5.Size = new System.Drawing.Size(794, 29);
-            this.tableLayoutPanel5.TabIndex = 2;
+            this.dialogButtons.AutoSize = true;
+            this.dialogButtons.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.dialogButtons.ColumnCount = 3;
+            this.dialogButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.dialogButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.dialogButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.dialogButtons.Controls.Add(this.okButton, 1, 0);
+            this.dialogButtons.Controls.Add(this.cancelButton, 2, 0);
+            this.dialogButtons.Location = new System.Drawing.Point(3, 418);
+            this.dialogButtons.Name = "dialogButtons";
+            this.dialogButtons.RowCount = 1;
+            this.dialogButtons.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.dialogButtons.Size = new System.Drawing.Size(794, 29);
+            this.dialogButtons.TabIndex = 2;
             // 
-            // myButton14
+            // okButton
             // 
-            this.myButton14.Location = new System.Drawing.Point(635, 3);
-            this.myButton14.Name = "myButton14";
-            this.myButton14.Size = new System.Drawing.Size(75, 23);
-            this.myButton14.TabIndex = 1;
-            this.myButton14.Text = "myButton14";
-            this.myButton14.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.myButton14.UseVisualStyleBackColor = true;
+            this.okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
+            this.okButton.Location = new System.Drawing.Point(655, 3);
+            this.okButton.Name = "okButton";
+            this.okButton.Size = new System.Drawing.Size(65, 23);
+            this.okButton.TabIndex = 1;
+            this.okButton.Text = "OK";
+            this.okButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
+            this.okButton.UseVisualStyleBackColor = true;
             // 
-            // myButton15
+            // cancelButton
             // 
-            this.myButton15.Location = new System.Drawing.Point(716, 3);
-            this.myButton15.Name = "myButton15";
-            this.myButton15.Size = new System.Drawing.Size(75, 23);
-            this.myButton15.TabIndex = 2;
-            this.myButton15.Text = "myButton15";
-            this.myButton15.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.myButton15.UseVisualStyleBackColor = true;
+            this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.cancelButton.Location = new System.Drawing.Point(726, 3);
+            this.cancelButton.Name = "cancelButton";
+            this.cancelButton.Size = new System.Drawing.Size(65, 23);
+            this.cancelButton.TabIndex = 2;
+            this.cancelButton.Text = "Cancel";
+            this.cancelButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
+            this.cancelButton.UseVisualStyleBackColor = true;
+            // 
+            // segmentRuleListBox
+            // 
+            this.segmentRuleListBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.segmentRuleListBox.FormattingEnabled = true;
+            this.segmentRuleListBox.Location = new System.Drawing.Point(3, 3);
+            this.segmentRuleListBox.Name = "segmentRuleListBox";
+            this.segmentRuleListBox.Size = new System.Drawing.Size(244, 307);
+            this.segmentRuleListBox.TabIndex = 0;
+            // 
+            // markerRuleListBox
+            // 
+            this.markerRuleListBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.markerRuleListBox.FormattingEnabled = true;
+            this.markerRuleListBox.Location = new System.Drawing.Point(3, 3);
+            this.markerRuleListBox.Name = "markerRuleListBox";
+            this.markerRuleListBox.Size = new System.Drawing.Size(206, 307);
+            this.markerRuleListBox.TabIndex = 0;
+            // 
+            // styleLabel
+            // 
+            this.styleLabel.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.styleLabel.AutoSize = true;
+            this.styleLabel.Location = new System.Drawing.Point(3, 8);
+            this.styleLabel.Name = "styleLabel";
+            this.styleLabel.Size = new System.Drawing.Size(36, 13);
+            this.styleLabel.TabIndex = 0;
+            this.styleLabel.Text = "Style: ";
             // 
             // MissionStyleEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.MainTable);
+            this.Controls.Add(this.mainPanel);
             this.Name = "MissionStyleEditor";
-            this.Text = "MissionStyleEditor";
-            this.MainTable.ResumeLayout(false);
-            this.MainTable.PerformLayout();
-            this.splitContainer1.Panel1.ResumeLayout(false);
-            this.splitContainer1.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
-            this.splitContainer1.ResumeLayout(false);
-            this.tabControl1.ResumeLayout(false);
-            this.tabPage1.ResumeLayout(false);
-            this.tabPage2.ResumeLayout(false);
-            this.tableLayoutPanel2.ResumeLayout(false);
-            this.tableLayoutPanel3.ResumeLayout(false);
-            this.StylePresetTable.ResumeLayout(false);
-            this.StylePresetTable.PerformLayout();
-            this.tableLayoutPanel5.ResumeLayout(false);
+            this.Text = "Mission Style Editor";
+            this.mainPanel.ResumeLayout(false);
+            this.mainPanel.PerformLayout();
+            this.stylePresetPanel.ResumeLayout(false);
+            this.stylePresetPanel.PerformLayout();
+            this.editorSplit.Panel1.ResumeLayout(false);
+            this.editorSplit.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.editorSplit)).EndInit();
+            this.editorSplit.ResumeLayout(false);
+            this.ruleEditorPanel.ResumeLayout(false);
+            this.ruleTabs.ResumeLayout(false);
+            this.markerRuleTab.ResumeLayout(false);
+            this.segmentRuleTab.ResumeLayout(false);
+            this.dialogButtons.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.TableLayoutPanel MainTable;
-        private System.Windows.Forms.SplitContainer splitContainer1;
-        private System.Windows.Forms.TabControl tabControl1;
-        private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.TabPage tabPage2;
-        private System.Windows.Forms.PropertyGrid propertyGrid1;
-        private System.Windows.Forms.ListBox listBox1;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
-        private MyButton myButton1;
-        private MyButton myButton2;
-        private MyButton myButton3;
-        private MyButton myButton4;
-        private MyButton myButton5;
-        private System.Windows.Forms.ListBox listBox2;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel3;
-        private MyButton myButton6;
-        private MyButton myButton7;
-        private MyButton myButton8;
-        private MyButton myButton9;
-        private MyButton myButton10;
-        private System.Windows.Forms.TableLayoutPanel StylePresetTable;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.ComboBox comboBox1;
-        private MyButton myButton13;
-        private MyButton myButton12;
-        private MyButton myButton11;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel5;
-        private MyButton myButton14;
-        private MyButton myButton15;
+        private System.Windows.Forms.TableLayoutPanel mainPanel;
+        private System.Windows.Forms.SplitContainer editorSplit;
+        private System.Windows.Forms.PropertyGrid rulePropertyEditor;
+        private System.Windows.Forms.TableLayoutPanel stylePresetPanel;
+        private System.Windows.Forms.ComboBox styleBox;
+        private MyButton previewButton;
+        private MyButton saveAsButton;
+        private MyButton saveButton;
+        private System.Windows.Forms.TableLayoutPanel dialogButtons;
+        private MyButton okButton;
+        private MyButton cancelButton;
+        private System.Windows.Forms.TableLayoutPanel ruleEditorPanel;
+        private System.Windows.Forms.TabControl ruleTabs;
+        private System.Windows.Forms.TabPage markerRuleTab;
+        private System.Windows.Forms.TabPage segmentRuleTab;
+        private MyButton ruleAddButton;
+        private MyButton ruleDuplicateButton;
+        private MyButton ruleDeleteButton;
+        private MyButton ruleMoveUpButton;
+        private MyButton ruleMoveDownButton;
+        private System.Windows.Forms.ListBox markerRuleListBox;
+        private System.Windows.Forms.ListBox segmentRuleListBox;
+        private System.Windows.Forms.Label styleLabel;
     }
 }

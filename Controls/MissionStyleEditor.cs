@@ -16,9 +16,10 @@ namespace MissionPlanner.Controls
         BindingList<SegmentStyleRuleConfig> segmentRules;
         BindingList<MarkerStyleRuleConfig> markerRules;
 
-        public MissionStyleEditor()
+        public MissionStyleEditor(MissionStyleConfig styleConfig)
         {
             InitializeComponent();
+
         }
     }
 }

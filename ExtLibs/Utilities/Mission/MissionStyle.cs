@@ -29,26 +29,6 @@ namespace MissionPlanner.Utilities.Mission
         public bool? ShowArrow { get; set; }
     }
 
-    public sealed class MarkerStyle
-    {
-        public GMarkerGoogleType MarkerType { get; set; } = GMarkerGoogleType.green;
-        public Color CircleColor { get; set; } = Color.White;
-    }
-
-    public sealed class MarkerStyleRuleConfig
-    {
-        public ushort[] RawCommandIds { get; set; }
-        public bool AllLoiters { get; set; }
-        public bool AllTakeoffs { get; set; }
-        public bool AllLandings { get; set; }
-        public bool AllBookmarks { get; set; }
-        public bool AllFencePoints { get; set; }
-        public bool AllRegionsOfInterest { get; set; }
-
-        public GMarkerGoogleType? MarkerType { get; set; }
-        public Color? CircleColor { get; set; }
-    }
-
     public sealed class SegmentStyleRule
     {
         readonly SegmentStyleRuleConfig _config;
@@ -86,6 +66,26 @@ namespace MissionPlanner.Utilities.Mission
             if (_config.DashStyle.HasValue) style.DashStyle = _config.DashStyle.Value;
             if (_config.ShowArrow.HasValue) style.ShowArrow = _config.ShowArrow.Value;
         }
+    }
+
+    public sealed class MarkerStyle
+    {
+        public GMarkerGoogleType MarkerType { get; set; } = GMarkerGoogleType.green;
+        public Color CircleColor { get; set; } = Color.White;
+    }
+
+    public sealed class MarkerStyleRuleConfig
+    {
+        public ushort[] RawCommandIds { get; set; }
+        public bool AllLoiters { get; set; }
+        public bool AllTakeoffs { get; set; }
+        public bool AllLandings { get; set; }
+        public bool AllBookmarks { get; set; }
+        public bool AllFencePoints { get; set; }
+        public bool AllRegionsOfInterest { get; set; }
+
+        public GMarkerGoogleType? MarkerType { get; set; }
+        public Color? CircleColor { get; set; }
     }
 
     public sealed class MarkerStyleRule
@@ -289,7 +289,7 @@ namespace MissionPlanner.Utilities.Mission
             }
         }
 
-        public void SaveToConfig(string styleFilePath)
+        public static void SaveToConfig(string styleFilePath, MissionStyleConfig config)
         {
             if (string.IsNullOrEmpty(styleFilePath))
                 throw new ArgumentNullException(nameof(styleFilePath));
