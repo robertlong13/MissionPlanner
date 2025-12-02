@@ -19,6 +19,7 @@ namespace MissionPlanner.Utilities.Mission
 
     public sealed class SegmentStyleRuleConfig
     {
+        public string Description { get; set; }
         public SegmentKind? KindFilter { get; set; }
         public SegmentFlags? RequiredFlags { get; set; }
         public SegmentFlags? ExcludedFlags { get; set; }
@@ -76,6 +77,7 @@ namespace MissionPlanner.Utilities.Mission
 
     public sealed class MarkerStyleRuleConfig
     {
+        public string Description { get; set; }
         public ushort[] RawCommandIds { get; set; }
         public bool AllLoiters { get; set; }
         public bool AllTakeoffs { get; set; }
@@ -151,9 +153,9 @@ namespace MissionPlanner.Utilities.Mission
         {
             SegmentRules = new List<SegmentStyleRuleConfig>()
             {
-                // Base default
                 new SegmentStyleRuleConfig
                 {
+                    Description  = "Base defaults",
                     KindFilter   = null,
                     StrokeColor  = Color.FromArgb(180, 255, 255, 0),
                     StrokeWidth  = 3f,
@@ -162,23 +164,27 @@ namespace MissionPlanner.Utilities.Mission
                 },
                 new SegmentStyleRuleConfig
                 {
+                    Description   = "Jumps/Alternates",
                     RequiredFlags = SegmentFlags.Alternate,
                     StrokeWidth   = 2f,
                     DashStyle     = DashStyle.Dash
                 },
                 new SegmentStyleRuleConfig
                 {
+                    Description   = "Takeoff segments",
                     RequiredFlags = SegmentFlags.FromTakeoff,
                     StrokeWidth   = 2f,
                     DashStyle     = DashStyle.Dash
                 },
                 new SegmentStyleRuleConfig
                 {
+                    Description   = "Bookmark lines",
                     RequiredFlags = SegmentFlags.FromBookmark,
                     StrokeColor   = Color.Orange
                 },
                 new SegmentStyleRuleConfig
                 {
+                    Description   = "Landing sequence",
                     RequiredFlags = SegmentFlags.LandSequence,
                     StrokeColor = Color.FromArgb(128, 180, 255, 0),
                 },
@@ -187,27 +193,32 @@ namespace MissionPlanner.Utilities.Mission
             {
                 new MarkerStyleRuleConfig
                 {
+                    Description = "Base defaults",
                     MarkerType = GMarkerGoogleType.green,
                     CircleColor = Color.FromArgb(64, 255, 255, 255)
                 },
                 new MarkerStyleRuleConfig
                 {
+                    Description = "Loiters",
                     AllLoiters = true,
                     CircleColor = Color.Transparent
                 },
                 new MarkerStyleRuleConfig
                 {
+                    Description = "Landings",
                     AllLandings = true,
                     CircleColor = Color.Transparent
                 },
                 new MarkerStyleRuleConfig
                 {
+                    Description = "Bookmarks",
                     AllBookmarks = true,
                     MarkerType = GMarkerGoogleType.orange,
                     CircleColor = Color.Transparent
                 },
                 new MarkerStyleRuleConfig
                 {
+                    Description = "ROI",
                     AllRegionsOfInterest = true,
                     MarkerType = GMarkerGoogleType.purple,
                     CircleColor = Color.Transparent
@@ -215,7 +226,7 @@ namespace MissionPlanner.Utilities.Mission
             }
         };
 
-        MissionStyleConfig config;
+        public MissionStyleConfig config { get; private set; }
 
         // Runtime rule arrays built from configs
         List<SegmentStyleRule> SegmentRules = new List<SegmentStyleRule>();

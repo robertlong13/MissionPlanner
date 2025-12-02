@@ -8542,5 +8542,10 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
 
             return true;
         }
+
+        private void editStyleToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            new MissionStyleEditor(WPOverlay2.missionStyle, writeKML).ShowDialog(this);
+        }
     }
 }

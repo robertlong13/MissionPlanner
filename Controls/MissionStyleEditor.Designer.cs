@@ -30,27 +30,27 @@
         {
             this.mainPanel = new System.Windows.Forms.TableLayoutPanel();
             this.stylePresetPanel = new System.Windows.Forms.TableLayoutPanel();
-            this.previewButton = new MissionPlanner.Controls.MyButton();
-            this.saveAsButton = new MissionPlanner.Controls.MyButton();
+            this.styleLabel = new System.Windows.Forms.Label();
             this.styleBox = new System.Windows.Forms.ComboBox();
-            this.saveButton = new MissionPlanner.Controls.MyButton();
             this.editorSplit = new System.Windows.Forms.SplitContainer();
             this.ruleEditorPanel = new System.Windows.Forms.TableLayoutPanel();
             this.ruleTabs = new System.Windows.Forms.TabControl();
             this.markerRuleTab = new System.Windows.Forms.TabPage();
+            this.markerRuleListBox = new System.Windows.Forms.ListBox();
             this.segmentRuleTab = new System.Windows.Forms.TabPage();
+            this.segmentRuleListBox = new System.Windows.Forms.ListBox();
+            this.rulePropertyEditor = new System.Windows.Forms.PropertyGrid();
+            this.dialogButtons = new System.Windows.Forms.TableLayoutPanel();
+            this.previewButton = new MissionPlanner.Controls.MyButton();
+            this.saveAsButton = new MissionPlanner.Controls.MyButton();
+            this.saveButton = new MissionPlanner.Controls.MyButton();
             this.ruleAddButton = new MissionPlanner.Controls.MyButton();
             this.ruleDuplicateButton = new MissionPlanner.Controls.MyButton();
             this.ruleDeleteButton = new MissionPlanner.Controls.MyButton();
             this.ruleMoveUpButton = new MissionPlanner.Controls.MyButton();
             this.ruleMoveDownButton = new MissionPlanner.Controls.MyButton();
-            this.rulePropertyEditor = new System.Windows.Forms.PropertyGrid();
-            this.dialogButtons = new System.Windows.Forms.TableLayoutPanel();
             this.okButton = new MissionPlanner.Controls.MyButton();
             this.cancelButton = new MissionPlanner.Controls.MyButton();
-            this.segmentRuleListBox = new System.Windows.Forms.ListBox();
-            this.markerRuleListBox = new System.Windows.Forms.ListBox();
-            this.styleLabel = new System.Windows.Forms.Label();
             this.mainPanel.SuspendLayout();
             this.stylePresetPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.editorSplit)).BeginInit();
@@ -105,25 +105,15 @@
             this.stylePresetPanel.Size = new System.Drawing.Size(794, 29);
             this.stylePresetPanel.TabIndex = 1;
             // 
-            // previewButton
+            // styleLabel
             // 
-            this.previewButton.Location = new System.Drawing.Point(726, 3);
-            this.previewButton.Name = "previewButton";
-            this.previewButton.Size = new System.Drawing.Size(65, 23);
-            this.previewButton.TabIndex = 2;
-            this.previewButton.Text = "Preview";
-            this.previewButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.previewButton.UseVisualStyleBackColor = true;
-            // 
-            // saveAsButton
-            // 
-            this.saveAsButton.Location = new System.Drawing.Point(273, 3);
-            this.saveAsButton.Name = "saveAsButton";
-            this.saveAsButton.Size = new System.Drawing.Size(65, 23);
-            this.saveAsButton.TabIndex = 1;
-            this.saveAsButton.Text = "Save As";
-            this.saveAsButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.saveAsButton.UseVisualStyleBackColor = true;
+            this.styleLabel.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.styleLabel.AutoSize = true;
+            this.styleLabel.Location = new System.Drawing.Point(3, 8);
+            this.styleLabel.Name = "styleLabel";
+            this.styleLabel.Size = new System.Drawing.Size(36, 13);
+            this.styleLabel.TabIndex = 0;
+            this.styleLabel.Text = "Style: ";
             // 
             // styleBox
             // 
@@ -132,16 +122,6 @@
             this.styleBox.Name = "styleBox";
             this.styleBox.Size = new System.Drawing.Size(151, 21);
             this.styleBox.TabIndex = 1;
-            // 
-            // saveButton
-            // 
-            this.saveButton.Location = new System.Drawing.Point(202, 3);
-            this.saveButton.Name = "saveButton";
-            this.saveButton.Size = new System.Drawing.Size(65, 23);
-            this.saveButton.TabIndex = 0;
-            this.saveButton.Text = "Save";
-            this.saveButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
-            this.saveButton.UseVisualStyleBackColor = true;
             // 
             // editorSplit
             // 
@@ -207,16 +187,94 @@
             this.markerRuleTab.Text = "Markers";
             this.markerRuleTab.UseVisualStyleBackColor = true;
             // 
+            // markerRuleListBox
+            // 
+            this.markerRuleListBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.markerRuleListBox.FormattingEnabled = true;
+            this.markerRuleListBox.Location = new System.Drawing.Point(3, 3);
+            this.markerRuleListBox.Name = "markerRuleListBox";
+            this.markerRuleListBox.Size = new System.Drawing.Size(206, 307);
+            this.markerRuleListBox.TabIndex = 0;
+            this.markerRuleListBox.SelectedIndexChanged += new System.EventHandler(this.markerRuleListBox_SelectedIndexChanged);
+            // 
             // segmentRuleTab
             // 
             this.segmentRuleTab.Controls.Add(this.segmentRuleListBox);
             this.segmentRuleTab.Location = new System.Drawing.Point(4, 22);
             this.segmentRuleTab.Name = "segmentRuleTab";
             this.segmentRuleTab.Padding = new System.Windows.Forms.Padding(3);
-            this.segmentRuleTab.Size = new System.Drawing.Size(250, 313);
+            this.segmentRuleTab.Size = new System.Drawing.Size(212, 313);
             this.segmentRuleTab.TabIndex = 1;
             this.segmentRuleTab.Text = "Segments";
             this.segmentRuleTab.UseVisualStyleBackColor = true;
+            // 
+            // segmentRuleListBox
+            // 
+            this.segmentRuleListBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.segmentRuleListBox.FormattingEnabled = true;
+            this.segmentRuleListBox.Location = new System.Drawing.Point(3, 3);
+            this.segmentRuleListBox.Name = "segmentRuleListBox";
+            this.segmentRuleListBox.Size = new System.Drawing.Size(206, 307);
+            this.segmentRuleListBox.TabIndex = 0;
+            this.segmentRuleListBox.SelectedValueChanged += new System.EventHandler(this.segmentRuleListBox_SelectedValueChanged);
+            // 
+            // rulePropertyEditor
+            // 
+            this.rulePropertyEditor.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rulePropertyEditor.Location = new System.Drawing.Point(0, 0);
+            this.rulePropertyEditor.Name = "rulePropertyEditor";
+            this.rulePropertyEditor.Size = new System.Drawing.Size(532, 374);
+            this.rulePropertyEditor.TabIndex = 0;
+            this.rulePropertyEditor.ToolbarVisible = false;
+            // 
+            // dialogButtons
+            // 
+            this.dialogButtons.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.dialogButtons.AutoSize = true;
+            this.dialogButtons.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.dialogButtons.ColumnCount = 3;
+            this.dialogButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.dialogButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.dialogButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.dialogButtons.Controls.Add(this.okButton, 1, 0);
+            this.dialogButtons.Controls.Add(this.cancelButton, 2, 0);
+            this.dialogButtons.Location = new System.Drawing.Point(3, 418);
+            this.dialogButtons.Name = "dialogButtons";
+            this.dialogButtons.RowCount = 1;
+            this.dialogButtons.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.dialogButtons.Size = new System.Drawing.Size(794, 29);
+            this.dialogButtons.TabIndex = 2;
+            // 
+            // previewButton
+            // 
+            this.previewButton.Location = new System.Drawing.Point(726, 3);
+            this.previewButton.Name = "previewButton";
+            this.previewButton.Size = new System.Drawing.Size(65, 23);
+            this.previewButton.TabIndex = 2;
+            this.previewButton.Text = "Preview";
+            this.previewButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
+            this.previewButton.UseVisualStyleBackColor = true;
+            // 
+            // saveAsButton
+            // 
+            this.saveAsButton.Location = new System.Drawing.Point(273, 3);
+            this.saveAsButton.Name = "saveAsButton";
+            this.saveAsButton.Size = new System.Drawing.Size(65, 23);
+            this.saveAsButton.TabIndex = 1;
+            this.saveAsButton.Text = "Save As";
+            this.saveAsButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
+            this.saveAsButton.UseVisualStyleBackColor = true;
+            // 
+            // saveButton
+            // 
+            this.saveButton.Location = new System.Drawing.Point(202, 3);
+            this.saveButton.Name = "saveButton";
+            this.saveButton.Size = new System.Drawing.Size(65, 23);
+            this.saveButton.TabIndex = 0;
+            this.saveButton.Text = "Save";
+            this.saveButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
+            this.saveButton.UseVisualStyleBackColor = true;
             // 
             // ruleAddButton
             // 
@@ -273,33 +331,6 @@
             this.ruleMoveDownButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.ruleMoveDownButton.UseVisualStyleBackColor = true;
             // 
-            // rulePropertyEditor
-            // 
-            this.rulePropertyEditor.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.rulePropertyEditor.Location = new System.Drawing.Point(0, 0);
-            this.rulePropertyEditor.Name = "rulePropertyEditor";
-            this.rulePropertyEditor.Size = new System.Drawing.Size(532, 374);
-            this.rulePropertyEditor.TabIndex = 0;
-            // 
-            // dialogButtons
-            // 
-            this.dialogButtons.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.dialogButtons.AutoSize = true;
-            this.dialogButtons.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.dialogButtons.ColumnCount = 3;
-            this.dialogButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.dialogButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.dialogButtons.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
-            this.dialogButtons.Controls.Add(this.okButton, 1, 0);
-            this.dialogButtons.Controls.Add(this.cancelButton, 2, 0);
-            this.dialogButtons.Location = new System.Drawing.Point(3, 418);
-            this.dialogButtons.Name = "dialogButtons";
-            this.dialogButtons.RowCount = 1;
-            this.dialogButtons.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.dialogButtons.Size = new System.Drawing.Size(794, 29);
-            this.dialogButtons.TabIndex = 2;
-            // 
             // okButton
             // 
             this.okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
@@ -321,34 +352,6 @@
             this.cancelButton.Text = "Cancel";
             this.cancelButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.cancelButton.UseVisualStyleBackColor = true;
-            // 
-            // segmentRuleListBox
-            // 
-            this.segmentRuleListBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.segmentRuleListBox.FormattingEnabled = true;
-            this.segmentRuleListBox.Location = new System.Drawing.Point(3, 3);
-            this.segmentRuleListBox.Name = "segmentRuleListBox";
-            this.segmentRuleListBox.Size = new System.Drawing.Size(244, 307);
-            this.segmentRuleListBox.TabIndex = 0;
-            // 
-            // markerRuleListBox
-            // 
-            this.markerRuleListBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.markerRuleListBox.FormattingEnabled = true;
-            this.markerRuleListBox.Location = new System.Drawing.Point(3, 3);
-            this.markerRuleListBox.Name = "markerRuleListBox";
-            this.markerRuleListBox.Size = new System.Drawing.Size(206, 307);
-            this.markerRuleListBox.TabIndex = 0;
-            // 
-            // styleLabel
-            // 
-            this.styleLabel.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.styleLabel.AutoSize = true;
-            this.styleLabel.Location = new System.Drawing.Point(3, 8);
-            this.styleLabel.Name = "styleLabel";
-            this.styleLabel.Size = new System.Drawing.Size(36, 13);
-            this.styleLabel.TabIndex = 0;
-            this.styleLabel.Text = "Style: ";
             // 
             // MissionStyleEditor
             // 

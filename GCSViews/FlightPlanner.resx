@@ -2213,6 +2213,12 @@
   <data name="gDALOpacityToolStripMenuItem.Text" xml:space="preserve">
     <value>GDAL Opacity</value>
   </data>
+  <data name="editStyleToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>180, 22</value>
+  </data>
+  <data name="editStyleToolStripMenuItem.Text" xml:space="preserve">
+    <value>Edit Style</value>
+  </data>
   <data name="mapToolToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>155, 22</value>
   </data>
@@ -3200,10 +3206,10 @@
   <data name="&gt;&gt;zoomToHomeToolStripMenuItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;gDALOpacityToolStripMenuItem.Name" xml:space="preserve">
-    <value>gDALOpacityToolStripMenuItem</value>
+  <data name="&gt;&gt;editStyleToolStripMenuItem.Name" xml:space="preserve">
+    <value>editStyleToolStripMenuItem</value>
   </data>
-  <data name="&gt;&gt;gDALOpacityToolStripMenuItem.Type" xml:space="preserve">
+  <data name="&gt;&gt;editStyleToolStripMenuItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;$this.Name" xml:space="preserve">
