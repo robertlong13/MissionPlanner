@@ -8545,7 +8545,11 @@ Column 1: Field type (RALLY is the only one at the moment -- may have RALLY_LAND
 
         private void editStyleToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            new MissionStyleEditor(WPOverlay2.missionStyle, writeKML).ShowDialog(this);
+            new MissionStyleEditor(WPOverlay2.missionStyle, (style) =>
+            {
+                WPOverlay2.missionStyle = style;
+                writeKML();
+            }).ShowDialog();
         }
     }
 }

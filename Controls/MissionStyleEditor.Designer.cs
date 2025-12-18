@@ -122,6 +122,7 @@
             this.styleBox.Name = "styleBox";
             this.styleBox.Size = new System.Drawing.Size(151, 21);
             this.styleBox.TabIndex = 1;
+            this.styleBox.SelectedIndexChanged += new System.EventHandler(this.styleBox_SelectedIndexChanged);
             // 
             // editorSplit
             // 
@@ -195,7 +196,7 @@
             this.markerRuleListBox.Name = "markerRuleListBox";
             this.markerRuleListBox.Size = new System.Drawing.Size(206, 307);
             this.markerRuleListBox.TabIndex = 0;
-            this.markerRuleListBox.SelectedIndexChanged += new System.EventHandler(this.markerRuleListBox_SelectedIndexChanged);
+            this.markerRuleListBox.SelectedIndexChanged += new System.EventHandler(this.ruleListBox_SelectedIndexChanged);
             // 
             // segmentRuleTab
             // 
@@ -216,7 +217,7 @@
             this.segmentRuleListBox.Name = "segmentRuleListBox";
             this.segmentRuleListBox.Size = new System.Drawing.Size(206, 307);
             this.segmentRuleListBox.TabIndex = 0;
-            this.segmentRuleListBox.SelectedValueChanged += new System.EventHandler(this.segmentRuleListBox_SelectedValueChanged);
+            this.segmentRuleListBox.SelectedIndexChanged += new System.EventHandler(this.ruleListBox_SelectedIndexChanged);
             // 
             // rulePropertyEditor
             // 
@@ -255,6 +256,7 @@
             this.previewButton.Text = "Preview";
             this.previewButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.previewButton.UseVisualStyleBackColor = true;
+            this.previewButton.Click += new System.EventHandler(this.previewButton_Click);
             // 
             // saveAsButton
             // 
@@ -265,6 +267,7 @@
             this.saveAsButton.Text = "Save As";
             this.saveAsButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.saveAsButton.UseVisualStyleBackColor = true;
+            this.saveAsButton.Click += new System.EventHandler(this.saveAsButton_Click);
             // 
             // saveButton
             // 
@@ -275,6 +278,7 @@
             this.saveButton.Text = "Save";
             this.saveButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.saveButton.UseVisualStyleBackColor = true;
+            this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
             // 
             // ruleAddButton
             // 
@@ -320,6 +324,7 @@
             this.ruleMoveUpButton.Text = "⬆";
             this.ruleMoveUpButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.ruleMoveUpButton.UseVisualStyleBackColor = true;
+            this.ruleMoveUpButton.Click += new System.EventHandler(this.ruleMoveUpButton_Click);
             // 
             // ruleMoveDownButton
             // 
@@ -330,6 +335,7 @@
             this.ruleMoveDownButton.Text = "⬇";
             this.ruleMoveDownButton.TextColorNotEnabled = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(87)))), ((int)(((byte)(4)))));
             this.ruleMoveDownButton.UseVisualStyleBackColor = true;
+            this.ruleMoveDownButton.Click += new System.EventHandler(this.ruleMoveDownButton_Click);
             // 
             // okButton
             // 
