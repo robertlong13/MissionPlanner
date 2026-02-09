@@ -136,7 +136,7 @@ namespace MissionPlanner.Maps
                     break;
                 case (byte)MAVLink.MAV_FRAME.GLOBAL_TERRAIN_ALT:
                 case (byte)MAVLink.MAV_FRAME.GLOBAL_TERRAIN_ALT_INT:
-                    tooltip += " (MSL)";
+                    tooltip += " (AGL)";
                     break;
                 case (byte)MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT:
                 case (byte)MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT_INT:
