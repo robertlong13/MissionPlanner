@@ -1137,25 +1137,23 @@ namespace MissionPlanner.Properties {
         ///      &lt;P4&gt;&lt;/P4&gt;
         ///      &lt;X&gt;Lat&lt;/X&gt;
         ///      &lt;Y&gt;Long&lt;/Y&gt;
-        ///      &lt;Z unitType=&quot;alt&quot;&gt;Alt&lt;/Z&gt;
+        ///      &lt;Z&gt;Alt&lt;/Z&gt;
         ///    &lt;/WAYPOINT&gt;
-        ///    &lt;TAKEOFF&gt;
-        ///      &lt;P1&gt;&lt;/P1&gt;
+        ///    &lt;SPLINE_WAYPOINT&gt;
+        ///      &lt;P1&gt;Delay&lt;/P1&gt;
         ///      &lt;P2&gt;&lt;/P2&gt;
         ///      &lt;P3&gt;&lt;/P3&gt;
         ///      &lt;P4&gt;&lt;/P4&gt;
-        ///      &lt;X&gt;&lt;/X&gt;
-        ///      &lt;Y&gt;&lt;/Y&gt;
-        ///      &lt;Z unitType=&quot;alt&quot;&gt;Alt&lt;/Z&gt;
-        ///    &lt;/TAKEOFF&gt;
-        ///    &lt;RETURN_TO_LAUNCH&gt;
-        ///      &lt;P1&gt;&lt;/P1&gt;
+        ///      &lt;X&gt;Lat&lt;/X&gt;
+        ///      &lt;Y&gt;Long&lt;/Y&gt;
+        ///      &lt;Z&gt;Alt&lt;/Z&gt;
+        ///    &lt;/SPLINE_WAYPOINT&gt;
+        ///    &lt;LOITER_TURNS&gt;
+        ///      &lt;P1&gt;Turns&lt;/P1&gt;
         ///      &lt;P2&gt;&lt;/P2&gt;
-        ///      &lt;P3&gt;&lt;/P3&gt;
+        ///      &lt;P3&gt;Radius&lt;/P3&gt;
         ///      &lt;P4&gt;&lt;/P4&gt;
-        ///      &lt;X&gt;&lt;/X&gt;
-        ///      &lt;Y&gt;&lt;/Y&gt;
-        ///      &lt; [rest of string was truncated]&quot;;.
+        ///   [rest of string was truncated]&quot;;.
         /// </summary>
         public static string mavcmd {
             get {
