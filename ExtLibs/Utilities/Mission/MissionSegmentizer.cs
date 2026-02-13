@@ -20,6 +20,7 @@ namespace MissionPlanner.Utilities
         FromBookmark = 1 << 3,
         ReturnPath = 1 << 4,
         LandSequence = 1 << 5,
+        GoAround = 1 << 6,
     }
 
     /// <summary>
@@ -73,6 +74,7 @@ namespace MissionPlanner.Utilities
             var segments = new List<Segment>();
             var landingEdges = new HashSet<MissionEdge>();
             var returnPathEdges = new HashSet<MissionEdge>();
+            var goAroundEdges = new HashSet<MissionEdge>();
 
             // Construct bookmark segments and also traverse and record landing sequence edges
             foreach (var bookmark in graph.Bookmarks)
@@ -86,6 +88,9 @@ namespace MissionPlanner.Utilities
                         break;
                     case (ushort)MAVLink.MAV_CMD.DO_RETURN_PATH_START:
                         outputEdges = returnPathEdges;
+                        break;
+                    case (ushort)MAVLink.MAV_CMD.DO_GO_AROUND:
+                        outputEdges = goAroundEdges;
                         break;
                     default:
                         outputEdges = null;
@@ -194,6 +199,10 @@ namespace MissionPlanner.Utilities
                 else if (returnPathEdges.Contains(edge))
                 {
                     flags |= SegmentFlags.ReturnPath;
+                }
+                else if (goAroundEdges.Contains(edge))
+                {
+                    flags |= SegmentFlags.GoAround;
                 }
 
                 if ((!HasLocation(a.Command) && overrideSrcPos == null) ||

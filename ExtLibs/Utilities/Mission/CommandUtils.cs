@@ -99,6 +99,12 @@ namespace MissionPlanner.Utilities.Mission
             {
                 return false;
             }
+            if (cmd.id == (ushort)MAVLink.MAV_CMD.DO_GO_AROUND)
+            {
+                // ArduPilot violates the spec and treats this as a positional bookmark
+                // (like DO_LAND_START and DO_RETURN_PATH_START)
+                return true;
+            }
             var mavCmdType = typeof(MAVLink.MAV_CMD);
             if (!Enum.IsDefined(mavCmdType, cmd.id))
                 return true; // unknown, assume positional if lat/lon present
@@ -178,13 +184,14 @@ namespace MissionPlanner.Utilities.Mission
         /// <summary>
         /// Whether the command is a label that marks a point in the mission
         /// sequence without being a navigated waypoint itself
-        /// (JUMP_TAG, DO_LAND_START, DO_RETURN_PATH_START).
+        /// (JUMP_TAG, DO_LAND_START, DO_RETURN_PATH_START, DO_GO_AROUND).
         /// </summary>
         public static bool IsBookmark(ushort cmd)
         {
             return cmd == (ushort)MAVLink.MAV_CMD.JUMP_TAG ||
                    cmd == (ushort)MAVLink.MAV_CMD.DO_LAND_START ||
-                   cmd == (ushort)MAVLink.MAV_CMD.DO_RETURN_PATH_START;
+                   cmd == (ushort)MAVLink.MAV_CMD.DO_RETURN_PATH_START ||
+                   cmd == (ushort)MAVLink.MAV_CMD.DO_GO_AROUND;
         }
 
         public static bool IsRegionOfInterest(ushort cmd)

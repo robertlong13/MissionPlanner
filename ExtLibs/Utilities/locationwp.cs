@@ -38,6 +38,10 @@ namespace MissionPlanner.Utilities
         /// <returns>true/false</returns>
         public static bool isLocationCommand(ushort id)
         {
+            // ArduPilot violates the MAVLink spec and treats DO_GO_AROUND as
+            // a location command, even though it is not marked as such.
+            if (id == (ushort)MAVLink.MAV_CMD.DO_GO_AROUND)
+                return true;
             try
             {
                 var typeofthing = typeof(MAVLink.MAV_CMD);

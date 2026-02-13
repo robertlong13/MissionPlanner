@@ -314,6 +314,8 @@ namespace MissionPlanner.Maps
                 return "LS";
             case (ushort)MAVLink.MAV_CMD.DO_RETURN_PATH_START:
                 return "RP";
+            case (ushort)MAVLink.MAV_CMD.DO_GO_AROUND:
+                return "GA";
             default:
                 return "";
             }
