@@ -3449,6 +3449,8 @@ namespace MissionPlanner.GCSViews
 
             POI.POIModified += POI_POIModified;
 
+            GMapMarkerWP.MaxWPLabels = Settings.Instance.GetInt32("MaxWPLabels", 100);
+
             if (Settings.Instance["WMSserver"] != null)
             {
                 WMSProvider.CustomWMSURL = Settings.Instance["WMSserver"];
