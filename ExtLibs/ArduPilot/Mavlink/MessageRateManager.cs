@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using log4net;
@@ -83,6 +84,7 @@ namespace MissionPlanner.ArduPilot.Mavlink
             = new Dictionary<(uint, byte, byte), (long, long)>();
 
         private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+        private int _tickIntervalMs;
         private Task _loop;
         private bool _drainingRestores;
 
@@ -90,9 +92,11 @@ namespace MissionPlanner.ArduPilot.Mavlink
         /// Initializes a new instance of the <see cref="MessageRateManager"/> class.
         /// </summary>
         /// <param name="port">The MAVLink interface to manage rates on.</param>
-        public MessageRateManager(MAVLinkInterface port)
+        /// <param name="tickIntervalMs">Interval between background rate checks in milliseconds.</param>
+        public MessageRateManager(MAVLinkInterface port, int tickIntervalMs = 30_000)
         {
             _port = port;
+            _tickIntervalMs = tickIntervalMs;
         }
 
         /// <summary>
@@ -280,7 +284,7 @@ namespace MissionPlanner.ArduPilot.Mavlink
             {
                 try
                 {
-                    await Task.Delay(30_000, _cts.Token).ConfigureAwait(false);
+                    await Task.Delay(_tickIntervalMs, _cts.Token).ConfigureAwait(false);
                     Tick();
                     await RetryPendingRestoresAsync().ConfigureAwait(false);
                 }
@@ -668,6 +672,85 @@ namespace MissionPlanner.ArduPilot.Mavlink
             catch (Exception ex)
             {
                 log.Debug("RateManager: fire-and-forget GET failed: " + ex.Message);
+            }
+        }
+
+        // --- Debug surface (DROPME) ---
+
+        internal string DumpState()
+        {
+            var sb = new StringBuilder();
+            lock (_lock)
+            {
+                sb.AppendLine($"Leases: {_leases.Sum(kv => kv.Value.Count)}");
+                foreach (var kv in _leases)
+                {
+                    var (msgId, sysid, compid) = kv.Key;
+                    foreach (var lease in kv.Value)
+                    {
+                        sb.AppendLine($"  msg {msgId} ({sysid},{compid}) {lease.Hz:F1} Hz " +
+                            $"owner={lease.Owner} released={lease.Released}");
+                    }
+                }
+
+                sb.AppendLine($"NACKed: {_nackedMessages.Count}");
+                foreach (var n in _nackedMessages)
+                    sb.AppendLine($"  msg {n.msgId} ({n.sysid},{n.compid})");
+
+                sb.AppendLine($"PendingRestores: {_pendingRestores.Count}");
+                foreach (var p in _pendingRestores)
+                    sb.AppendLine($"  msg {p.msgId} ({p.sysid},{p.compid})");
+
+                sb.AppendLine($"IntervalSubs: {_intervalSubs.Count}");
+                sb.AppendLine($"Loop: {(_loop == null ? "null" : _loop.Status.ToString())}");
+                sb.AppendLine($"TickInterval: {_tickIntervalMs} ms");
+            }
+            return sb.ToString();
+        }
+
+        internal Task ForceTick()
+        {
+            Tick();
+            return RetryPendingRestoresAsync();
+        }
+
+        internal void SetTickInterval(int ms)
+        {
+            _tickIntervalMs = ms;
+        }
+
+        internal (double observedHz, double estimatedSendHz, double lq) GetMeasuredRate(uint msgId, byte sysid, byte compid)
+        {
+            var key = (msgId, sysid, compid);
+            long currentCount;
+            (long count, long ticks) snapshot;
+
+            lock (_lock)
+            {
+                if (!_packetCounts.TryGetValue(key, out currentCount) ||
+                    !_tickSnapshots.TryGetValue(key, out snapshot))
+                    return (0, 0, 1);
+            }
+
+            double elapsed = (double)(Stopwatch.GetTimestamp() - snapshot.ticks) / Stopwatch.Frequency;
+            if (elapsed < 0.1)
+                return (0, 0, 1);
+
+            long delta = currentCount - snapshot.count;
+            double observedHz = delta > 0 ? delta / elapsed : 0;
+            double lqFraction = GetLinkQuality(sysid, compid);
+            double lqMultiplier = lqFraction > 0.5 ? 1.0 / lqFraction : 2.0;
+            return (observedHz, observedHz * lqMultiplier, lqFraction);
+        }
+
+        internal List<MessageRateLease> GetLeases(uint msgId, byte sysid, byte compid)
+        {
+            var key = (msgId, sysid, compid);
+            lock (_lock)
+            {
+                if (_leases.TryGetValue(key, out var list))
+                    return new List<MessageRateLease>(list);
+                return new List<MessageRateLease>();
             }
         }
 

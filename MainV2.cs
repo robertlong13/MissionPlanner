@@ -1089,6 +1089,9 @@ namespace MissionPlanner
 
             MainV2.comPort.MavChanged += comPort_MavChanged;
 
+            // DROPME: start debug TCP listener for RateManager testing
+            new Utilities.RateManagerDebugListener().Start();
+
             // save config to test we have write access
             SaveConfig();
         }
