@@ -5151,11 +5151,11 @@ Mission Planner waits for 2 valid heartbeat packets before connecting
                             MAVlist[sysid, compid].packetslost += numLost;
                             WhenPacketLost.OnNext(numLost);
 
-                            if (!logreadmode)
-                                log.InfoFormat("mav {2}-{4} seqno {0} exp {3} pkts lost {1}", packetSeqNo,
-                                    numLost,
-                                    sysid,
-                                    expectedPacketSeqNo, compid);
+                            //if (!logreadmode)
+                            //    log.InfoFormat("mav {2}-{4} seqno {0} exp {3} pkts lost {1}", packetSeqNo,
+                            //        numLost,
+                            //        sysid,
+                            //        expectedPacketSeqNo, compid);
                         }
 
                         MAVlist[sysid, compid].packetsnotlost++;
@@ -6503,7 +6503,7 @@ Mission Planner waits for 2 valid heartbeat packets before connecting
         private EventHandler _ParamListChanged;
         private EventHandler _MavChanged;
         private EventHandler _CommsClose;
-        public bool printbps = true;
+        public bool printbps = false;
         private bool _openComplete = true;
 
         private MAVLinkMessage readlogPacketMavlink()

@@ -4414,7 +4414,7 @@ namespace MissionPlanner
         {
             Message temp = new Message();
             ProcessCmdKey(ref temp, e.KeyData);
-            Console.WriteLine("MainV2_KeyDown " + e.ToString());
+            //Console.WriteLine("MainV2_KeyDown " + e.ToString());
         }
 
         private void toolStripMenuItem1_Click(object sender, EventArgs e)

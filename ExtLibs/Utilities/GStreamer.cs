@@ -1196,7 +1196,7 @@ namespace MissionPlanner.Utilities
         {
             string stringpipeline = (string)datao;
 
-            Environment.SetEnvironmentVariable("GST_DEBUG", "*:4");
+            Environment.SetEnvironmentVariable("GST_DEBUG", "*:2");
 
             try
             {

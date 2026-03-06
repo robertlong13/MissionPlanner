@@ -171,7 +171,7 @@
 
                 if (graphicsPath.PointCount > 400)
                 {
-                    Console.WriteLine("route OnRender Large Graphics Path " + graphicsPath.PointCount);
+                    //Console.WriteLine("route OnRender Large Graphics Path " + graphicsPath.PointCount);
                 }
 
                g.DrawPath(Stroke, graphicsPath);
